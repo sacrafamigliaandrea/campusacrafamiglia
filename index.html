@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>La chiave del Campus — Scuola Sacra Famiglia</title>
-<link rel="icon" href="logo.png">
-<link rel="apple-touch-icon" href="logo.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23C73834'/%3E%3Cpath d='M21.6 10.6a7.2 7.2 0 1 0 0 10.8' fill='none' stroke='%23fff' stroke-width='4.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="campus-icona.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@500;600;700&family=Open+Sans:ital,wght@0,400;0,700;1,700&display=swap" rel="stylesheet">
 <style>
   :root{ --blu:#123E90; --blu2:#0d2f6e; --ambra:#B8860B; --ambra2:#D4A017; --verde:#1f7a43; }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -22,6 +22,8 @@
     padding:8px 15px 8px 10px;box-shadow:0 4px 18px rgba(13,47,110,.18)}
   #targa .tit{font-family:'Lexend',sans-serif;font-weight:700;font-size:15px;color:var(--blu);line-height:1.15}
   #targa .sot{font-size:12px;color:#4a5a7a}
+  #marchio{width:86px;height:41px;flex:0 0 auto}
+  #targa .barretta{width:1px;height:30px;background:#d7dde8;flex:0 0 auto}
 
   /* ---- carta dell'indizio ---- */
   #carta{position:fixed;top:74px;left:12px;z-index:20;width:min(370px,calc(100vw - 24px));
@@ -176,11 +178,18 @@
 <canvas id="scena"></canvas>
 
 <div id="targa">
-  <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
-    <rect x="1.5" y="1.5" width="31" height="31" rx="7" fill="#123E90"/>
-    <path d="M17 6 L28 12 L17 18 L6 12 Z" fill="#fff"/>
-    <path d="M10 15.5 V22 Q17 26.5 24 22 V15.5 L17 19.5 Z" fill="#fff" opacity=".85"/>
+  <!-- marchio del Campus ricostruito da Campus.jpeg: banda #C73834, wordmark
+       bianco con l'asta della "p" che taglia il bordo inferiore, sottoriga a
+       due colori. Misure prese sull'originale (banda 618x194 su 777x375). -->
+  <svg id="marchio" viewBox="0 0 777 375" role="img" aria-label="campus sacrafamiglia.education">
+    <rect x="83" y="101" width="618" height="194" fill="#C73834"/>
+    <text x="128" y="262" font-family="'Open Sans',Lexend,sans-serif" font-size="136"
+          font-weight="700" fill="#ffffff">campus</text>
+    <text x="88" y="345" font-family="'Open Sans',Lexend,sans-serif" font-size="52.5"
+          font-weight="400" fill="#C0342F">sacra<tspan font-weight="700">famiglia</tspan><tspan
+          fill="#646464">.</tspan><tspan fill="#646464" font-weight="700" font-style="italic">education</tspan></text>
   </svg>
+  <div class="barretta"></div>
   <div>
     <div class="tit">La chiave del Campus</div>
     <div class="sot">Scuola Sacra Famiglia · Orzinuovi</div>
@@ -454,17 +463,21 @@ function tettoPiano(p,cx,cz,Lx,Lz,y,colPar){
   return g;
 }
 /* ===================== materiali e texture del mondo ===================== */
+/* INTONACO del corpo storico: la facciata nord non e' a mattoni ne' a blocchi
+   squadrati — e' rasata e tinteggiata in un grigio-sabbia chiaro, con macchie
+   di umidita' e rappezzi. Niente corsi orizzontali. */
 const texPietra=(()=>{const c=mkCanvas(512,512),g=c.getContext('2d'),rnd=seme(19);
-  g.fillStyle='#b3a894';g.fillRect(0,0,512,512);
-  let y=0;
-  while(y<512){const h=18+rnd()*20;let x=-(rnd()*40);
-    while(x<512){const w=30+rnd()*52;
-      g.fillStyle=['#c3b69e','#b0a48c','#cabda4','#a2957e','#bbae96','#d2c5ac','#988c76','#b6aa92'][(rnd()*8)|0];
-      g.fillRect(x+1.5,y+1.5,w-3,h-3);
-      g.fillStyle='rgba(255,255,255,.10)';g.fillRect(x+1.5,y+1.5,w-3,3);
-      g.fillStyle='rgba(0,0,0,.16)';g.fillRect(x+1.5,y+h-4.5,w-3,3);
-      x+=w;}
-    y+=h;}
+  g.fillStyle='#c6bda9';g.fillRect(0,0,512,512);
+  for(let i=0;i<420;i++){                       /* rappezzi, tono su tono */
+    const v=196+rnd()*30|0;
+    g.fillStyle='rgba('+v+','+(v-6|0)+','+(v-20|0)+',.28)';
+    g.beginPath();g.ellipse(rnd()*512,rnd()*512,12+rnd()*44,10+rnd()*30,rnd()*3,0,Math.PI*2);g.fill();}
+  for(let i=0;i<220;i++){                       /* velature verticali di pioggia */
+    g.fillStyle='rgba(150,142,126,'+(0.02+rnd()*0.05).toFixed(3)+')';
+    g.fillRect(rnd()*512,rnd()*512,2+rnd()*5,18+rnd()*90);}
+  for(let i=0;i<900;i++){                       /* grana fine dell'intonaco */
+    g.fillStyle=rnd()<0.5?'rgba(255,255,255,.045)':'rgba(120,112,98,.045)';
+    g.fillRect(rnd()*512,rnd()*512,2,2);}
   return tex(c,true);})();
 function matPietra(rx,ry){const t=texPietra.clone();t.needsUpdate=true;t.repeat.set(rx,ry);
   return lam(0xffffff,{map:t});}
@@ -751,7 +764,12 @@ function vetrataCorridoio(p,x0,x1,z,ry,y0){
     -5.1,0,z1,0);
   muroPietra(null,12,hM,[{fx:0.5,fy:7.0,fw:1.2,fh:1.6}],x1,0,cz,Math.PI/2);
   tetto(mondo,cx,cz,w,12,hM,alt,{pluviali:0,comignoli:[[-30,0,1.6],[-8,0,1.5],[8,0,1.5]]});
-  for(let i=0;i<9;i++) siepe(-58+i*8.6,-25.3,5.4,1.4,1.0+((i*3)%2)*0.2);
+  /* sotto il muro c'e' la ghiaia; di verde solo pochi cespugli tondi in gruppo */
+  [[-30,1.0],[-26.6,0.85],[-23.4,1.05],[-19.8,0.8],[-6.5,0.95]].forEach(q=>{
+    const r=q[1];
+    const c=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),lam(0x4e6f3c));
+    c.position.set(q[0],r*0.82,-25.5);c.scale.y=0.9;c.castShadow=true;mondo.add(c);
+    contatto(mondo,q[0],0.03,-25.5,r*2.6,r*2.6,0.5);});
   contatto(mondo,cx,0.025,cz,w+4,17,0.5);
 })();
 
@@ -1638,55 +1656,55 @@ let ancoraBiliardino=null, ancoraCase=null;
 const TAPPE=[
   { titolo:'L\'arco che tutti attraversano',
     indizio:'Il muro più antico del campus non è intonacato: è fatto di sassi squadrati, uno accanto all\'altro. In mezzo si apre l\'unica curva di pietra chiara di tutta la scuola. Cercala dal lato della strada e del parcheggio, non dal cortile.',
-    pos:[-36.5,0.45,-25.6], da:[-36.5,3.2,-30.5], zona:'Sul lato nord, quello del parcheggio e della rotonda.',
+    pos:[-36.5,0.45,-25.6], da:[-36.5,3.2,-30.5], zona:'Ingresso Scuola, sul fronte nord verso il Parcheggio.',
     cosa:'Una cassetta di legno appoggiata a terra, accanto allo stipite di pietra chiara.',
     imparato:'Il corpo storico della scuola è in pietra a vista, con il portale ad arco al centro della facciata nord: è da lì che si entrava, ed è la parte più antica del campus. Tutto il resto — le vetrate, i corridoi luminosi — è stato aggiunto dopo, verso il cortile.' },
 
   { titolo:'Il rettangolo con due mezzelune',
     indizio:'Nel cortile chiuso a ferro di cavallo c\'è un campo rosso scuro con due mezzelune azzurre e un cerchio in mezzo. Sopra, da una parte all\'altra, corre un filo di bandierine bianche e blu. Non cercare la cassetta sul canestro col palo: cercala sotto quello appeso al muro.',
-    pos:[-14,0.42,-5.0], da:[-14,3.0,1.5], zona:'Nel cortile interno, contro la facciata bianca a nord.',
+    pos:[-14,0.42,-5.0], da:[-14,3.0,1.5], zona:'Campo Basket, nel cortile interno, contro la facciata bianca a nord.',
     cosa:'Una cassetta di legno a terra, proprio sotto il tabellone fissato al muro.',
     imparato:'Il cortile è il centro del ferro di cavallo: da qui vedi tutte e tre le ali insieme. Le facciate che danno sul cortile sono bianche, con vetrate lunghe e pannelli gialli — sono i corridoi del primo piano visti da fuori.' },
 
   { titolo:'Quattro colori, quattro nomi',
     indizio:'Sali al primo piano, nell\'ala dove le pareti sono gialle, gli stipiti arancioni e il pavimento è a scacchi caldi. Su un muro un quadrato è diviso in quattro: un\'aquila, una quercia, un cero, un tasso. Davanti al quadrato c\'è un tavolo dove si gioca girando delle aste.',
-    pos:[-72.6,4.19+1.12,3.2], da:[-70.3,6.1,6.8], zona:'Ala ovest, primo piano: il salone della Primaria.',
+    pos:[-72.6,4.19+1.12,3.2], da:[-70.3,6.1,6.8], zona:'Scuola Primaria, primo piano: il salone.',
     cosa:'Una cassetta di legno appoggiata sul biliardino chiaro.',
     imparato:'Le quattro Case della Sacra Famiglia — Aquilablu, Querciaverde, Cerogiallo, Tassorosso — dividono gli studenti in squadre che restano le stesse negli anni. Servono a far conoscere ragazzi di classi diverse.' },
 
   { titolo:'I gradini che fanno i conti',
     indizio:'C\'è una scala che non serve solo a salire: su ogni alzata qualcuno ha incollato quadretti numerati colorati, e i numeri crescono di riga in riga. Sta al primo piano, vicino al vuoto alto due piani. La cassetta è a terra, appoggiata contro il primo gradino.',
-    pos:[-33.2,4.19,-19.0], da:[-35.1,5.3,-19.0], zona:'Nell\'atrio a doppia altezza, sul lato del mezzanino.',
+    pos:[-33.2,4.19,-19.0], da:[-35.1,5.3,-19.0], zona:'L\'atrio dell\'Ingresso Scuola, sul lato del mezzanino.',
     cosa:'Una cassetta di legno a terra, ai piedi della scala coi quadretti numerati.',
     imparato:'La scala delle tabelline trasforma un passaggio obbligato in un ripasso involontario: ogni volta che sali, i numeri ti passano davanti. È un\'idea semplice — mettere il contenuto dove il corpo passa comunque.' },
 
   { titolo:'Il muro che sembra un quadro',
     indizio:'Sempre al primo piano, un muro è coperto di rettangoli arancio, blu, rossi, verdi e crema, senza nessuna figura riconoscibile. Sotto ci sono un divano grigio, una panchina a listelli di legno e un albero in un vaso di terracotta.',
-    pos:[-32.1,4.19+0.5,-7.7], da:[-29.3,5.9,-9.6], zona:'Sul mezzanino dell\'atrio, parete ovest.',
+    pos:[-32.1,4.19+0.5,-7.7], da:[-29.3,5.9,-9.6], zona:'Mezzanino dell\'atrio dell\'Ingresso Scuola, parete ovest.',
     cosa:'Una cassetta di legno sulla panchina a listelli.',
     imparato:'Un muro fatto di soli rettangoli colorati richiama l\'astrattismo di Piet Mondrian: l\'arte non deve per forza rappresentare qualcosa. Qui serve anche a segnalare il punto di sosta della scuola — l\'unico posto del piano dove ci si siede senza un banco davanti.' },
 
   { titolo:'Dove il pavimento cambia quota',
     indizio:'Nel lungo corridoio del primo piano il pavimento grigio si interrompe: cinque gradini larghi quanto tutto il passaggio ti fanno salire di mezzo metro. Da lì in poi, sulle pareti bianche, corrono due listelli di legno che reggono i lavori appesi.',
-    pos:[-8.9,3.55+0.62,-9.0], da:[-13.4,5.2,-8.9], zona:'Nel corridoio degli uffici, verso est.',
+    pos:[-8.9,3.55+0.62,-9.0], da:[-13.4,5.2,-8.9], zona:'Il corridoio che collega Scuola Primaria e Scuola Secondaria, verso est.',
     cosa:'Una cassetta di legno sul gradino più alto.',
     imparato:'Le ali della scuola sono state costruite in tempi diversi e hanno quote di pavimento leggermente diverse: invece di rifare tutto, le hanno raccordate con gradinate larghe quanto il corridoio. È una traccia visibile della storia dell\'edificio.' },
 
   { titolo:'Il campo fra due filari',
     indizio:'Esci dal ferro di cavallo e vai verso sud-ovest. Un grande rettangolo verde è chiuso a est e a ovest da due file di alberi alti, e tutt\'intorno da una rete che trattiene il pallone. Guarda dentro la porta più vicina alla scuola.',
-    pos:[-26.5,0.4,33.4], da:[-26.5,2.6,38.5], zona:'Il campo da calcio, a sud-ovest del cortile.',
+    pos:[-26.5,0.4,33.4], da:[-26.5,2.6,38.5], zona:'Campo Calcio, a sud del cortile.',
     cosa:'Una cassetta di legno dentro la porta, sulla linea.',
     imparato:'Il campo grande è orientato nord-sud e protetto da due filari di alberi: fanno ombra al pomeriggio e fermano il vento. Il verde intorno alla scuola non è decorazione, è progetto.' },
 
   { titolo:'L\'acqua oltre il confine',
     indizio:'A nord-est, appena fuori dal recinto della scuola, ci sono vasche azzurre, due grandi coperture di vetro a falde e una torre con due scivoli dritti. Dalle finestre delle aule si vede tutto. La cassetta è a bordo della vasca lunga con le corsie.',
-    pos:[78,0.55,-42.2], da:[73.5,3.4,-37.5], zona:'Le piscine, a nord-est del campus.',
+    pos:[78,0.55,-42.2], da:[73.5,3.4,-37.5], zona:'Piscine Andreana, a est del campus.',
     cosa:'Una cassetta di legno sul bordo piastrellato della vasca.',
     imparato:'Le piscine confinano con il campus ma non sono della scuola. Il campus non finisce con un muro: finisce dove cambia chi si prende cura dello spazio.' },
 
   { titolo:'Il cuore della scuola',
     indizio:'Torna dove tutto si affaccia: un vuoto alto due piani, colonne d\'acciaio dal pavimento al soffitto, ringhiere blu intorno al vuoto e un soffitto a fasce arancio e celeste. Lì in mezzo, sul tavolo di legno scuro, c\'è quello che stavi cercando.',
-    pos:[-27.5,4.19+0.83,-7.9], da:[-25.4,6.1,-10.6], zona:'Il mezzanino dell\'atrio, sul tavolo grande.',
+    pos:[-27.5,4.19+0.83,-7.9], da:[-25.4,6.1,-10.6], zona:'Mezzanino dell\'atrio dell\'Ingresso Scuola, sul tavolo grande.',
     cosa:'Un piccolo forziere di legno con le borchie d\'ottone.',
     imparato:'Non c\'era un oggetto prezioso da trovare: la chiave del campus è saperlo attraversare. Ora sai da dove si entra, dove cambia quota il pavimento, perché le pareti cambiano colore e dove finisce la scuola.' }
 ];
@@ -1871,16 +1889,17 @@ if(TOCCO){
   canvas.addEventListener('touchend',e=>{const t=e.changedTouches[0];
     if(t) provaClic(t.clientX,t.clientY);},{passive:true});}
 
+/* nomi come sulla mappa Campus_zone.png */
 const LUOGHI=[
   ['Vista dall\'alto',[30,46,64],[-25,0,0]],
-  ['Ingresso nord',[-36,4,-36],[-36,3,-24]],
-  ['Cortile',[-6,2.4,24],[-6,3.5,-6]],
-  ['Primaria (1° piano)',[-72,5.8,28],[-72,5.2,2]],
+  ['Ingresso Scuola',[-36,4,-36],[-36,3,-24]],
+  ['Campo Basket',[-6,2.4,24],[-6,3.5,-6]],
+  ['Scuola Primaria',[-72,5.8,28],[-72,5.2,2]],
   ['Atrio e mezzanino',[-26,5.9,-7.2],[-31,4.4,-15]],
-  ['Corridoio uffici',[-58,5.2,-9],[-30,4.6,-9.3]],
-  ['Secondaria (1° piano)',[11,5.7,13],[11.5,5.2,-4]],
-  ['Campo da calcio',[-26,3,80],[-26,3,40]],
-  ['Piscine',[80,16,-2],[55,2,-30]]
+  ['Corridoio del primo piano',[-58,5.2,-9],[-30,4.6,-9.3]],
+  ['Scuola Secondaria',[11,5.7,13],[11.5,5.2,-4]],
+  ['Campo Calcio',[-26,3,80],[-26,3,40]],
+  ['Piscine Andreana',[80,16,-2],[55,2,-30]]
 ];
 let voloDa=null,voloA=null,voloT=1,mira=new THREE.Vector3();
 window.vaiA=function(i){const m=LUOGHI[i];
