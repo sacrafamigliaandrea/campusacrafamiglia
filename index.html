@@ -86,6 +86,27 @@
     .foglio.card{min-height:0;background-position:center top}
     .card .colonna{width:100%;background:linear-gradient(180deg,rgba(8,17,29,.90),rgba(8,17,29,.97))}
   }
+  /* ---- pannello della domanda ---- */
+  .foglio .domanda{font-family:'Lexend',sans-serif;font-size:19px;line-height:1.35;
+    color:var(--blu);margin:6px 0 14px}
+  .opz{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+  .opz button{text-align:left;padding:12px 15px;font-family:'Atkinson Hyperlegible',sans-serif;
+    font-size:16px;line-height:1.35;color:#25313f;background:#fff;
+    border:1.5px solid #cfd8e6;border-radius:11px;cursor:pointer}
+  .opz button:hover{background:#eef3fc;border-color:#9fb6dc}
+  .opz button.via{opacity:.28;pointer-events:none;text-decoration:line-through}
+  .opz button.giusta{background:#e7f4ea;border-color:var(--verde);color:#14502e;font-weight:700}
+  .opz button.sbagliata{background:#fdf3e0;border-color:var(--ambra2);color:#6b4e10}
+  .aiuti{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+  .aiuti button{font-family:'Lexend',sans-serif;font-weight:600;font-size:13px;
+    color:var(--ambra);background:#fdf6e3;border:1px solid #e6d3a3;border-radius:9px;
+    padding:8px 13px;cursor:pointer}
+  .aiuti button:hover{background:#f8edd0}
+  .aiuti button[disabled]{opacity:.4;cursor:default}
+  .religioso{display:flex;gap:11px;align-items:flex-start;margin-top:11px;padding:11px 13px;
+    background:#f2f6fd;border:1px solid #c9d8ef;border-radius:11px;font-size:15px;
+    line-height:1.5;color:#2b3b52}
+  .religioso svg{flex:0 0 auto;margin-top:2px}
   .bottoni{display:flex;gap:9px;margin-top:18px;flex-wrap:wrap}
   .bottoni button{flex:1 1 auto;padding:12px 16px;font-family:'Lexend',sans-serif;font-weight:700;
     font-size:15px;color:#fff;background:var(--blu);border:none;border-radius:11px;cursor:pointer}
@@ -884,10 +905,13 @@ function vetrataCorridoio(p,x0,x1,z,ry,y0){
   box(g,w,0.12,0.3,lam(0xcac6bc),0,sill+0.02,0.03,false);      /* davanzale */
   const v=new THREE.Mesh(new THREE.PlaneGeometry(w-0.3,hV-0.2),matVetro);
   v.position.set(0,sill+hV/2,0.05);g.add(v);varco(v);
+  /* 4861/4862/4873: nessun pannello giallo sull'esterno. Montanti tutti grigi,
+     e ogni cinque campate un PILASTRO INTONACATO piu' largo, dello stesso
+     colore del muro. Il giallo esiste solo DENTRO, sui pannelli di parete. */
   const n=Math.max(3,Math.round(w/2.9));
   for(let i=0;i<=n;i++){
-    const px=-w/2+0.14+i*(w-0.28)/n, giallo=(i%5===2);
-    box(g,giallo?0.62:0.13,hV,0.22,giallo?matGiallo:matTelaioGrigio,px,sill+hV/2,0.02,false);
+    const px=-w/2+0.14+i*(w-0.28)/n, pil=(i%5===2);
+    box(g,pil?0.62:0.13,hV,pil?0.30:0.22,pil?matIntonaco:matTelaioGrigio,px,sill+hV/2,0.02,false);
   }
   box(g,w,0.13,0.22,matTelaioGrigio,0,sill+1.55,0.02,false);   /* traverso */
   solido(box(g,w,0.9,0.3,matIntonaco,0,sill+hV+0.45,0,false)); /* fascia sopra */
@@ -909,7 +933,7 @@ function vetrataCorridoio(p,x0,x1,z,ry,y0){
   muroPietra(null,12,hM,[{fx:0.5,fy:7.0,fw:1.2,fh:1.6}],x1,0,cz,Math.PI/2);
   /* il tetto sconfina di 6 m su entrambi i lati: le ali confinanti sono piu'
      alte e lo coprono, ma cosi' negli angoli non resta piu' nessuna fessura */
-  tetto(mondo,cx+3,cz,w+12,12,hM,alt,{pluviali:0,comignoli:[[-30,0,1.6],[-8,0,1.5],[8,0,1.5]]});
+  tetto(mondo,cx,cz,w+1.2,12,hM,alt,{pluviali:0,comignoli:[[-30,0,1.6],[-8,0,1.5],[8,0,1.5]]});
   /* sotto il muro c'e' la ghiaia; di verde solo pochi cespugli tondi in gruppo */
   [[-30,1.0],[-26.6,0.85],[-23.4,1.05],[-19.8,0.8],[-6.5,0.95]].forEach(q=>{
     const r=q[1];
@@ -923,9 +947,12 @@ function vetrataCorridoio(p,x0,x1,z,ry,y0){
 const H_MOD=7.6;
 (function fasciaNord(){
   const x0=-64,x1=14,z=-6,w=x1-x0;
-  muroFin(null,w,3.5,0xeeece4,
-    (()=>{const f=[];for(let i=0;i<12;i++)f.push({fx:0.04+i*0.083,fy:2.1,fw:2.6,fh:1.35});return f;})(),
+  /* piano terra BIANCO con finestre basse e quadrate a telaio bianco;
+     il primo piano e' grigio chiaro. Fra i due, una fascia marcapiano. */
+  muroFin(null,w,3.5,0xf4f2ec,
+    (()=>{const f=[];for(let i=0;i<16;i++)f.push({fx:0.032+i*0.062,fy:2.15,fw:1.5,fh:1.15});return f;})(),
     (x0+x1)/2,0,z,0);
+  box(mondo,w,0.26,0.36,lam(0xdedbd2),(x0+x1)/2,3.52,z-0.06,false);   /* marcapiano */
   vetrataCorridoio(null,x0,-36,z,0,3.5);
   vetrataCorridoio(null,-24,x1,z,0,3.5);
   /* tratto atrio: vetrata a tutta altezza fra i due corridoi */
@@ -958,7 +985,7 @@ const H_MOD=7.6;
     x0,0,cz,-Math.PI/2);
   muroPietra(null,12,hM,[{fx:0.3,fy:7.4,fw:1.2,fh:1.6},{fx:0.7,fy:7.4,fw:1.2,fh:1.6},{fx:0.5,fy:3.6,fw:1.3,fh:1.8}],cx,0,z0,Math.PI);
   muroPietra(null,12,hM,[{fx:0.5,fy:7.6,fw:1.3,fh:1.6}],cx,0,z1,0);
-  tetto(mondo,cx,cz+3,12,d+6,hM,3.0,{pluviali:0,comignoli:[[0,-12,1.5],[0,10,1.5]]});
+  tetto(mondo,cx,cz,12,d+1.2,hM,3.0,{pluviali:0,comignoli:[[0,-12,1.5],[0,10,1.5]]});
   contatto(mondo,cx,0.025,cz,17,d+4,0.5);
   /* fascia moderna bianca sul cortile */
   const mx=8,mz0=-6,mz1=18,md=mz1-mz0,mcz=(mz0+mz1)/2;
@@ -972,6 +999,25 @@ const H_MOD=7.6;
   tettoPiano(mondo,11,mcz,6.2,md,H_MOD);
   box(mondo,0.07,0.55,md,lam(0x2e5f9e),7.83,0.3,mcz,false);
   contatto(mondo,11,0.025,mcz,9,md+3,0.45);
+})();
+
+/* --- raccordi d'angolo fra i tetti delle ali (compluvi) --- */
+(function raccordiTetti(){
+  /* angolo NORD-EST: ala nord (colmo E-O, muri 9.6) incontra ala est
+     (colmo N-S, muri 10.4). Il raccordo sta alla quota della piu' bassa. */
+  tetto(mondo,14,-18,13.5,13.5,9.6,2.2,{sporto:0.5,pluviali:0});
+  /* angolo SUD-EST: l'ala est incontra la palazzina crema (muri 6.6):
+     una falda di raccordo scende dal fianco dell'ala fino alla palazzina */
+  (function valleSE(){
+    const g=new THREE.Group(); mondo.add(g);
+    const x0=17.2,x1=26.6,z0=17.4,z1=21.2;
+    const A=V(x0,7.2,z0),B=V(x1,7.2,z0),C=V(x1,9.4,z1),D=V(x0,9.4,z1);
+    falda(g,[A,B,C,D],matTegole,2.0);
+    colmo(g,V(x0,9.5,z1),V(x1,9.5,z1),0.14);
+    box(g,x1-x0+0.4,0.2,0.14,matGronda,(x0+x1)/2,7.1,z0-0.05,false);
+    box(g,0.4,2.4,z1-z0,lam(0xb3a894),x0-0.1,8.3,(z0+z1)/2,false);
+    box(g,0.4,2.4,z1-z0,lam(0xb3a894),x1+0.1,8.3,(z0+z1)/2,false);
+    contatto(mondo,(x0+x1)/2,0.03,(z0+z1)/2,12,7,0.4);})();
 })();
 
 /* ============ PALAZZINA CREMA + scala esterna (angolo SE) ================ */
@@ -1000,15 +1046,20 @@ const H_MOD=7.6;
     contatto(mondo,6.8,0.028,18.4,3.4,8,0.55);})();
   contatto(mondo,cx,0.025,cz,17,15,0.5);
   /* festone di bandierine sul cortile (presente in tutte le foto) */
-  (function festone(){
-    const a=V(7,6.4,19),b=V(-38.5,4.8,7),n=44,pt=[];
-    for(let i=0;i<=n;i++){const t=i/n;
-      const p=V(0,0,0).lerpVectors(a,b,t); p.y-=Math.sin(Math.PI*t)*1.0; pt.push(p.clone());
-      if(i<n){const bd=new THREE.Mesh(new THREE.ConeGeometry(0.075,0.22,3),
-          new THREE.MeshBasicMaterial({color:(i%2)?0x2f5fae:0xf2f2ee}));
-        bd.position.copy(p);bd.position.y-=0.13;bd.rotation.x=Math.PI;mondo.add(bd);}}
-    mondo.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pt),
-      new THREE.LineBasicMaterial({color:0x4a5058})));})();
+  /* 4861/4862/4863: sopra il cortile non ci sono bandierine, ma QUATTRO CAVI
+     COLORATI tesi da una facciata all'altra, quasi paralleli, con la campata
+     leggermente calante. Sono spessi e ben visibili. */
+  (function caviCortile(){
+    const cavi=[[0x2f6fb5,6.55,6.70],[0x3fa02a,6.35,6.50],
+                [0xe07a1e,6.15,6.30],[0x6fc4e8,5.95,6.10]];
+    cavi.forEach((c,k)=>{
+      const a=V(7.6,c[1],17.5-k*0.55), b=V(-39.2,c[2],5.5-k*0.55), n=26, pt=[];
+      for(let i=0;i<=n;i++){ const t=i/n;
+        const p=V(0,0,0).lerpVectors(a,b,t); p.y-=Math.sin(Math.PI*t)*0.85; pt.push(p); }
+      const cu=new THREE.CatmullRomCurve3(pt);
+      const tu=new THREE.Mesh(new THREE.TubeGeometry(cu,60,0.055,6,false),
+        new THREE.MeshBasicMaterial({color:c[0]}));
+      mondo.add(tu);});})();
 })();
 
 /* ============ BLOCCO CORRIDOIO (bianco, 3 piani, finestre a nastro) ====== */
@@ -1081,23 +1132,35 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
   /* blocco bianco moderno dietro */
   /* IMG_4898: non una scatola, ma un corpo a tre livelli con fasce di finestre
      continue a telaio scuro, balcone al primo piano e cornicione piatto. */
-  (function corpoVetrato(){
-    const cx=-54,cz=25,w=17,d=11,h=10.4,crema=0xe9e4d6;
-    solido(box(g,w,h,d,lam(crema),cx,h/2,cz,true));
-    const fasce=()=>{const f=[];for(let r=0;r<3;r++)for(let i=0;i<5;i++)
-      f.push({fx:0.09+i*0.205,fy:2.3+r*3.05,fw:2.55,fh:1.7,scuro:true});return f;};
-    muroFin(null,w,h,crema,fasce(),cx,0,cz-d/2,Math.PI);
-    muroFin(null,d,h,crema,(()=>{const f=[];for(let r=0;r<3;r++)for(let i=0;i<3;i++)
-      f.push({fx:0.15+i*0.35,fy:2.3+r*3.05,fw:2.2,fh:1.7,scuro:true});return f;})(),
+  /* IMG_4898 — l'edificio alto dietro la pensilina NON e' un volume bianco a
+     tetto piano: e' un corpo in intonaco GIALLO PAGLIA con TETTO A PADIGLIONE
+     IN COPPI, gronda scura molto marcata e sporgente, finestre con TAPPARELLE
+     GRIGIE, piccole finestre quadrate sul fronte cieco e una fascia
+     TERRACOTTA al piano terra. E' lo stesso edificio che avevo lasciato
+     "bianco anonimo" sul lato sud-ovest: sono la stessa cosa. */
+  (function corpoGiallo(){
+    const cx=-54,cz=25,w=18,d=12,hM=8.6;
+    const giallo=0xE8D89A, terra=lam(0xD1793A);
+    solido(box(g,w,hM,d,lam(giallo),cx,hM/2,cz,true));
+    /* fronte verso il cortile: due registri di finestre con tapparella grigia */
+    muroFin(null,w,hM,giallo,(()=>{const f=[];
+      for(let r=0;r<2;r++)for(let i=0;i<5;i++)
+        f.push({fx:0.10+i*0.20,fy:2.5+r*3.0,fw:1.35,fh:1.60});return f;})(),
+      cx,0,cz-d/2,Math.PI);
+    /* fronte cieco con le piccole finestre quadrate in alto */
+    muroFin(null,d,hM,giallo,(()=>{const f=[];for(let i=0;i<3;i++)
+      f.push({fx:0.22+i*0.28,fy:6.2,fw:0.95,fh:0.95});return f;})(),
       cx-w/2,0,cz,-Math.PI/2);
-    /* marcapiani chiari fra una fascia e l'altra */
-    [3.55,6.6].forEach(y=>box(g,w+0.3,0.30,d+0.3,lam(0xf2eee2),cx,y,cz,false));
-    /* balcone con ringhiera al primo piano, verso il cortile */
-    box(g,7.2,0.16,1.5,lam(0xdedacd),cx+2,3.75,cz-d/2-0.75,true);
-    box(g,7.2,0.06,0.05,lam(0x8a8f95),cx+2,4.85,cz-d/2-1.45,false);
-    for(let i=0;i<19;i++) box(g,0.028,1.05,0.028,lam(0x8a8f95),cx-1.5+i*0.39,4.33,cz-d/2-1.45,false);
-    /* cornicione piatto di coronamento */
-    box(g,w+0.7,0.35,d+0.7,lam(0xdad5c6),cx,h+0.17,cz,true);
+    muroFin(null,d,hM,giallo,[{fx:0.5,fy:5.6,fw:1.3,fh:1.5}],cx+w/2,0,cz,Math.PI/2);
+    /* tapparelle grigie parzialmente calate, a quote diverse */
+    for(let r=0;r<2;r++)for(let i=0;i<5;i++){
+      const px=cx-w/2+w*(0.10+i*0.20), q=0.32+((i*7+r*3)%4)*0.13;
+      box(g,1.35,1.60*q,0.06,lam(0xB8B6AE),px,2.5+r*3.0+0.80-1.60*q/2,cz-d/2-0.20,false);}
+    /* fascia TERRACOTTA al piano terra, sotto la pensilina */
+    box(g,w,1.05,0.10,terra,cx,0.52,cz-d/2-0.16,false);
+    /* gronda scura marcata e sporgente + tetto a PADIGLIONE in coppi */
+    box(g,w+1.7,0.30,d+1.7,lam(0x4A423A),cx,hM+0.15,cz,false);
+    tetto(mondo,cx,cz,w,d,hM+0.30,2.6,{sporto:0.85,pluviali:0,comignoli:[[4,0,1.4]]});
     contatto(mondo,cx,0.03,cz,w+4,d+4,0.5);})();
   /* PERGOLA BIANCA lunga a listelli (vista dalle finestre del mezzanino) */
   (function pergolaLunga(){
@@ -1136,8 +1199,24 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
     const zb=-L/2+0.9+2*(L-1.8)/(nP-1);
     box(p,0.10,0.10,0.55,bianco,prof-0.62,2.95,zb-0.35,false);
     tabelloneRete(p,2.9,0,0.86);
-    p.children[p.children.length-1];
-    contatto(mondo,-40+prof/2-0.4,0.03,7,prof+1.2,L+1,0.45);})();
+    contatto(mondo,-40+prof/2-0.4,0.03,7,prof+1.2,L+1,0.45);
+    /* IMG_4852/4898: la pensilina COLLEGA i due edifici e gira a L. Il braccio
+       trasversale raggiunge la facciata a nord, cosi' non resta sospesa in
+       mezzo al cortile ma unisce davvero infanzia e ala moderna. */
+    const q=new THREE.Group(); q.position.set(-40,0,-6.2); mondo.add(q);
+    const L2=13.5;
+    box(q,L2,0.16,prof,lam(0xeceae4),L2/2,h,prof/2-0.4,true);
+    box(q,L2,0.34,0.16,bianco,L2/2,h+0.05,prof-0.62,false);
+    box(q,0.16,0.34,prof,bianco,L2,h+0.05,prof/2-0.4,false);
+    for(let i=0;i<5;i++){
+      const px=0.9+i*((L2-1.8)/4);
+      box(q,0.26,h,0.26,bianco,px,h/2,prof-0.62,true);
+      box(q,0.40,0.10,0.40,lam(0xe2e0d8),px,0.05,prof-0.62,false);}
+    box(q,L2,h-0.1,0.16,lam(0xf0eee6),L2/2,(h-0.1)/2,0.05,false);
+    [0xd21f12,0x3fa02a,0x1f8ede,0xf5b300].forEach((c,i)=>{
+      const w2=(L2-1.2)/4, px=0.6+(i+0.5)*w2;
+      box(q,w2-0.30,2.05,0.07,lam(c),px,1.15,0.16,false);});
+    contatto(mondo,-40+L2/2,0.03,-6.2+prof/2,L2+1,prof+1.2,0.45);})();
   /* recinto giochi con steccato bianco */
   /* i giochi: fungo gigante, scivolo e casetta, dentro il cortile */
   box(g,0.24,2.0,0.24,lam(0xa8a09a),-58.5,1.0,3.5,false);
@@ -1267,134 +1346,166 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
     contatto(mondo,-51.5+q[0],0.03,-34+q[1],3,3,0.5);});
 })();
 
-/* ===================== PISCINE ANDREANA (nord-est) ======================
-   Riletto da IMG_4893-4896 (riprese dal tetto della scuola) e dall'aerea:
-   - la vasca vicina alla scuola e' coperta da un PORTICATO a colonne bianche
-     con FASCIA BLU, non da falde vetrate;
-   - la sala coperta vetrata a griglia sta piu' a nord;
-   - vasca centrale a FORMA LIBERA con fungo d'acqua;
-   - seconda vasca rettangolare con corsie e galleggianti;
-   - SCIVOLI A SPIRALE azzurri su torre con scala (non dritti e paralleli);
-   - la TERRAZZA DEL BAR con ombrelloni rossi, tavolini, sedie e fioriere sta
-     sul lato verso la scuola: e' li' che stanno gli ombrelloni.
-   ======================================================================== */
+/* ===================== PISCINE ANDREANA ================================
+   Riletto da 4893-4896 e dalla nota di Andrea.
+   - La copertura e' un TETTO SEMOVENTE: chiuso copre la vasca grande, aperto
+     SCORRE SUL PARCHEGGIO su una struttura di pilastri e fa ombra. Qui e'
+     rappresentato APERTO, com'e' nelle foto: una lunga struttura BLU bassa e
+     piatta su colonne tonde bianche ravvicinate.
+   - TRE vasche ADIACENTI: coperta, a forma libera con gradini, rettangolare
+     con corsie e blocchi di partenza.
+   - UN SOLO scivolo azzurro, a grande ANSA APERTA, su torre a traliccio.
+   - Terrazza del bar con TENDE A BRACCIO beige e ombrelloni rossi chiusi.
+   ====================================================================== */
 (function piscine(){
   const g=new THREE.Group();mondo.add(g);
-  const matPiastre=lam(0xffffff,{map:(()=>{const t=tex(texPunti('#d9b89a',['#d0af91','#e2c1a3','#c7a688'],23),true);
-    t.repeat.set(40,38);return t;})()});
-  const piastra=new THREE.Mesh(new THREE.PlaneGeometry(64,64),matPiastre);
+  const matPiastre=lam(0xffffff,{map:(()=>{const t=tex(texPunti('#e0c3a8',
+    ['#d8bb9f','#e8cdb2','#d0b397'],23),true);t.repeat.set(44,42);return t;})()});
+  const piastra=new THREE.Mesh(new THREE.PlaneGeometry(70,64),matPiastre);
   piastra.rotation.x=-Math.PI/2;piastra.position.set(64,0.02,-24);piastra.receiveShadow=true;g.add(piastra);
   const matBordo=lam(0xe6e2d8);
-  function vascaRett(cx,cz,w,d,corsie){
-    box(g,w+1.4,0.3,d+1.4,matBordo,cx,0.15,cz,false);
+
+  function vascaRett(cx,cz,w,d,corsie,blocchi){
+    box(g,w+1.6,0.32,d+1.6,matBordo,cx,0.16,cz,false);
     const a2=new THREE.Mesh(new THREE.PlaneGeometry(w,d),matAcqua);
-    a2.rotation.x=-Math.PI/2;a2.position.set(cx,0.33,cz);g.add(a2);
+    a2.rotation.x=-Math.PI/2;a2.position.set(cx,0.34,cz);g.add(a2);
     for(let i=1;i<corsie;i++){const t=i/corsie;
-      for(let k=0.4;k<w;k+=0.9){
-        const b2=new THREE.Mesh(new THREE.SphereGeometry(0.085,6,5),
-          lam((Math.floor(k/0.9)%2)?0xe8e4dc:0xd8443a));
-        b2.position.set(cx-w/2+k,0.4,cz-d/2+d*t);g.add(b2);}}
-    for(let i=0;i<corsie;i++){const t=(i+0.5)/corsie;
-      box(g,0.4,0.32,0.4,lam(0xd8d4cc),cx-w/2+0.6,0.44,cz-d/2+d*t,true);}
+      for(let k=0.5;k<w;k+=0.85){
+        const b2=new THREE.Mesh(new THREE.SphereGeometry(0.08,6,5),
+          lam((Math.floor(k/0.85)%2)?0xe8e4dc:0xd8443a));
+        b2.position.set(cx-w/2+k,0.41,cz-d/2+d*t);g.add(b2);}}
+    if(blocchi) for(let i=0;i<corsie;i++){const t=(i+0.5)/corsie;
+      box(g,0.46,0.34,0.46,lam(0xd8d4cc),cx-w/2+0.7,0.47,cz-d/2+d*t,true);
+      box(g,0.30,0.05,0.30,lam(0x2f6fb5),cx-w/2+0.7,0.65,cz-d/2+d*t,false);}
   }
-  /* 1) vasca coperta dal porticato a colonne bianche con fascia blu */
-  vascaRett(46,-14,20,10,5);
-  (function porticato(){
-    const x0=34,x1=60,z0=-21.5,z1=-6.5,y=4.6;
-    box(g,x1-x0,0.45,z1-z0,lam(0xf0eee8),(x0+x1)/2,y,(z0+z1)/2,true);
-    box(g,x1-x0+0.5,1.15,0.35,lam(0x2f6fb5),(x0+x1)/2,y+0.5,z0-0.1,false);
-    box(g,x1-x0+0.5,1.15,0.35,lam(0x2f6fb5),(x0+x1)/2,y+0.5,z1+0.1,false);
-    box(g,0.35,1.15,z1-z0,lam(0x2f6fb5),x1+0.1,y+0.5,(z0+z1)/2,false);
-    for(let i=0;i<9;i++){const px=x0+1.5+i*((x1-x0-3)/8);
-      [z0+0.9,z1-0.9].forEach(pz=>{
-        const c=new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.3,y,14),lam(0xf4f2ec));
+
+  /* --- 1) vasca coperta + TETTO SEMOVENTE in posizione aperta --- */
+  vascaRett(46,-16,22,11,5,false);
+  (function tettoMobile(){
+    /* la struttura blu, bassa e piatta, su colonne tonde bianche ravvicinate:
+       aperta e' scorsa verso il parcheggio, a sud della vasca */
+    const x0=33,x1=61,zC=-6.5,y=4.9,blu=lam(0x2F6FB5);
+    box(g,x1-x0,0.30,9.0,lam(0xd8d6ce),(x0+x1)/2,y,zC,true);      /* lastra */
+    box(g,x1-x0+0.6,1.05,0.34,blu,(x0+x1)/2,y+0.52,zC-4.6,false); /* fascia blu */
+    box(g,x1-x0+0.6,1.05,0.34,blu,(x0+x1)/2,y+0.52,zC+4.6,false);
+    box(g,0.34,1.05,9.2,blu,x1+0.3,y+0.52,zC,false);
+    for(let i=0;i<13;i++){                                        /* colonne tonde */
+      const px=x0+1.0+i*((x1-x0-2)/12);
+      [zC-4.0,zC+4.0].forEach(pz=>{
+        const c=new THREE.Mesh(new THREE.CylinderGeometry(0.20,0.24,y,14),lam(0xf4f2ec));
         c.position.set(px,y/2,pz);c.castShadow=true;g.add(c);
-        box(g,0.7,0.16,0.7,lam(0xe8e6de),px,y-0.1,pz,false);});}
-    contatto(mondo,47,0.03,-14,28,17,0.4);})();
-  /* 2) sala coperta vetrata a griglia, piu' a nord */
-  (function salaVetrata(){
-    const cx=46,cz=-40,w=26,d=17,h=4.4;
-    const vM=new THREE.MeshPhongMaterial({color:0xbcd6e4,transparent:true,opacity:0.42,
-      shininess:150,specular:0xdcf0fa,side:THREE.DoubleSide});
-    vascaRett(cx,cz,18,9,5);
-    [-w/2,w/2].forEach(q=>box(g,0.3,h,d,lam(0xdedad2),cx+q,h/2,cz,true));
-    box(g,w,0.3,d,vM,cx,h+0.9,cz,false);
-    for(let i=0;i<=7;i++){const px=cx-w/2+i*w/7;
-      box(g,0.14,h+0.9,d,vM,px,(h+0.9)/2,cz,false);
-      box(g,0.16,0.16,d+0.3,lam(0xb8bcc0),px,h+0.9,cz,false);}
-    for(let k=0;k<=5;k++) box(g,w+0.3,0.14,0.14,lam(0xb8bcc0),cx,h+0.92,cz-d/2+k*d/5,false);
-    contatto(mondo,cx,0.03,cz,w+3,d+3,0.45);})();
-  /* 3) vasca a forma libera con fungo d'acqua */
+        box(g,0.56,0.14,0.56,lam(0xe6e4dc),px,y-0.09,pz,false);});}
+    /* rotaie su cui il tetto scorre */
+    [zC-4.0,zC+4.0].forEach(pz=>box(g,x1-x0+8,0.10,0.26,lam(0x9aa0a5),(x0+x1)/2+3,0.06,pz,false));
+    contatto(mondo,(x0+x1)/2,0.03,zC,x1-x0+3,11,0.42);})();
+
+  /* --- 2) vasca a forma libera, adiacente, con gradini d'ingresso --- */
   (function libera(){
     const sh=new THREE.Shape();
     sh.moveTo(-10,-5);sh.quadraticCurveTo(-13,1,-6,5.5);sh.quadraticCurveTo(1,9,8,5);
     sh.quadraticCurveTo(13,1.5,9,-4);sh.quadraticCurveTo(2,-8.5,-10,-5);
     const b2=new THREE.Mesh(new THREE.ShapeGeometry(sh),matBordo);
-    b2.rotation.x=-Math.PI/2;b2.position.set(74,0.14,-24);b2.scale.set(1.1,1.1,1);g.add(b2);
+    b2.rotation.x=-Math.PI/2;b2.position.set(66,0.15,-31);b2.scale.set(1.1,1.1,1);g.add(b2);
     const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),matAcqua);
-    m.rotation.x=-Math.PI/2;m.position.set(74,0.33,-24);g.add(m);
-    const st=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,2.1,10),lam(0xb8bcc0));
-    st.position.set(74,1.05,-24);g.add(st);
-    const cap=new THREE.Mesh(new THREE.SphereGeometry(1.15,18,10,0,Math.PI*2,0,Math.PI/2.6),lam(0xcfe4ee));
-    cap.position.set(74,2.0,-24);cap.castShadow=true;g.add(cap);
-    contatto(mondo,74,0.04,-24,24,18,0.4);})();
-  /* 4) vasca lunga con corsie, all'aperto */
-  vascaRett(80,-44,24,12,6);
-  /* 5) SCIVOLI A SPIRALE su torre con scala metallica */
-  (function scivoli(){
-    const cx=92,cz=-16;
-    box(g,3.0,8.6,3.0,lam(0xd8d4cc),cx,4.3,cz,true);
-    box(g,3.4,0.25,3.4,lam(0xb8bcc0),cx,8.7,cz,true);
-    for(let i=0;i<10;i++) box(g,1.5,0.07,0.32,lam(0x9aa0a5),cx-2.4,0.5+i*0.82,cz+1.2-i*0.28,false);
-    [[0,1],[1,-1]].forEach((v,k)=>{
-      const pts=[];
-      for(let i=0;i<=44;i++){
-        const an=v[1]*i*0.30+k*2.2, r=4.6-i*0.045;
-        pts.push(new THREE.Vector3(cx+Math.cos(an)*r,8.2-i*0.165,cz+Math.sin(an)*r));}
-      const cu=new THREE.CatmullRomCurve3(pts);
-      const tu=new THREE.Mesh(new THREE.TubeGeometry(cu,110,0.55,10,false),
-        lam(k?0x2f6fb5:0x5aa8dc));
-      tu.castShadow=true;g.add(tu);});
-    contatto(mondo,cx,0.03,cz,13,13,0.45);})();
-  /* 6) TERRAZZA DEL BAR: ombrelloni rossi, tavolini, sedie, fioriere, tenda */
-  (function terrazzaBar(){
-    const bx=40,bz=2;
-    const pav=new THREE.Mesh(new THREE.PlaneGeometry(20,12),
-      lam(0xffffff,{map:(()=>{const t=tex(texPunti('#d9a894',['#cf9e8a','#e2b19d','#c69382'],31),true);
-        t.repeat.set(14,9);return t;})()}));
+    m.rotation.x=-Math.PI/2;m.position.set(66,0.34,-31);g.add(m);
+    for(let i=0;i<3;i++)                       /* gradini di ingresso a raggiera */
+      box(g,3.2-i*0.5,0.14,0.5,matBordo,58.5,0.30-i*0.09,-31,false);
+    contatto(mondo,66,0.04,-31,24,18,0.4);})();
+
+  /* --- 3) vasca lunga con corsie e blocchi, adiacente alla libera --- */
+  vascaRett(82,-38,26,13,6,true);
+
+  /* --- 4) UN SOLO scivolo azzurro, ad ansa aperta, su torre a traliccio --- */
+  (function scivolo(){
+    const tx=92,tz=-14,h=7.6;
+    for(let i=0;i<4;i++){                      /* torre a traliccio */
+      const dx=(i<2?-1:1)*0.9, dz=(i%2?-1:1)*0.9;
+      box(g,0.09,h,0.09,lam(0x9aa0a5),tx+dx,h/2,tz+dz,false);}
+    for(let k=0;k<7;k++){
+      box(g,1.9,0.06,0.06,lam(0x9aa0a5),tx,0.6+k*1.05,tz-0.9,false);
+      box(g,1.9,0.06,0.06,lam(0x9aa0a5),tx,0.6+k*1.05,tz+0.9,false);}
+    box(g,2.1,0.10,2.1,lam(0xb8bcc0),tx,h,tz,true);
+    for(let i=0;i<16;i++)                      /* scala */
+      box(g,1.1,0.05,0.26,lam(0x9aa0a5),tx-1.6,0.45+i*0.46,tz+1.1-i*0.16,false);
+    /* l'ansa: una curva larga a S che scende dolcemente verso la vasca */
+    const pts=[];
+    for(let i=0;i<=60;i++){
+      const t=i/60;
+      const ang=Math.PI*1.35*t;
+      const r=7.5-t*1.2;
+      pts.push(new THREE.Vector3(
+        tx-6.5+Math.cos(ang-0.5)*r,
+        h-0.5-t*6.4,
+        tz+2.0+Math.sin(ang-0.5)*r*0.72));}
+    const cu=new THREE.CatmullRomCurve3(pts);
+    const tu=new THREE.Mesh(new THREE.TubeGeometry(cu,140,0.62,12,false),lam(0x2F8FD8));
+    tu.castShadow=true;g.add(tu);
+    for(let i=0;i<=5;i++){                     /* sostegni dello scivolo */
+      const p=cu.getPoint(i/5);
+      if(p.y>0.9) box(g,0.10,p.y-0.5,0.10,lam(0x9aa0a5),p.x,(p.y-0.5)/2,p.z,false);}
+    contatto(mondo,tx-4,0.03,tz,18,16,0.42);})();
+
+  /* --- 5) terrazza del bar: tende a braccio, ombrelloni rossi, fioriere --- */
+  (function bar(){
+    const bx=40,bz=6;
+    const pav=new THREE.Mesh(new THREE.PlaneGeometry(22,12),
+      lam(0xffffff,{map:(()=>{const t=tex(texPunti('#dcae98',['#d2a48e','#e6b8a2','#c9997f'],31),true);
+        t.repeat.set(15,9);return t;})()}));
     pav.rotation.x=-Math.PI/2;pav.position.set(bx,0.04,bz);pav.receiveShadow=true;g.add(pav);
-    box(g,0.14,2.9,12,lam(0xcfcbc2),bx-9.4,1.45,bz,false);
-    const tenda=box(g,5.2,0.12,12,lam(0xe6ded0),bx-6.9,2.95,bz,true);tenda.rotation.z=-0.09;
-    for(let i=0;i<5;i++) box(g,0.07,1.5,0.07,lam(0xb8b4ac),bx-4.4,2.2,bz-5+i*2.5,false);
+    /* corpo del bar con le TENDE A BRACCIO beige, grandi e sporgenti */
+    box(g,14,3.4,5,lam(0xe8e4da),bx+2,1.7,bz+5.6,true);
+    for(let i=0;i<3;i++){
+      const tx2=bx-3.4+i*4.6;
+      const tenda=box(g,4.4,0.10,4.2,lam(0xE6DCC8),tx2,3.15,bz+1.9,true);
+      tenda.rotation.x=-0.14;
+      box(g,0.07,0.07,4.2,lam(0xb8b4ac),tx2-2.1,3.05,bz+1.9,false);
+      box(g,0.07,0.07,4.2,lam(0xb8b4ac),tx2+2.1,3.05,bz+1.9,false);
+      box(g,4.5,0.16,0.16,lam(0xcfcbc2),tx2,3.42,bz+3.9,false);}
     const rnd=seme(211);
     for(let i=0;i<5;i++){
-      const tx=bx-2+((i%2)?2.6:0), tz=bz-4.6+i*2.35;
-      const top=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.05,16),lam(0xd8d4cc));
-      top.position.set(tx,0.76,tz);top.castShadow=true;g.add(top);
-      box(g,0.07,0.72,0.07,lam(0x4a4a4c),tx,0.38,tz,false);
-      box(g,0.5,0.03,0.5,lam(0x4a4a4c),tx,0.03,tz,false);
+      const tx2=bx-4+((i%2)?2.8:0), tz2=bz-3.6+i*1.9;
+      const top=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.05,16),lam(0x4a4a4c));
+      top.position.set(tx2,0.76,tz2);top.castShadow=true;g.add(top);
+      box(g,0.07,0.72,0.07,lam(0x4a4a4c),tx2,0.38,tz2,false);
+      box(g,0.5,0.03,0.5,lam(0x4a4a4c),tx2,0.03,tz2,false);
       for(let k=0;k<2;k++){
-        const an=rnd()*6.28, sx=tx+Math.cos(an)*0.78, sz=tz+Math.sin(an)*0.78;
+        const an=rnd()*6.28, sx=tx2+Math.cos(an)*0.78, sz=tz2+Math.sin(an)*0.78;
         const sd=new THREE.Mesh(geoSmussata(0.4,0.04,0.4,0.03),lam(0x33373c));
         sd.position.set(sx,0.44,sz);sd.castShadow=true;g.add(sd);
         const sc=new THREE.Mesh(geoSmussata(0.4,0.38,0.035,0.03),lam(0x33373c));
-        sc.position.set(sx,0.66,sz-0.19);g.add(sc);
-        for(let q=0;q<4;q++) box(g,0.02,0.44,0.02,lam(0x555a60),
-          sx+((q%2)?0.16:-0.16),0.22,sz+((q<2)?0.16:-0.16),false);}
-      const ox=tx+1.15, oz=tz+0.35;
+        sc.position.set(sx,0.66,sz-0.19);g.add(sc);}
+      /* ombrellone rosso CHIUSO accanto al tavolino */
+      const ox=tx2+1.2, oz=tz2+0.3;
       box(g,0.05,2.5,0.05,lam(0xb8bcc0),ox,1.25,oz,false);
-      const om=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.3,1.7,10),lam(0xc23a2e));
-      om.position.set(ox,1.9,oz);om.castShadow=true;g.add(om);
+      const om=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.26,1.8,10),lam(0xD8321E));
+      om.position.set(ox,1.95,oz);om.castShadow=true;g.add(om);
       const base=new THREE.Mesh(new THREE.CylinderGeometry(0.34,0.4,0.14,12),lam(0x8a8f95));
       base.position.set(ox,0.07,oz);g.add(base);
-      contatto(g,tx,0.05,tz,2.6,2.2,0.45);}
-    for(let i=0;i<4;i++){
-      const fx=bx+5.6, fz=bz-4.2+i*2.8;
-      box(g,0.85,0.7,0.85,lam(0x5f8a52),fx,0.35,fz,true);
-      const pl=new THREE.Mesh(new THREE.SphereGeometry(0.52,9,7),mCh2);
-      pl.position.set(fx,1.0,fz);pl.scale.y=0.85;pl.castShadow=true;g.add(pl);
-      contatto(g,fx,0.05,fz,1.6,1.6,0.5);}})();
-  reteAlta(33,-54,33,8,2.4,0x6a7a8a,6);
+      contatto(g,tx2,0.05,tz2,2.6,2.2,0.45);}
+    /* fioriere alte rettangolari con piante */
+    for(let i=0;i<5;i++){
+      const fx=bx+6.2, fz=bz-4+i*2.1;
+      box(g,0.75,0.85,0.75,lam(0x5f8a52),fx,0.42,fz,true);
+      const pl=new THREE.Mesh(new THREE.SphereGeometry(0.46,9,7),lam(0x8a9a5a));
+      pl.position.set(fx,1.12,fz);pl.scale.y=1.25;pl.castShadow=true;g.add(pl);
+      contatto(g,fx,0.05,fz,1.5,1.5,0.5);}})();
+
+  /* --- 6) striscioni sponsor e recinzione --- */
+  for(let i=0;i<7;i++){
+    const st=new THREE.Mesh(new THREE.PlaneGeometry(4.4,1.0),
+      lam(0xffffff,{map:texLavori(120+i,'#f6f4f0')}));
+    st.position.set(33.2,1.15,-46+i*7);st.rotation.y=Math.PI/2;g.add(st);}
+  reteAlta(33,-54,33,12,2.4,0x6a7a8a,6);
+  /* torretta del bagnino */
+  (function bagnino(){
+    const bx=57,bz=-24;
+    [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5]].forEach(q=>
+      box(g,0.08,2.4,0.08,lam(0xe8e4dc),bx+q[0],1.2,bz+q[1],false));
+    box(g,1.5,0.10,1.5,lam(0xe8e4dc),bx,2.45,bz,true);
+    const sd=new THREE.Mesh(geoSmussata(0.9,0.06,0.9,0.05),lam(0xd8d4cc));
+    sd.position.set(bx,2.6,bz);g.add(sd);
+    box(g,0.9,0.7,0.06,lam(0xd8d4cc),bx,2.95,bz-0.42,false);
+    contatto(mondo,bx,0.03,bz,2.4,2.4,0.5);})();
 })();
 
 /* ===================== INTERNI PRIMO PIANO ===================== */
@@ -1409,21 +1520,63 @@ function texScacchi(pal,n,celle){
     g.strokeStyle='rgba(90,84,80,.5)';g.lineWidth=2;g.strokeRect(x*32,y*32,32,32);}
   return c;}
 /* primaria: scacchi CALDI (beige/terracotta/bruno/grigio) — dal video */
-const palPrimaria=['#d9c9a8','#c9a882','#a8845e','#8a7360','#e0d3b6','#b89070','#cfc0a2','#9c8468'];
+/* DUE SOLI TIPI DI PIASTRELLA IN TUTTA LA SCUOLA (indicazione di Andrea):
+   1) Primaria, uffici e atrio: 30x30 a TRE COLORI — sabbia, antracite, rosa,
+      posati a scacchiera irregolare (gli stessi del laboratorio di informatica);
+   2) Secondaria: 60x60 ANTRACITE uniforme.
+   Le ripetizioni si calcolano dalle dimensioni reali del vano, cosi' la
+   piastrella misura davvero 30 cm o 60 cm e non "quello che viene". */
+const PAL3=['#DCCFB2','#6E6B67','#C9A79E','#DCCFB2','#6E6B67','#C9A79E',
+            '#E2D6BA','#736F6B'];
+function pav30(w,d,seed){            /* 30 cm: texture da 4x4 celle = 1,20 m */
+  return matPav(PAL3, seed||107, Math.max(1,Math.round(w/1.2)),
+                Math.max(1,Math.round(d/1.2)), 4);}
+const texAntracite60=(()=>{const c=mkCanvas(256,256),g=c.getContext('2d'),rnd=seme(613);
+  g.fillStyle='#4E4C4A';g.fillRect(0,0,256,256);
+  for(let i=0;i<160;i++){                       /* venature e nuvolature */
+    const v=70+rnd()*34|0;
+    g.fillStyle='rgba('+v+','+(v-2)+','+(v-4)+','+(0.06+rnd()*0.14).toFixed(2)+')';
+    g.beginPath();g.ellipse(rnd()*256,rnd()*256,10+rnd()*44,8+rnd()*30,rnd()*3,0,Math.PI*2);g.fill();}
+  for(let i=0;i<120;i++){
+    g.fillStyle='rgba(150,146,140,'+(0.05+rnd()*0.13).toFixed(2)+')';
+    g.fillRect(rnd()*256,rnd()*256,2,2);}
+  g.strokeStyle='#333130';g.lineWidth=3;g.strokeRect(0,0,256,256);
+  return tex(c,true);})();
+function pav60(w,d){                 /* 60 cm: una piastrella per ripetizione */
+  const t=texAntracite60.clone();t.needsUpdate=true;
+  t.repeat.set(Math.max(1,Math.round(w/0.6)),Math.max(1,Math.round(d/0.6)));
+  return new THREE.MeshPhongMaterial({map:t,shininess:34,specular:0x2e2e2e,
+    side:THREE.DoubleSide});}
+const palPrimaria=PAL3;
 /* atrio/mezzanino: scacchi piccoli beige/grigio/rosa/bruno */
-const palAtrio=['#d8c3bb','#cfc2b4','#a9938c','#c2aa9f','#948a85','#ded3c6'];
+/* 4901/4903: scacchi ROSA ANTICO / GRIGIO / BEIGE, piastrella media (~20 cm). */
+const palAtrio=['#d6b5ad','#8e8b86','#e0d6c4','#c9a79e','#7e7b77','#d9cfbd'];
 function matPav(pal,n,rx,ry,celle){
   const t=tex(texScacchi(pal,n,celle),true);t.repeat.set(rx,ry);
   return new THREE.MeshPhongMaterial({map:t,shininess:28,specular:0x2e2e2e,side:THREE.DoubleSide});}
-const texGres=(()=>{const c=mkCanvas(256,256),g=c.getContext('2d'),rnd=seme(61);
-  g.fillStyle='#a3a29c';g.fillRect(0,0,256,256);
+/* 4876: gres EFFETTO CEMENTO grigio caldo, piastre ~60x60, venature chiare e
+   scure irregolari, fuga sottile scura. Non uniforme: ha tessitura marcata. */
+const texGres=(()=>{const c=mkCanvas(512,512),g=c.getContext('2d'),rnd=seme(61);
+  g.fillStyle='#8f8d87';g.fillRect(0,0,512,512);
   for(let y=0;y<2;y++)for(let x=0;x<2;x++){
-    g.fillStyle=['#a7a6a0','#9d9c96','#aaa9a3','#a1a09a'][(rnd()*4)|0];
-    g.fillRect(x*128+2,y*128+2,124,124);
-    for(let i=0;i<40;i++){g.fillStyle='rgba(255,255,255,.05)';
-      g.fillRect(x*128+rnd()*124,y*128+rnd()*124,3,3);}}
-  g.strokeStyle='#84837e';g.lineWidth=3;g.strokeRect(0,0,256,256);
-  g.beginPath();g.moveTo(128,0);g.lineTo(128,256);g.moveTo(0,128);g.lineTo(256,128);g.stroke();
+    const ox=x*256,oy=y*256;
+    g.fillStyle=['#928f89','#8a877f','#96938c','#8d8a83'][(rnd()*4)|0];
+    g.fillRect(ox+3,oy+3,250,250);
+    for(let i=0;i<70;i++){                       /* velature e nuvolature */
+      const v=140+rnd()*70|0;
+      g.fillStyle='rgba('+v+','+(v-3)+','+(v-9)+','+(0.05+rnd()*0.13).toFixed(2)+')';
+      g.beginPath();g.ellipse(ox+8+rnd()*240,oy+8+rnd()*240,
+        14+rnd()*54,10+rnd()*38,rnd()*3,0,Math.PI*2);g.fill();}
+    for(let i=0;i<50;i++){                       /* graniglia chiara */
+      g.fillStyle='rgba(214,210,200,'+(0.10+rnd()*0.22).toFixed(2)+')';
+      g.fillRect(ox+6+rnd()*244,oy+6+rnd()*244,2+rnd()*3,2+rnd()*3);}
+    for(let i=0;i<26;i++){                       /* macchie scure */
+      g.fillStyle='rgba(84,81,76,'+(0.06+rnd()*0.12).toFixed(2)+')';
+      g.beginPath();g.arc(ox+8+rnd()*240,oy+8+rnd()*240,3+rnd()*13,0,Math.PI*2);g.fill();}
+  }
+  g.strokeStyle='#5f5d59';g.lineWidth=4;
+  g.strokeRect(0,0,512,512);
+  g.beginPath();g.moveTo(256,0);g.lineTo(256,512);g.moveTo(0,256);g.lineTo(512,256);g.stroke();
   return tex(c,true);})();
 function matGres(rx,ry){const t=texGres.clone();t.needsUpdate=true;t.repeat.set(rx,ry);
   return new THREE.MeshPhongMaterial({map:t,shininess:30,specular:0x303030,side:THREE.DoubleSide});}
@@ -1440,11 +1593,24 @@ function matSoffitto(rx,ry){const t=texSoff.clone();t.needsUpdate=true;t.repeat.
   return lam(0xffffff,{map:t,side:THREE.DoubleSide});}
 
 /* materiali interni — colori corretti sul video */
-const matGialloPrim=lam(0xE8B41E), matArancioPrim=lam(0xE8722A);
-const matBiancoInt=lam(0xf2efe8), matCrema=lam(0xEFE8D8);
+/* Primaria: pareti ARANCIONE pieno (foto 4847-4850). Il giallo che avevo letto
+   dal video era la luce radente del mattino. Gli stipiti delle porte sono ROSSI
+   e le ante chiare, non bronzo. */
+const matGialloPrim=lam(0xE8620A), matArancioPrim=lam(0xB02418);
+/* 4874/4880/4883/4888: nei corridoi le pareti sono CREMA/AVORIO caldo; il
+   bianco puro resta solo su stipiti e risvolti. */
+const matBiancoInt=lam(0xEFE7D6), matCrema=lam(0xEFE8D8), matBiancoPuro=lam(0xf6f4ee);
 const matGialloAula=lam(0xefe8c8), matFasciaVerde=lam(0x8c9484);
 const matGrigioScuroMat=lam(0x5a5a5c), matTerracotta=lam(0xb85a3a);
 const matPortaBronzo=lam(0x6b4a2e), matPortaChiara=lam(0xdedbd3);
+/* 4884/4878/4897: pannello di parete SENAPE, largo ~2,5 m, fra due campate di
+   vetrata, a tutta altezza e con zoccolino chiaro alla base. Non un pilastrino. */
+const matSenape=lam(0xE8A310);
+function pannelloSenape(g,x,z,largo,ry){
+  const p=box(g,0.22,SOFF-Q_ALTA,largo,matSenape,x,(SOFF+Q_ALTA)/2,z,false);
+  const zoc=box(g,0.26,0.12,largo,lam(0xdedbd2),x,Q_ALTA+0.06,z,false);
+  if(ry){p.rotation.y=ry;zoc.rotation.y=ry;}
+  return p;}
 const matLegno=lam(0xb9905e), matLegnoScuro=lam(0x7a5230), matGambeBlu=lam(0x2b5cae);
 
 function porta(p,mat,x,y,z,ry,ap){
@@ -1496,6 +1662,35 @@ function antincendio(p,x,y,z,ry){
 function estintore(p,x,y,z){
   const c=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,0.5,10),lam(0xa8241e));
   c.position.set(x,y,z);(p||interni).add(c);}
+/* banco della SECONDARIA: piano beige, struttura BIANCA a slitta, su ROTELLE,
+   con il cestello in rete sotto (4889/4890). Quello degli uffici/Primaria ha
+   invece le gambe blu: si distinguono col parametro "bianco". */
+function bancoRuote(p,x,z,ry,q){
+  const g=new THREE.Group(), bianco=new THREE.MeshPhongMaterial({color:0xF2F1ED,shininess:70});
+  const t=new THREE.Mesh(geoSmussata(1.30,0.05,0.62,0.015),lam(0xE3D9BE));
+  t.position.y=0.74;t.castShadow=true;g.add(t);
+  box(g,1.30,0.035,0.62,lam(0xB08A5A),0,0.712,0,false);          /* bordo legno */
+  [-0.56,0.56].forEach(dx=>{                                      /* telaio a slitta */
+    box(g,0.05,0.66,0.05,bianco,dx,0.35,-0.24,false);
+    box(g,0.05,0.66,0.05,bianco,dx,0.35, 0.24,false);
+    box(g,0.05,0.05,0.54,bianco,dx,0.68,0,false);
+    box(g,0.05,0.05,0.54,bianco,dx,0.09,0,false);});
+  box(g,1.12,0.045,0.045,bianco,0,0.09,-0.24,false);
+  box(g,1.12,0.045,0.045,bianco,0,0.09, 0.24,false);
+  const fil=lam(0xA8ADB4);                                        /* cestello in rete */
+  box(g,1.02,0.016,0.016,fil,0,0.48,-0.20,false);
+  box(g,1.02,0.016,0.016,fil,0,0.48, 0.20,false);
+  box(g,1.02,0.016,0.016,fil,0,0.32,-0.20,false);
+  box(g,1.02,0.016,0.016,fil,0,0.32, 0.20,false);
+  for(let i=0;i<9;i++){box(g,0.014,0.17,0.014,fil,-0.50+i*0.125,0.40,-0.20,false);
+    box(g,0.014,0.17,0.014,fil,-0.50+i*0.125,0.40,0.20,false);}
+  for(let i=0;i<5;i++) box(g,1.02,0.014,0.014,fil,0,0.315,-0.20+i*0.10,false);
+  [[-0.56,-0.24],[0.56,-0.24],[-0.56,0.24],[0.56,0.24]].forEach(w=>{  /* ROTELLE */
+    const r=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.035,10),lam(0x33373C));
+    r.rotation.z=Math.PI/2; r.position.set(w[0],0.05,w[1]); g.add(r);});
+  g.position.set(x,q,z);g.rotation.y=ry||0;(p||interni).add(g);
+  contatto(p||interni,x,q+0.012,z,1.7,1.0,0.55);return g;}
+
 function banco(p,x,z,ry,cTop,q){
   const g=new THREE.Group();
   const t=new THREE.Mesh(geoSmussata(1.3,0.05,0.6,0.015),cTop||lam(0xcfe0c8));
@@ -1630,21 +1825,44 @@ function texQuadro(n){
     g.globalAlpha=0.85;g.fillRect(rnd()*90,rnd()*120,20+rnd()*30,20+rnd()*32);}
   g.globalAlpha=1;g.strokeStyle='#4a4238';g.lineWidth=6;g.strokeRect(0,0,128,160);
   return tex(c,false);}
-const texMondrian=(()=>{const c=mkCanvas(512,512),g=c.getContext('2d'),rnd=seme(77);
-  const cols=['#d95b3a','#274b9f','#e8b73a','#c23a3a','#8fb56a','#e8e4da','#a9c3e8','#d97a2e','#1e2f6e'];
-  g.fillStyle='#e8e4da';g.fillRect(0,0,512,512);
-  let y=0;while(y<512){const h=60+rnd()*110;let x=0;
-    while(x<512){const w=70+rnd()*130;g.fillStyle=cols[(rnd()*cols.length)|0];
-      g.fillRect(x,y,w,h);x+=w;}y+=h;}
+/* 4901: non un patchwork casuale, ma una COMPOSIZIONE ORDINATA su griglia
+   6x6, a rettangoli grandi di dimensioni diverse ma allineati, con pochi
+   colori pieni. I campi si fondono fra loro dove hanno lo stesso colore. */
+const texMondrian=(()=>{
+  const c=mkCanvas(600,600),g=c.getContext('2d');
+  const C={a:'#E4661E',b:'#9FC0DE',c:'#2F5FAE',d:'#E8E2D2',e:'#5F9E6A',
+           f:'#C0392B',g:'#E8B41E',h:'#1E2F5E',i:'#141414',j:'#D8843A'};
+  /* griglia 6x6: ogni cella porta la sua tinta; celle contigue uguali
+     formano i rettangoli grandi che si vedono nella foto */
+  const M=[['a','c','b','b','f','g'],
+           ['a','c','b','b','d','h'],
+           ['d','b','d','a','e','a'],
+           ['j','b','a','a','e','a'],
+           ['g','h','e','e','e','c'],
+           ['a','d','i','f','g','d']];
+  const p=100;
+  for(let r=0;r<6;r++) for(let k=0;k<6;k++){
+    g.fillStyle=C[M[r][k]]; g.fillRect(k*p,r*p,p+1,p+1);}
   return tex(c,false);})();
-const texTabelline=(()=>{const c=mkCanvas(256,32),g=c.getContext('2d'),rnd=seme(131);
-  g.fillStyle='#efe9dd';g.fillRect(0,0,256,32);
+/* 4901/4902: ogni alzata porta una RIGA della tabellina — dieci quadretti
+   colorati coi risultati in bianco. La riga cambia salendo. */
+function texAlzataTab(riga){
+  const c=mkCanvas(320,34),g=c.getContext('2d');
+  const col=['#C0392B','#2F5FAE','#3F8F3A','#E8B41E','#D8752A',
+             '#7A4A9A','#1E9E9E','#C05080','#5F9E6A','#E8622A'];
+  g.fillStyle='#EFE9DD';g.fillRect(0,0,320,34);
   for(let k=0;k<10;k++){
-    g.fillStyle=['#c23a34','#2255aa','#3a8a3a','#e8c020','#d87a2e','#7a4a9a'][(rnd()*6)|0];
-    g.fillRect(k*25+2,3,21,26);
-    g.fillStyle='#fff';g.font='bold 15px Lexend';g.textAlign='center';
-    g.fillText(String((k+1)*((rnd()*9|0)+1)),k*25+12.5,22);}
-  return tex(c,false);})();
+    g.fillStyle=col[(riga+k)%10]; g.fillRect(k*32+2,3,28,28);
+    g.fillStyle='#fff';g.font='bold 15px Lexend, sans-serif';g.textAlign='center';
+    g.fillText(String(riga*(k+1)),k*32+16,23);}
+  return tex(c,false);}
+/* le PEDATE portano parole applicate in nero (4901) */
+function texPedata(parola){
+  const c=mkCanvas(512,64),g=c.getContext('2d');
+  g.fillStyle='#E6DCC8';g.fillRect(0,0,512,64);
+  g.fillStyle='#2a2a2a';g.font='bold 25px Lexend, sans-serif';g.textAlign='left';
+  g.fillText(parola,26,42);
+  return tex(c,false);}
 const texCartello=(()=>{const c=mkCanvas(256,144),g=c.getContext('2d');
   [['Primaria','←'],['Direzione','→'],['Secondaria','→']].forEach((v,i)=>{
     g.fillStyle='#1a4fae';g.fillRect(0,i*44+4,256,38);
@@ -1664,7 +1882,7 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
   const g=new THREE.Group();interni.add(g);
   const x0=-35.8,x1=-24.2,z0=-19.8,z1=-6.35;
   const vx0=-33.8,vx1=-26.2,vz0=-15.5,vz1=-10.5,hT=7.0;
-  const pt=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matPav(palAtrio,101,12,14,6));
+  const pt=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),pav30(x1-x0,z1-z0,101));
   pt.rotation.x=-Math.PI/2;pt.position.set((x0+x1)/2,0.12,(z0+z1)/2);pt.receiveShadow=true;g.add(pt);
   box(g,x1-x0,0.24,z1-z0,lam(0xcfcbc2),(x0+x1)/2,0.0,(z0+z1)/2,false);
   box(g,x1-x0,hT,0.18,matBiancoInt,(x0+x1)/2,hT/2,z0,false);
@@ -1675,38 +1893,70 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
   /* il corridoio del primo piano attraversa l'atrio: i muri laterali
      esistono solo fino a z=-12, poi c'e' il varco */
   const mo=box(g,7.8,hT,0.18,matBiancoInt,x0,hT/2,-15.9,false);mo.rotation.y=Math.PI/2;
-  const md=new THREE.Mesh(new THREE.PlaneGeometry(6.4,5.6),lam(0xffffff,{map:texMondrian}));
-  md.rotation.y=Math.PI/2;md.position.set(x0+0.12,3.4,-15.4);g.add(md);
+  /* dal pavimento al soffitto, e gira sullo spigolo (4901) */
+  const md=new THREE.Mesh(new THREE.PlaneGeometry(6.8,hT-0.2),lam(0xffffff,{map:texMondrian}));
+  md.rotation.y=Math.PI/2;md.position.set(x0+0.12,(hT-0.2)/2,-15.6);g.add(md);
+  const md2=new THREE.Mesh(new THREE.PlaneGeometry(2.2,hT-0.2),
+    lam(0xffffff,{map:texMondrian.clone()}));
+  md2.material.map.needsUpdate=true; md2.material.map.repeat.set(0.34,1);
+  md2.position.set(x0+1.2,(hT-0.2)/2,-19.05);g.add(md2);
   const me=box(g,7.8,hT,0.18,matBiancoInt,x1,hT/2,-15.9,false);me.rotation.y=Math.PI/2;
   const vc=new THREE.Mesh(new THREE.PlaneGeometry(3.4,2.4),matVetroC(5,4));
   vc.rotation.y=-Math.PI/2;vc.position.set(x1-0.1,5.4,-14);g.add(vc);
   /* soffitto a FASCE ARANCIO e CELESTE (dal video) */
+  /* 4859/4860/4903: campiture LARGHE e PIENE fra le travi, non strisce.
+     Salmone sopra il vuoto, azzurro polvere oltre, giallo ocra e crema ai lati. */
   box(g,x1-x0,0.14,z1-z0,matBiancoInt,(x0+x1)/2,hT,(z0+z1)/2,false);
-  box(g,x1-x0,0.03,1.5,lam(0xE8722A),(x0+x1)/2,hT-0.09,-9.2,false);
-  box(g,x1-x0,0.03,1.2,lam(0x8fc4dc),(x0+x1)/2,hT-0.09,-15.4,false);
-  box(g,x1-x0,0.03,1.0,lam(0xE8722A),(x0+x1)/2,hT-0.09,-12.2,false);
+  [[-8.0,2.6,0xE8862A],[-11.6,4.2,0x9FC6DE],[-15.6,3.4,0xE8B41E],
+   [-18.8,2.4,0xEFE6D2]].forEach(q=>
+    box(g,x1-x0,0.035,q[1],lam(q[2]),(x0+x1)/2,hT-0.09,q[0],false));
+  for(let i=0;i<5;i++)                        /* travi ribassate fra le campiture */
+    box(g,x1-x0,0.22,0.26,lam(0xEFE7D6),(x0+x1)/2,hT-0.13,-19.0+i*3.2,false);
   /* mezzanino ad anello */
   function lastra(a,b,c,d){
-    const m=new THREE.Mesh(new THREE.PlaneGeometry(b-a,d-c),matPav(palAtrio,103,8,8,6));
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(b-a,d-c),pav30(b-a,d-c,103));
     m.rotation.x=-Math.PI/2;m.position.set((a+b)/2,Q_ALTA,(c+d)/2);m.receiveShadow=true;g.add(m);
     box(g,b-a,0.28,d-c,matBiancoInt,(a+b)/2,Q_ALTA-0.15,(c+d)/2,false);}
   lastra(x0,x1,z0,vz0);lastra(x0,x1,vz1,z1);lastra(x0,vx0,vz0,vz1);lastra(vx1,x1,vz0,vz1);
+  /* 4903 — ordine corretto dal basso: MURETTO pieno crema con il piano su cui
+     poggiano le targhe, poi RINGHIERA BLU ad aste, poi CORRIMANO INOX tondo su
+     montanti. Prima avevo muretto e ringhiera sovrapposti: era l'inverso. */
+  const inoxM=new THREE.MeshPhongMaterial({color:0xc6cad0,shininess:110,specular:0xffffff});
   function parapetto(len,x,z,ry){
-    const p=box(g,len,0.5,0.1,matBiancoInt,x,Q_ALTA+0.25,z,false);p.rotation.y=ry||0;
-    ringhiera(g,len,x,Q_ALTA+0.42,z,ry,0x5a72a0);
-    const c=box(g,len,0.05,0.14,matLegnoScuro,x,Q_ALTA+1.46,z,false);c.rotation.y=ry||0;}
+    const p=box(g,len,0.95,0.16,matCrema,x,Q_ALTA+0.475,z,false); p.rotation.y=ry||0;
+    const pi=box(g,len+0.10,0.06,0.30,lam(0xdcd6c6),x,Q_ALTA+0.98,z,false); pi.rotation.y=ry||0;
+    const r=ringhiera(g,len-0.2,x,Q_ALTA+1.01,z,ry,0x46608f); r.scale.y=0.52;
+    const c=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,len,10),inoxM);
+    c.rotation.z=Math.PI/2; c.position.set(x,Q_ALTA+1.56,z);
+    if(ry) c.rotation.y=ry; g.add(c);
+    const n=Math.max(2,Math.round(len/1.8));
+    for(let i=0;i<=n;i++){
+      const t=-len/2+i*len/n;
+      const m=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.56,8),inoxM);
+      const px=ry?x:x+t, pz=ry?z+t:z;
+      m.position.set(px,Q_ALTA+1.28,pz); g.add(m);}
+  }
   parapetto(vx1-vx0,(vx0+vx1)/2,vz0,0);parapetto(vx1-vx0,(vx0+vx1)/2,vz1,0);
   parapetto(vz1-vz0,vx0,(vz0+vz1)/2,Math.PI/2);parapetto(vz1-vz0,vx1,(vz0+vz1)/2,Math.PI/2);
   /* COLONNE TONDE D'ACCIAIO da pavimento a soffitto (dal video) */
-  [[vx0-0.5,vz0-0.6],[vx1+0.5,vz0-0.6],[vx0-0.5,vz1+0.6],[vx1+0.5,vz1+0.6],
-   [x0+1.4,-8.4],[x1-1.4,-8.4],[x0+1.4,-17.6],[x1-1.4,-17.6]].forEach(q=>{
-    const c=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.075,hT-0.12,12),
-      new THREE.MeshPhongMaterial({color:0xc4c8cc,shininess:90,specular:0xffffff}));
-    c.position.set(q[0],hT/2,q[1]);c.castShadow=true;g.add(c);});
+  /* 4870/4903: le colonne stanno in COPPIE RAVVICINATE ai quattro angoli del
+     vuoto, non sparse per l'ambiente. */
+  [[vx0-0.55,vz0-0.7],[vx0-0.55,vz0-1.4],[vx1+0.55,vz0-0.7],[vx1+0.55,vz0-1.4],
+   [vx0-0.55,vz1+0.7],[vx0-0.55,vz1+1.4],[vx1+0.55,vz1+0.7],[vx1+0.55,vz1+1.4]].forEach(q=>{
+    const c=new THREE.Mesh(new THREE.CylinderGeometry(0.042,0.042,hT-0.12,14),
+      new THREE.MeshPhongMaterial({color:0xcfd3d8,shininess:130,specular:0xffffff}));
+    c.position.set(q[0],hT/2,q[1]);c.castShadow=true;g.add(c);
+    box(g,0.14,0.05,0.14,lam(0xb8bcc0),q[0],0.15,q[1],false);});
   /* NICCHIE rettangolari passanti nei muri bianchi (dal video) */
+  /* 4859/4860: nicchie PROFONDE con davanzale in pietra, come finestre interne
+     cieche — non riquadri piatti sul muro. */
   [[-13.4],[-15.6],[-17.8]].forEach(q=>{
-    box(g,0.1,0.55,1.5,lam(0xdedad0),x1-0.12,Q_ALTA+1.5,q[0],false);
-    box(g,0.1,0.55,1.5,lam(0xdedad0),x0+0.12,Q_ALTA+1.5,q[0],false);});
+    [[x1-0.22,-1],[x0+0.22,1]].forEach(w=>{
+      box(g,0.34,1.10,1.55,lam(0xE4DCC8),w[0],Q_ALTA+1.62,q[0],false);   /* fondo */
+      box(g,0.30,0.09,1.70,lam(0xCFC6B0),w[0],Q_ALTA+1.05,q[0],false);   /* davanzale */
+      box(g,0.30,0.07,1.70,lam(0xE9E1CE),w[0],Q_ALTA+2.20,q[0],false);   /* architrave */
+      box(g,0.30,1.10,0.09,lam(0xE9E1CE),w[0],Q_ALTA+1.62,q[0]-0.80,false);
+      box(g,0.30,1.10,0.09,lam(0xE9E1CE),w[0],Q_ALTA+1.62,q[0]+0.80,false);});});
   /* scala travertino dal PT al mezzanino */
   (function scalaTrav(){
     const n=14,al=(Q_ALTA-0.12)/n,pd=0.3;
@@ -1716,34 +1966,79 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
     c.rotation.x=Math.atan2(Q_ALTA-0.12,n*pd);})();
   /* SCALA DELLE TABELLINE: alzate coi quadretti numerati (dal video) */
   (function tabelline(){
-    const n=10;
+    /* 4902: la scala corre PARALLELA al corridoio principale (asse X) e SALE AL
+       SECONDO PIANO, che non e' mappato: la rampa attraversa il soffitto e si
+       perde in un vano scuro. Prima l'avevo messa trasversale e tronca. */
+    const n=14, alz=0.19, ped=0.30;
+    const xIn=x0+1.1, zC=z0+1.65, PAROLE=['Buona Scuola','Gestione delle emergenze',
+      'Creatività','Accoglienza','Responsabilità','Rispetto','Ascolto',
+      'Collaborazione','Impegno','Gentilezza','Fiducia','Cura','Coraggio','Speranza'];
     for(let i=0;i<n;i++){
-      box(g,1.9,0.17,0.29,matCrema,x0+2.6,Q_ALTA+0.17*(i+0.5),z0+1.3+0.29*i,true);
-      const a=new THREE.Mesh(new THREE.PlaneGeometry(1.9,0.17),lam(0xffffff,{map:texTabelline}));
-      a.position.set(x0+2.6,Q_ALTA+0.17*i+0.085,z0+1.15+0.29*i);a.rotation.y=Math.PI;g.add(a);}
-    box(g,0.06,1.0,n*0.29,lam(0x8a8f95),x0+3.6,Q_ALTA+1.4,z0+1.3+n*0.145,false);})();
+      const xx=xIn+ped*i, yy=Q_ALTA+alz*i;
+      box(g,ped,alz,2.0,matCrema,xx+ped/2,yy+alz/2,zC,true);
+      /* alzata rivolta verso il corridoio: porta la riga della tabellina */
+      const a2=new THREE.Mesh(new THREE.PlaneGeometry(2.0,alz),
+        lam(0xffffff,{map:texAlzataTab((i%10)+1)}));
+      a2.rotation.y=-Math.PI/2; a2.position.set(xx+0.002,yy+alz/2,zC);g.add(a2);
+      /* pedata: la parola applicata in nero */
+      const p=new THREE.Mesh(new THREE.PlaneGeometry(ped*0.92,2.0),
+        lam(0xffffff,{map:texPedata(PAROLE[i])}));
+      p.rotation.x=-Math.PI/2; p.rotation.z=-Math.PI/2;
+      p.position.set(xx+ped/2,yy+alz+0.004,zC);g.add(p);}
+    /* muretto laterale verso il vuoto, con corrimano inox */
+    const xFin=xIn+ped*n, yFin=Q_ALTA+alz*n;
+    const mur=box(g,ped*n,1.05,0.16,matCrema,(xIn+xFin)/2,0,zC-1.08,false);
+    mur.geometry.translate(0,0,0);
+    mur.position.y=(Q_ALTA+yFin)/2+0.52; mur.rotation.z=Math.atan2(alz,ped);
+    const inoxT=new THREE.MeshPhongMaterial({color:0xc6cad0,shininess:110,specular:0xffffff});
+    const cor=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,ped*n+0.5,10),inoxT);
+    cor.rotation.z=Math.PI/2-Math.atan2(alz,ped);
+    cor.position.set((xIn+xFin)/2,(Q_ALTA+yFin)/2+1.05,zC-1.08);g.add(cor);
+    for(let i=0;i<=4;i++){const t=i/4;
+      box(g,0.05,0.95,0.05,lam(0xb8bcc0),xIn+t*ped*n,Q_ALTA+t*alz*n+0.55,zC-1.08,false);}
+    /* il soffitto e' forato dove passa la rampa: sopra si intravede il buio
+       del secondo piano, che non e' modellato */
+    box(g,ped*n+0.6,0.16,2.4,matBiancoInt,(xIn+xFin)/2,hT+0.9,zC,false);
+    const vano=new THREE.Mesh(new THREE.BoxGeometry(ped*n+0.4,1.8,2.2),
+      new THREE.MeshBasicMaterial({color:0x1c1a18,side:THREE.BackSide}));
+    vano.position.set((xIn+xFin)/2,hT+0.02,zC);g.add(vano);
+    box(g,0.18,1.9,2.4,matBiancoInt,xIn-0.2,hT+0.05,zC,false);
+  })();
+
   /* arredo del mezzanino: divano grigio, panchina a listelli, ficus, tavolo rustico */
   (function arredo(){
     const s=new THREE.Group();
-    const sd=new THREE.Mesh(geoSmussata(1.75,0.42,0.72,0.06),lam(0x86868c));
-    sd.position.set(0,0.42,0);sd.castShadow=true;s.add(sd);
-    const sc=new THREE.Mesh(geoSmussata(1.75,0.52,0.16,0.06),lam(0x7e7e85));
-    sc.position.set(0,0.88,-0.29);s.add(sc);
-    [-0.87,0.87].forEach(q=>{const br=new THREE.Mesh(geoSmussata(0.14,0.56,0.72,0.05),lam(0x7e7e85));
-      br.position.set(q,0.6,0);s.add(br);});
-    box(s,1.75,0.05,0.05,lam(0xe4e4e6),0,0.03,0.3,false);
+    /* 4901: divano grigio a due posti su STRUTTURA BIANCA A SLITTA */
+    const sd=new THREE.Mesh(geoSmussata(1.62,0.30,0.72,0.07),lam(0x83838a));
+    sd.position.set(0,0.44,0);sd.castShadow=true;s.add(sd);
+    const sc=new THREE.Mesh(geoSmussata(1.62,0.58,0.18,0.07),lam(0x7b7b82));
+    sc.position.set(0,0.86,-0.30);s.add(sc);
+    [-0.81,0.81].forEach(q=>{const br=new THREE.Mesh(geoSmussata(0.16,0.52,0.72,0.06),lam(0x7b7b82));
+      br.position.set(q,0.60,0);s.add(br);});
+    const bianco=new THREE.MeshPhongMaterial({color:0xf2f2f0,shininess:80});
+    [-0.78,0.78].forEach(q=>{
+      box(s,0.05,0.05,0.78,bianco,q,0.06,0,false);
+      box(s,0.05,0.34,0.05,bianco,q,0.23,-0.36,false);
+      box(s,0.05,0.34,0.05,bianco,q,0.23,0.36,false);});
     s.position.set(-34.2,Q_ALTA,-7.6);g.add(s);
     contatto(g,-34.2,Q_ALTA+0.012,-7.6,2.4,1.3,0.6);
-    /* panchina a listelli di legno */
-    const pb=new THREE.Group();
-    for(let i=0;i<5;i++) box(pb,1.25,0.05,0.09,matLegnoScuro,0,0.42,-0.24+i*0.12,false);
-    [[-.55,-.26],[.55,-.26],[-.55,.26],[.55,.26]].forEach(q=>
-      box(pb,0.07,0.42,0.07,matLegnoScuro,q[0],0.21,q[1],false));
-    pb.position.set(-32.1,Q_ALTA,-7.7);g.add(pb);
-    contatto(g,-32.1,Q_ALTA+0.012,-7.7,1.7,1.0,0.55);
+    /* 4901: TAVOLINO BASSO in legno chiaro a doghe, davanti al divano */
+    const pb=new THREE.Group(); const chiaro=lam(0xC9A56A);
+    for(let i=0;i<7;i++) box(pb,1.10,0.05,0.085,chiaro,0,0.40,-0.30+i*0.10,false);
+    box(pb,1.16,0.05,0.09,chiaro,0,0.40,-0.36,false);
+    box(pb,1.16,0.05,0.09,chiaro,0,0.40,0.36,false);
+    [[-.50,-.30],[.50,-.30],[-.50,.30],[.50,.30]].forEach(q=>
+      box(pb,0.06,0.38,0.06,chiaro,q[0],0.19,q[1],false));
+    box(pb,1.02,0.04,0.04,chiaro,0,0.12,-0.30,false);
+    box(pb,1.02,0.04,0.04,chiaro,0,0.12,0.30,false);
+    pb.position.set(-32.3,Q_ALTA,-7.7);g.add(pb);
+    contatto(g,-32.3,Q_ALTA+0.012,-7.7,1.6,1.1,0.55);
     ficus(g,-35.0,-9.6,Q_ALTA,1.15);
-    tavolo(g,-27.5,-7.9,0,2.3,0.85,matLegnoScuro,Q_ALTA,0.78);
-    sedia(g,-26.9,-8.7,Math.PI,cLegno,Q_ALTA);sedia(g,-28.3,-8.7,Math.PI,cBluS,Q_ALTA);
+    /* 4870/4903: tavolo rustico MOLTO grande, con sedie in legno curvato */
+    tavolo(g,-27.5,-7.9,0,3.4,1.0,matLegnoScuro,Q_ALTA,0.78);
+    [-1.1,0,1.1].forEach(dx=>{
+      sedia(g,-27.5+dx,-8.85,Math.PI,cLegno,Q_ALTA);
+      sedia(g,-27.5+dx,-6.95,0,cLegno,Q_ALTA);});
     [[0xc23a34],[0x123E90],[0xd8b23a]].forEach((c,i)=>
       box(g,0.3,0.22,0.03,lam(c[0]),vx0+1+i*1.2,Q_ALTA+1.1,vz1+0.02,false));
     box(g,0.6,0.8,0.25,matBiancoInt,-29,5.4,z0+0.18,false);
@@ -1757,7 +2052,7 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
   const g=new THREE.Group();interni.add(g);
   const z0=-11.55,z1=-6.4;
   function guscio(x0,x1,q,rip){
-    const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matGres(rip,4));
+    const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),pav30(x1-x0,z1-z0,200+rip));
     p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,q,(z0+z1)/2);p.receiveShadow=true;g.add(p);
     box(g,x1-x0,0.3,z1-z0,lam(0xbdbab2),(x0+x1)/2,q-0.16,(z0+z1)/2,false);
     const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matSoffitto(rip,4));
@@ -1775,6 +2070,8 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
     c.position.set(x,Q_ALTA+0.27,z);c.castShadow=true;g.add(c);
     contatto(g,x,Q_ALTA+0.012,z,2.1,0.9,0.6);})(-46,-7.4);
   banco(g,-56,-7.4,0,lam(0xcfe0c8),Q_ALTA);sedia(g,-56.5,-8.1,Math.PI,cLegno,Q_ALTA);
+  /* pannelli SENAPE fra le campate, sul fronte vetrato del corridoio (4884) */
+  for(let i=0;i<4;i++) pannelloSenape(g,-58+i*7.2,-6.52,2.5,Math.PI/2);
   box(g,1.2,0.9,0.45,matPortaChiara,-59,Q_ALTA+0.45,-7.2,true);
   /* corridoio est (quota bassa) con le due gradinate */
   guscio(-24.2,-6,Q_ALTA,11);
@@ -1792,29 +2089,47 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
     box(g,0.34,0.12,0.24,matLegno,x,Q_ALTA+0.84,z,true);
     contatto(g,x,Q_ALTA+0.012,z,1.2,0.8,0.6);})(-9.9,-7.2);
   /* angolo scala a est, con stemmi delle 4 Case e ringhiera nera */
-  guscio(-6.2,13.55,Q_ALTA,12);
+  /* il pavimento 30x30 degli uffici si ferma dove comincia la Secondaria:
+     da li' in poi e' 60x60 antracite. Prima i due gusci si sovrapponevano e
+     il cambio di piastrella non si leggeva. */
+  guscio(-6.2,8.55,Q_ALTA,12);
+  /* soglia di cambio pavimento, in pietra chiara */
+  box(g,0.16,0.04,z1-z0,lam(0xCFC6B0),8.55,Q_ALTA+0.02,(z0+z1)/2,false);
   quadro(g,texStemmiMuro,3.0,2.2,11,Q_ALTA+1.7,z0+0.1,0);
   quadro(g,texQuadro(151),0.9,1.1,3,Q_ALTA+1.7,z0+0.1,0);
   estintore(g,-5.5,Q_ALTA+0.9,z0+0.2);
   quadro(g,texSalaIns,0.62,0.31,-2.2,Q_ALTA+1.75,z0+0.1,0);
   porta(g,matPortaChiara,-3.4,Q_ALTA,z0+0.1,0,0);
-  /* Qui avevo messo un vano scala con la ringhiera nera in mezzo al corridoio
-     nord: non esiste. Rimosso — il corridoio corre libero fino all'angolo. */
+  /* 4880/4881: il vano scala ESISTE, ma incassato in una NICCHIA del muro a
+     destra della gradinata — non in mezzo al corridoio. Della ringhiera nera
+     ad aste fitte si vede solo la parte alta, sopra un muretto. */
+  (function vanoScalaNicchia(){
+    const nx0=1.6, nx1=5.4, nz=z0+0.12;
+    box(g,nx1-nx0,SOFF-Q_ALTA-2.3,0.30,matBiancoInt,(nx0+nx1)/2,SOFF-0.55,nz,false);
+    box(g,0.34,2.3,0.34,matBiancoInt,nx0-0.17,Q_ALTA+1.15,nz,false);
+    box(g,0.34,2.3,0.34,matBiancoInt,nx1+0.17,Q_ALTA+1.15,nz,false);
+    box(g,nx1-nx0,0.42,0.26,matBiancoInt,(nx0+nx1)/2,Q_ALTA+0.21,nz-0.10,false);
+    const r=ringhiera(g,nx1-nx0-0.25,(nx0+nx1)/2,Q_ALTA+0.42,nz-0.10,0,0x2f3236);
+    r.scale.y=0.62;
+    for(let i=0;i<7;i++)
+      box(g,nx1-nx0-0.35,0.17,0.30,lam(0x8f8d87),(nx0+nx1)/2,Q_ALTA-0.085-i*0.17,nz+0.22+i*0.28,false);
+    box(g,nx1-nx0+0.7,0.12,0.34,lam(0xdedbd2),(nx0+nx1)/2,Q_ALTA+1.32,nz-0.12,false);
+  })();
   /* gli unici gradini del piano: nell'angolo fra corridoio nord e corridoio
      est della Scuola Secondaria */
   (function gradiniAngolo(){
     /* IMG_4879: quattro alzate basse, pedate profonde, gres grigio come il
        pavimento e una fascia chiara sul naso del gradino. Il lato verso il
        muro e' scalato: ogni gradino arretra rispetto a quello sottostante. */
-    const grigio=lam(0x9c9a95), naso=lam(0xc4c2bc);
-    const alz=0.16, ped=0.42, xDx=13.4;
-    for(let i=0;i<4;i++){
-      const xSx=7.4+i*0.95;                 /* l'estremita' sinistra si accorcia */
+    const grigio=lam(0x8f8d87), naso=lam(0xbfbdb6);   /* gres come il pavimento */
+    const alz=0.17, ped=0.44, xDx=13.4;
+    for(let i=0;i<3;i++){                    /* 4880/4881: sono TRE, non quattro */
+      const xSx=7.4+i*0.95;                 /* l'estremita' verso il muro si accorcia */
       const w=xDx-xSx, xc=(xSx+xDx)/2;
       const z=-7.15+i*ped;
-      box(g,w,alz*(4-i),ped,grigio,xc,Q_ALTA+alz*(4-i)/2,z,true);
-      box(g,w,0.03,0.07,naso,xc,Q_ALTA+alz*(4-i)+0.005,z-ped/2+0.035,false);
-      box(g,0.05,alz*(4-i),ped,grigio,xSx-0.02,Q_ALTA+alz*(4-i)/2,z,false);
+      box(g,w,alz*(3-i),ped,grigio,xc,Q_ALTA+alz*(3-i)/2,z,true);
+      box(g,w,0.035,0.08,naso,xc,Q_ALTA+alz*(3-i)+0.006,z-ped/2+0.04,false);
+      box(g,0.05,alz*(3-i),ped,grigio,xSx-0.02,Q_ALTA+alz*(3-i)/2,z,false);
     }
     contatto(g,10.4,Q_ALTA+0.012,-6.2,7,2.4,0.4);})();
   const te=box(g,z1-z0,SOFF-Q_ALTA,0.16,matBiancoInt,13.57,(SOFF+Q_ALTA)/2,(z0+z1)/2,false);
@@ -1827,7 +2142,7 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
 (function bloccoInt(){
   const g=new THREE.Group();interni.add(g);
   const x0=-77.3,x1=-64,z0=-11.55,z1=-6.45;
-  const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matGres(8,4));
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),pav30(x1-x0,z1-z0,211));
   p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,Q_ALTA,(z0+z1)/2);p.receiveShadow=true;g.add(p);
   box(g,x1-x0,0.3,z1-z0,lam(0xbdbab2),(x0+x1)/2,Q_ALTA-0.16,(z0+z1)/2,false);
   const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matSoffitto(8,4));
@@ -1841,7 +2156,7 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
   sedia(g,-70.6,-8.7,Math.PI,cLegno,Q_ALTA);sedia(g,-69.4,-8.7,Math.PI,cBluS,Q_ALTA);
   /* corridoio dei lavori, soffitto terracotta */
   const lx0=-76.4,lx1=-66.6,lz0=-6.45,lz1=-3.75;
-  const p2=new THREE.Mesh(new THREE.PlaneGeometry(lx1-lx0,lz1-lz0),matPav(palAtrio,105,9,2,6));
+  const p2=new THREE.Mesh(new THREE.PlaneGeometry(lx1-lx0,lz1-lz0),pav30(lx1-lx0,lz1-lz0,105));
   p2.rotation.x=-Math.PI/2;p2.position.set((lx0+lx1)/2,Q_ALTA,(lz0+lz1)/2);p2.receiveShadow=true;g.add(p2);
   box(g,lx1-lx0,0.3,lz1-lz0,lam(0xbdbab2),(lx0+lx1)/2,Q_ALTA-0.16,(lz0+lz1)/2,false);
   /* Le testate del corridoio dei lavori sono SPEZZATE, non piene: erano loro
@@ -1852,8 +2167,15 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
   [[lx0,VARCO[0]],[VARCO[1],lx1]].forEach(q=>{
     const w=q[1]-q[0]; if(w<=0.1) return;
     box(g,w,2.6,0.14,matCrema,(q[0]+q[1])/2,Q_ALTA+1.3,lz1,false);
-    box(g,w,2.6,0.14,matGrigioScuroMat,(q[0]+q[1])/2,Q_ALTA+1.3,lz0,false);
-    ringhiera(g,Math.max(0.6,w-0.7),(q[0]+q[1])/2,Q_ALTA,lz0+0.25,0,0x2a2a2e);});
+    /* 4855/4857: verso il vano scala non c'e' un muro pieno con ringhiera, ma
+       una parete GRIGIO-AZZURRA SPATOLATA con una fitta SCHERMATURA di listelli
+       verticali scuri che filtra la luce dal vano scala. */
+    box(g,w,2.6,0.10,lam(0x8C97A0),(q[0]+q[1])/2,Q_ALTA+1.3,lz0,false);
+    const nL=Math.max(4,Math.round(w/0.16));
+    for(let k=0;k<=nL;k++)
+      box(g,0.045,2.34,0.09,lam(0x3E3A36),q[0]+k*w/nL,Q_ALTA+1.30,lz0+0.09,false);
+    box(g,w,0.10,0.16,lam(0x4A4640),(q[0]+q[1])/2,Q_ALTA+2.50,lz0+0.09,false);
+    box(g,w,0.10,0.16,lam(0x4A4640),(q[0]+q[1])/2,Q_ALTA+0.12,lz0+0.09,false);});
   quadro(g,texLavori(151),2.4,1.3,-75.2,Q_ALTA+1.55,lz1-0.09,Math.PI);
   quadro(g,texLavori(153),2.4,1.3,-68.4,Q_ALTA+1.5,lz1-0.09,Math.PI);
   box(g,lx1-lx0,0.1,lz1-lz0,matTerracotta,(lx0+lx1)/2,Q_ALTA+2.62,(lz0+lz1)/2,false);
@@ -1865,10 +2187,11 @@ let ancoraBiliardino=null, ancoraCase=null;
 (function primaria(){
   const g=new THREE.Group();interni.add(g);
   const x0=-76.85,x1=-67.15,z0=-3.7,z1=33.3;
-  const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matPav(palPrimaria,107,5,19,8));
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),pav30(x1-x0,z1-z0,107));
   p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,Q_ALTA,(z0+z1)/2);p.receiveShadow=true;g.add(p);
   box(g,x1-x0,0.55,z1-z0,lam(0xecdfc4),(x0+x1)/2,Q_ALTA-0.29,(z0+z1)/2,false);
   const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matSoffitto(6,22));
+  s.material.color.setHex(0xEDE4CE);          /* quadrotti crema caldo (4847) */
   s.rotation.x=Math.PI/2;s.position.set((x0+x1)/2,SOFF,(z0+z1)/2);g.add(s);
   /* parete nord verso il corridoio dei lavori */
   /* il varco verso il corridoio dei lavori e' allineato a quello a monte */
@@ -1884,24 +2207,39 @@ let ancoraBiliardino=null, ancoraCase=null;
     /* stipiti arancio + porte marrone bronzo (dal video) */
     [bz0-0.06,bz1+0.06].forEach((zp,k)=>{
       box(g,1.55,2.4,0.24,matArancioPrim,x0+0.9,Q_ALTA+1.2,zp,false);
-      porta(g,matPortaBronzo,x0+1.68,Q_ALTA,zp,0,(bi===1&&k===0)?0.75:0);});
+      porta(g,matPortaChiara,x0+1.68,Q_ALTA,zp,0,(bi===1&&k===0)?0.75:0);});
     listello(g,bl-0.6,x0+1.78,Q_ALTA+1.12,bc,Math.PI/2);
   });
   /* pannello 4 CASE + DUE biliardini davanti (dal video) */
   ancoraCase=quadro(g,texCase,3.4,2.55,x0+1.79,Q_ALTA+1.85,3.0,Math.PI/2);
-  ancoraBiliardino=biliardino(g,-72.6,3.2,0.06,lam(0xf0eee6),Q_ALTA);
-  biliardino(g,-74.3,5.4,0.14,lam(0xa8c49a),Q_ALTA);
+  /* 4856: davanti al pannello delle Case ce n'e' UNO SOLO, il verde menta.
+     Gli altri due — grigio chiaro e blu scuro — stanno piu' avanti nel salone. */
+  ancoraBiliardino=biliardino(g,-72.4,3.4,0.04,lam(0xA8C49A),Q_ALTA);
+  biliardino(g,-71.9,7.6,-0.10,lam(0xE8E6DE),Q_ALTA);
+  biliardino(g,-73.6,9.8,0.16,lam(0x2B3A6E),Q_ALTA);
   quadro(g,texMorin,3.2,1.0,x0+1.79,Q_ALTA+2.45,16.5,Math.PI/2);
   quadro(g,texEducare,2.4,0.37,x0+1.79,SOFF-0.75,11.0,Math.PI/2);
   quadro(g,texLavori(171,'#f6f2e8'),3.4,1.15,x0+0.1,Q_ALTA+1.7,25.0,Math.PI/2);
   /* parete EST: la vetrata e' esterna, qui davanzale e montanti */
   const sl=box(g,z1-z0,0.95,0.16,matGialloPrim,x1,Q_ALTA+0.475,(z0+z1)/2,false);sl.rotation.y=Math.PI/2;
   const fa=box(g,z1-z0,0.9,0.16,matGialloPrim,x1,SOFF-0.45,(z0+z1)/2,false);fa.rotation.y=Math.PI/2;
+  /* telai ANTRACITE, non grigio chiaro; parte bassa a VETRO SATINATO e ante a
+     vasistas in alto (4851/4856) */
+  const antr=lam(0x3A3E44);
   for(let i=0;i<=13;i++)
-    box(g,0.14,SOFF-Q_ALTA-1.4,0.16,matTelaioGrigio,x1-0.06,Q_ALTA+0.95+(SOFF-Q_ALTA-1.4)/2,z0+1+i*(z1-z0-2)/13,false);
+    box(g,0.14,SOFF-Q_ALTA-1.4,0.16,antr,x1-0.06,Q_ALTA+0.95+(SOFF-Q_ALTA-1.4)/2,z0+1+i*(z1-z0-2)/13,false);
+  box(g,0.10,0.13,z1-z0-2,antr,x1-0.06,Q_ALTA+2.05,(z0+z1)/2,false);   /* traverso */
+  const sat=new THREE.Mesh(new THREE.PlaneGeometry(z1-z0-2,1.05),
+    new THREE.MeshPhongMaterial({color:0xD8E4E8,shininess:22,specular:0x445055,
+      transparent:true,opacity:0.92,side:THREE.DoubleSide}));
+  sat.rotation.y=-Math.PI/2; sat.position.set(x1-0.14,Q_ALTA+1.5,(z0+z1)/2); g.add(sat);
   /* parete sud crema */
+  /* 4853/4854: non un muro piatto ma un VOLUME che sporge, con spigolo vivo e
+     trave grigia ribassata al soffitto */
   box(g,x1-x0,SOFF-Q_ALTA,0.16,matCrema,(x0+x1)/2,(SOFF+Q_ALTA)/2,z1,false);
-  quadro(g,texCuore,2.6,0.42,(x0+x1)/2+1.4,Q_ALTA+2.0,z1-0.1,Math.PI);
+  box(g,5.2,SOFF-Q_ALTA,1.15,matCrema,(x0+x1)/2+1.6,(SOFF+Q_ALTA)/2,z1-0.62,true);
+  box(g,x1-x0,0.42,0.34,lam(0xA8A49A),(x0+x1)/2,SOFF-0.21,z1-1.20,false);
+  quadro(g,texCuore,2.6,0.42,(x0+x1)/2+1.6,Q_ALTA+2.0,z1-1.21,Math.PI);
   antincendio(g,(x0+x1)/2-1.6,Q_ALTA+1.5,z1-0.12,Math.PI);
   /* tavoli mensa: piano legno chiaro, GAMBE NERE, sedie gialle e verdi (video) */
   for(let i=0;i<5;i++){
@@ -1920,7 +2258,7 @@ let ancoraBiliardino=null, ancoraCase=null;
 (function secondaria(){
   const g=new THREE.Group();interni.add(g);
   const x0=8.55,x1=25.3,z0=-6.4,z1=16.5,xc=13.55;
-  const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matGres(10,14));
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),pav60(x1-x0,z1-z0));
   p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,Q_ALTA,(z0+z1)/2);p.receiveShadow=true;g.add(p);
   box(g,x1-x0,0.3,z1-z0,lam(0xbdbab2),(x0+x1)/2,Q_ALTA-0.16,(z0+z1)/2,false);
   const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matSoffitto(10,14));
@@ -1935,13 +2273,15 @@ let ancoraBiliardino=null, ancoraCase=null;
   quadro(g,texQuadro(173),0.8,1.0,xc-0.1,Q_ALTA+1.6,10.2,-Math.PI/2);
   banco(g,10.4,2,Math.PI/2,lam(0xcfe0c8),Q_ALTA);sedia(g,9.7,2.6,0,cLegno,Q_ALTA);
   banco(g,10.4,9.5,Math.PI/2,lam(0xd8cfc0),Q_ALTA);sedia(g,9.7,10.1,0,cLegno,Q_ALTA);
+  /* pannelli di parete SENAPE fra le campate della vetrata (4878/4897) */
+  for(let i=0;i<3;i++) pannelloSenape(g,x0+0.12,-2.5+i*7.6,2.5);
   box(g,x1-x0,SOFF-Q_ALTA,0.16,matBiancoInt,(x0+x1)/2,(SOFF+Q_ALTA)/2,z1,false);
   quadro(g,texQuadro(177),0.9,1.1,(x0+xc)/2,Q_ALTA+1.7,z1-0.1,Math.PI);
   /* aule: crema sopra, FASCIA GRIGIO-VERDE sotto, infissi neri (dal video) */
   [[-6.4,1.5],[1.5,9],[9,16.5]].forEach((a,ai)=>{
     const az0=a[0],az1=a[1],ac=(az0+az1)/2;
     const p2=new THREE.Mesh(new THREE.PlaneGeometry(x1-xc-0.1,az1-az0-0.1),
-      matPav(['#d8cec0','#d2c8ba','#ddd3c5'],180+ai,6,8,4));
+      pav60(x1-xc-0.1,az1-az0-0.1));
     p2.rotation.x=-Math.PI/2;p2.position.set((xc+x1)/2,Q_ALTA+0.005,ac);p2.receiveShadow=true;g.add(p2);
     box(g,x1-xc-0.1,0.3,az1-az0-0.1,lam(0xbdbab2),(xc+x1)/2,Q_ALTA-0.16,ac,false);
     if(ai>0){box(g,x1-xc,SOFF-Q_ALTA,0.12,matGialloAula,(xc+x1)/2,(SOFF+Q_ALTA)/2,az0,false);
@@ -1959,9 +2299,38 @@ let ancoraBiliardino=null, ancoraCase=null;
       gl.rotation.y=-Math.PI/2;gl.position.set(x1-0.16,Q_ALTA+2.05,fz);g.add(gl);}
     box(g,0.05,1.1,2.0,lam(0xf8f8f6),xc+0.13,Q_ALTA+1.85,ac-1,false);
     box(g,0.06,0.75,1.25,lam(0x1a1a1e),xc+0.13,Q_ALTA+2.05,ac+2.2,false);
-    for(let r=0;r<2;r++)for(let c=0;c<2;c++){
-      banco(g,16.4+c*2.6,az0+2.2+r*2.6,Math.PI/2,lam(0xeae5d8),Q_ALTA);
-      sedia(g,17.1+c*2.6,az0+2.2+r*2.6,Math.PI/2,[cBluS,cLime,cLime,cBluS][r*2+c],Q_ALTA);}
+    /* 4889/4891: i banchi sono accostati a ISOLE lunghe, su rotelle, con le
+       sedie lime e blu notte alternate attorno */
+    for(let r=0;r<2;r++)for(let c=0;c<3;c++){
+      bancoRuote(g,15.8+c*1.35,az0+2.0+r*2.9,Math.PI/2,Q_ALTA);
+      sedia(g,15.8+c*1.35,az0+1.15+r*2.9,0,[cLime,cBluS,cLime][c],Q_ALTA);
+      sedia(g,15.8+c*1.35,az0+2.85+r*2.9,Math.PI,[cBluS,cLime,cBluS][c],Q_ALTA);}
+    /* CROCIFISSO in legno chiaro sopra la lavagna (4890) */
+    box(g,0.05,0.42,0.05,lam(0xC9A56A),xc+0.13,Q_ALTA+2.62,ac-1,false);
+    box(g,0.05,0.05,0.26,lam(0xC9A56A),xc+0.13,Q_ALTA+2.72,ac-1,false);
+    /* LAVAGNA su TELAIO A PONTE tubolare cromato (4892) */
+    const crom=new THREE.MeshPhongMaterial({color:0xC6CAD0,shininess:120,specular:0xffffff});
+    [-1.05,1.05].forEach(dz=>{
+      const m2=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,2.30,10),crom);
+      m2.position.set(xc+0.30,Q_ALTA+1.15,ac-1+dz);g.add(m2);});
+    box(g,0.05,0.05,2.10,crom.clone(),xc+0.30,Q_ALTA+2.28,ac-1,false);
+    /* SCAFFALATURA metallica coi rotoli di carta (4890) */
+    (function scaffale(zz){
+      [-0.62,0.62].forEach(dz=>[0,0.52].forEach(dx=>{
+        const m3=new THREE.Mesh(new THREE.CylinderGeometry(0.026,0.026,1.95,10),crom);
+        m3.position.set(x1-0.75+dx,Q_ALTA+0.98,zz+dz);g.add(m3);}));
+      [0.55,1.15,1.75].forEach(h2=>
+        box(g,0.62,0.035,1.30,lam(0xE4DED0),x1-0.49,Q_ALTA+h2,zz,false));
+      [[-0.30,0xF2ECDE],[0,0xE8DCC8],[0.30,0xF6F2E8]].forEach(q2=>{
+        const r2=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,1.10,12),lam(q2[1]));
+        r2.rotation.x=Math.PI/2; r2.position.set(x1-0.49,Q_ALTA+1.30,zz+q2[0]);g.add(r2);});
+      /* tre bidoni etichettati */
+      ['#8A8F95','#2F5FAE','#E8B41E'].forEach((c2,k)=>{
+        box(g,0.34,0.46,0.34,lam(c2),x1-0.49,Q_ALTA+0.23,zz-0.45+k*0.45,true);
+        box(g,0.30,0.03,0.30,lam(0x2A2A2A),x1-0.49,Q_ALTA+0.47,zz-0.45+k*0.45,false);});
+      contatto(g,x1-0.55,Q_ALTA+0.012,zz,1.4,2.0,0.5);})(ac+2.6);
+    /* binario bianco continuo per i cartelloni, a ~2,2 m */
+    box(g,0.05,0.05,az1-az0-0.4,lam(0xF4F2EE),xc+0.14,Q_ALTA+2.20,ac,false);
   });
 })();
 
@@ -1976,6 +2345,118 @@ let ancoraBiliardino=null, ancoraCase=null;
    non nomina mai il luogo, lo DESCRIVE. Nessun punteggio, nessun timer,
    nessuna classifica: gli aiuti sono graduati, a costo dichiarato, e il
    percorso si chiude con un debrief. */
+
+/* ===================== DOMANDE SULLA FONDATRICE =========================
+   Da "domande e risposte.rtf". Per ogni domanda ho scritto TRE risposte
+   sbagliate dello stesso registro della corretta: date vicine per le date,
+   nomi coerenti con l'epoca per i nomi, concetti dello stesso ambito per le
+   risposte di senso. Cosi' la scelta richiede di sapere, non di riconoscere
+   l'unica opzione plausibile.
+   "sug" e' il suggerimento del religioso: orienta senza dare la risposta.
+   ====================================================================== */
+const DOMANDE=[
+ {d:'In quale città è nata Santa Paola Elisabetta Cerioli?', r:'Soncino',
+  x:['Orzinuovi','Martinengo','Alzano Maggiore'],
+  sug:'È una cittadina murata della bassa bergamasca, non il paese dove oggi sorge il Campus.'},
+ {d:'Quali nomi ricevette al battesimo il 28 gennaio 1816?', r:'Costanza Onorata',
+  x:['Paola Elisabetta','Francesca Onorata','Costanza Elisabetta'],
+  sug:'Il nome di Paola Elisabetta lo prese molto più tardi: al fonte le diedero altri due nomi.'},
+ {d:'Qual era la sua posizione d\'ordine tra i fratelli?', r:'Sedicesima e ultima figlia',
+  x:['Sesta di dodici figli','Ultima di nove figli','Terza di sedici figli'],
+  sug:'Era davvero l\'ultima, e la famiglia era numerosissima: più di quindici figli.'},
+ {d:'Chi le insegnò ad amare Gesù e i poveri?', r:'La madre, contessa Francesca Corniani',
+  x:['Il padre, conte Francesco Domenico','Le Suore Visitandine del Collegio',
+     'Il parroco di Soncino'],
+  sug:'Fu una presenza quotidiana dentro casa, prima ancora del Collegio.'},
+ {d:'A che età entrò nel Collegio ad Alzano Maggiore?', r:'A 10 anni',
+  x:['A 7 anni','A 13 anni','A 16 anni'],
+  sug:'Era ancora una bambina, ma non piccolissima: aveva già passato la prima infanzia.'},
+ {d:'Quali suore gestivano il Collegio?', r:'Le Suore Visitandine',
+  x:['Le Suore Orsoline','Le Suore Canossiane','Le Suore della Sacra Famiglia'],
+  sug:'Il loro nome viene dalla Visitazione di Maria a Elisabetta.'},
+ {d:'A chi fu proposta sposa all\'età di 19 anni?', r:'Al conte Gaetano Busecchi Tassis',
+  x:['Al conte Francesco Domenico Cerioli','Al marchese Carlo Corniani',
+     'Al conte Giovanni Battista Secco'],
+  sug:'Era un nobile molto più anziano di lei, e il cognome contiene due casati.'},
+ {d:'In quale località si trasferì dopo le nozze?', r:'Comonte (Bergamo)',
+  x:['Seriante (Bergamo)','Martinengo (Bergamo)','Soncino (Cremona)'],
+  sug:'È la località dove ancora oggi ha sede la casa madre dell\'Istituto.'},
+ {d:'Quanti figli ebbe complessivamente?', r:'Quattro figli',
+  x:['Due figli','Tre figli','Sei figli'],
+  sug:'Furono più di tre, e purtroppo soltanto uno arrivò all\'adolescenza.'},
+ {d:'Come si chiamava l\'unico figlio che visse fino a 16 anni?', r:'Carlo',
+  x:['Gaetano','Francesco','Giovanni'],
+  sug:'Non porta il nome del padre né quello del nonno materno.'},
+ {d:'A che età divenne «madre degli orfani»?', r:'A 40 anni',
+  x:['A 30 anni','A 45 anni','A 52 anni'],
+  sug:'Fu poco dopo la morte del figlio, quando la casa le rimase vuota.'},
+ {d:'Quale personaggio biblico andò da Gesù di notte?', r:'Nicodemo',
+  x:['Zaccheo','Giuseppe d\'Arimatea','Bartimeo'],
+  sug:'Era un fariseo, membro del sinedrio, e temeva di farsi vedere.'},
+ {d:'Cosa disse Gesù a Nicodemo per incontrare Dio?', r:'Devi rinascere dall\'alto',
+  x:['Devi vendere tutto e seguirmi','Devi farti piccolo come un bambino',
+     'Devi amare il prossimo tuo'],
+  sug:'Parla di una seconda nascita, non di un gesto da compiere.'},
+ {d:'Perché l\'educazione è una «seconda creazione»?',
+  r:'Perché è collaborare con Dio per far rinascere i piccoli',
+  x:['Perché ricostruisce ciò che la famiglia ha distrutto',
+     'Perché crea cittadini nuovi per la società',
+     'Perché insegna a leggere e scrivere da capo'],
+  sug:'Il verbo che conta è «collaborare»: non si crea da soli.'},
+ {d:'Quale opera architettonica moderna viene citata nella lettera?',
+  r:'La Sagrada Familia di Gaudì',
+  x:['La basilica di San Pietro','Il Duomo di Milano','La Sacra di San Michele'],
+  sug:'È a Barcellona, ed è ancora incompiuta dopo più di un secolo.'},
+ {d:'Quante torri avrà la Sagrada Familia?', r:'18 torri',
+  x:['12 torri','15 torri','24 torri'],
+  sug:'Dodici sono per gli Apostoli, ma non sono le uniche.'},
+ {d:'A chi è dedicata l\'ultima torre della Sagrada Familia?', r:'A Gesù',
+  x:['A Maria','A San Giuseppe','Agli Evangelisti'],
+  sug:'È la più alta di tutte, e sta al centro.'},
+ {d:'Cosa aprì Paola nella sua casa per le bambine?', r:'Una scuola di carità',
+  x:['Un collegio per nobili','Un orfanotrofio comunale','Un laboratorio di cucito'],
+  sug:'Non chiedeva rette: il nome dice proprio il motivo per cui la aprì.'},
+ {d:'Chi erano i destinatari della scuola aperta in casa sua?',
+  r:'Le bambine orfane e contadine',
+  x:['Le figlie delle famiglie nobili','I ragazzi del seminario',
+     'I bambini del paese senza distinzione'],
+  sug:'Erano bambine, e venivano dalle famiglie che nessuno cercava.'},
+ {d:'A cosa è paragonata la vita nella lettera?',
+  r:'A un fiore che deve sbocciare per donare profumo',
+  x:['A un seme che marcisce per dare frutto','A un cammino in salita verso la vetta',
+     'A una casa costruita sulla roccia'],
+  sug:'L\'immagine finisce con un profumo che si dona agli altri.'},
+ {d:'Cosa rischia il fiore se rimane chiuso per paura?',
+  r:'Di non vivere e non donare profumo',
+  x:['Di appassire prima del tempo','Di essere colto da un altro',
+     'Di non vedere mai il sole'],
+  sug:'Il rischio è doppio: riguarda lui e riguarda gli altri.'},
+ {d:'Quale aggettivo definisce Paola come Madre?', r:'Generosa',
+  x:['Paziente','Umile','Forte'],
+  sug:'È la parola che si accompagna al «coraggiosa» della Fondatrice.'},
+ {d:'Quale aggettivo definisce Paola come Fondatrice?', r:'Coraggiosa',
+  x:['Instancabile','Prudente','Sapiente'],
+  sug:'È la parola che fa coppia con il «generosa» della Madre.'},
+ {d:'Come si chiamano gli Istituti nati da lei?',
+  r:'Istituti femminile e maschile della Sacra Famiglia',
+  x:['Istituto delle Suore di Comonte','Congregazione della Santa Famiglia di Nazareth',
+     'Istituto delle Figlie della Carità'],
+  sug:'Sono due, non uno, e portano il nome che dà il titolo alla scuola.'},
+ {d:'In quale giorno di gennaio si festeggia la Fondatrice?', r:'Il 23 gennaio',
+  x:['Il 16 gennaio','Il 28 gennaio','Il 30 gennaio'],
+  sug:'Non è il giorno della nascita né quello della morte del figlio.'},
+ {d:'Cosa serve per vedere il regno di Dio, secondo Gesù?', r:'Nascere di nuovo',
+  x:['Farsi povero','Osservare i comandamenti','Pregare senza stancarsi'],
+  sug:'È la stessa immagine della conversazione con Nicodemo.'},
+ {d:'Qual è la meta finale del cammino della vita?', r:'L\'incontro con Dio',
+  x:['La pace del cuore','Il bene compiuto per gli altri','La conoscenza di sé'],
+  sug:'Non è una conquista personale: è un incontro.'},
+ {d:'Cosa serve per educare secondo lo stile della Sacra Famiglia?',
+  r:'Generosità e coraggio',
+  x:['Disciplina e costanza','Studio e preparazione','Dolcezza e fermezza'],
+  sug:'Sono i due aggettivi con cui si descrive Paola come madre e come fondatrice.'}
+];
+
 const TAPPE=[
   { titolo:'L\'arco che tutti attraversano',
     indizio:'Il muro più antico del campus non è intonacato: è fatto di sassi squadrati, uno accanto all\'altro. In mezzo si apre l\'unica curva di pietra chiara di tutta la scuola. Cercala dal lato della strada e del parcheggio, non dal cortile.',
@@ -2024,6 +2505,13 @@ const TAPPE=[
     pos:[78,0.55,-42.2], da:[73.5,3.4,-37.5], zona:'Piscine Andreana, a est del campus.',
     cosa:'Una cassetta di legno sul bordo piastrellato della vasca.',
     imparato:'Le piscine confinano con il campus ma non sono della scuola. Il campus non finisce con un muro: finisce dove cambia chi si prende cura dello spazio.' },
+
+  { titolo:'Il cortile dei più piccoli',
+    indizio:'C\'è un cortile chiuso su ogni lato, con l\'erba finta e il pavimento morbido e scuro. Sotto una pergola bianca a listelli crescono i rampicanti, e in mezzo c\'è un fungo rosso a pois grande quanto un ombrellone. La cassetta è ai piedi del fungo.',
+    pos:[-58.5,0.05,5.6], da:[-55.0,2.6,9.5],
+    zona:'Il giardino della Scuola dell\'Infanzia, il cortile chiuso dietro la pensilina.',
+    cosa:'Una cassetta di legno a terra, sotto il cappello del fungo rosso.',
+    imparato:'Il giardino dell\'Infanzia è un cortile protetto da tutti i lati: i più piccoli possono uscire senza mai incrociare il traffico della scuola grande. La pensilina che lo delimita è la stessa che collega i due edifici.' },
 
   { titolo:'Il cuore della scuola',
     indizio:'Torna dove tutto si affaccia: un vuoto alto due piani, colonne d\'acciaio dal pavimento al soffitto, ringhiere blu intorno al vuoto e un soffitto a fasce arancio e celeste. Lì in mezzo, sul tavolo di legno scuro, ti aspetta la Coppa delle Case.',
@@ -2206,20 +2694,103 @@ window.azzera=function(){G.i=0;G.aiuti=0;G.fatte=[];G.usati=[];livAiuto=0;salva(
   chiudiFoglio();mostraTappa();vaiA(0);};
 window.chiudiFoglio=chiudiFoglio;
 
-/* ---- trovata la cassetta ---- */
+/* ---- trovata la cassetta: si apre la DOMANDA sulla Fondatrice ----
+   Regole volute da Andrea: UN SOLO aiuto per domanda, a scelta fra 50:50 e il
+   suggerimento del religioso; una risposta sbagliata fa RICOMINCIARE il
+   percorso da capo. Domande e opzioni sono mescolate a ogni partita.
+   RIPARTI_DA_CAPO e' un parametro: mettendolo a false si riprende dalla tappa
+   corrente invece che dalla prima (utile se in aula la regola risulta troppo
+   dura per i piu' piccoli). */
+const RIPARTI_DA_CAPO = true;
+let mazzo=[], quesito=null, aiutoUsato=false;
+function rimescolaMazzo(){
+  mazzo = DOMANDE.map((q,i)=>i);
+  for(let i=mazzo.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0;
+    const t=mazzo[i]; mazzo[i]=mazzo[j]; mazzo[j]=t; }
+}
+function pescaDomanda(){
+  if(!mazzo.length) rimescolaMazzo();
+  const q=DOMANDE[mazzo.pop()];
+  const opz=[{t:q.r,ok:true}].concat(q.x.map(v=>({t:v,ok:false})));
+  for(let i=opz.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0;
+    const t=opz[i]; opz[i]=opz[j]; opz[j]=t; }
+  return {q,opz};
+}
 function trovata(){
-  const t=TAPPE[G.i];
-  G.fatte.push(G.i);
   if(cassetta){scene.remove(cassetta);cassetta=null;}
-  const ultima=(G.i===TAPPE.length-1);
-  if(ultima){ G.i++; salva(); debrief(); return; }
-  const pross=TAPPE[G.i+1];
-  apriFoglio('<div class="occhiello">Tappa '+(G.i+1)+' trovata</div>'
+  quesito=pescaDomanda(); aiutoUsato=false;
+  mostraDomanda();
+}
+function mostraDomanda(){
+  const t=TAPPE[G.i], q=quesito.q;
+  apriFoglio('<div class="occhiello">Tappa '+(G.i+1)+' di '+TAPPE.length+' · trovata</div>'
     +'<h1>'+t.titolo+'</h1>'
     +'<div class="imparato">'+t.imparato+'</div>'
-    +'<div class="prossimo"><strong>Il prossimo indizio</strong><br>'+pross.indizio+'</div>'
-    +'<div class="bottoni"><button onclick="avanti()">Vado a cercare</button></div>');
-  G.i++; salva();}
+    +'<p style="margin-bottom:4px"><strong>Per proseguire, rispondi sulla Fondatrice.</strong> '
+    +'Hai <em>un solo aiuto</em>: se sbagli, il percorso ricomincia da capo.</p>'
+    +'<div class="domanda">'+q.d+'</div>'
+    +'<div class="opz" id="opz">'
+    + quesito.opz.map((o,i)=>'<button id="op'+i+'" onclick="rispondi('+i+')">'+o.t+'</button>').join('')
+    +'</div>'
+    +'<div class="aiuti" id="aiuti">'
+    +'<button id="a50" onclick="aiuto50()">Togli due risposte</button>'
+    +'<button id="ars" onclick="aiutoReligioso()">Chiedi al religioso</button>'
+    +'</div><div id="suggerimento"></div>');
+}
+window.aiuto50=function(){
+  if(aiutoUsato) return; aiutoUsato=true; G.aiuti++;
+  if(!G.usati[G.i])G.usati[G.i]=0; G.usati[G.i]++;
+  const err=quesito.opz.map((o,i)=>({o,i})).filter(v=>!v.o.ok);
+  for(let i=err.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;
+    const t=err[i];err[i]=err[j];err[j]=t;}
+  err.slice(0,2).forEach(v=>$('op'+v.i).classList.add('via'));
+  $('a50').disabled=true; $('ars').disabled=true; salva();};
+window.aiutoReligioso=function(){
+  if(aiutoUsato) return; aiutoUsato=true; G.aiuti++;
+  if(!G.usati[G.i])G.usati[G.i]=0; G.usati[G.i]++;
+  $('suggerimento').innerHTML='<div class="religioso">'
+    +'<svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">'
+    +'<circle cx="15" cy="15" r="14" fill="#123E90"/>'
+    +'<path d="M15 6v13M10.5 10.5h9" stroke="#fff" stroke-width="2.1" stroke-linecap="round"/>'
+    +'<path d="M9 24q6-3.5 12 0" stroke="#fff" stroke-width="2.1" fill="none" stroke-linecap="round"/>'
+    +'</svg><span>'+quesito.q.sug+'</span></div>';
+  $('a50').disabled=true; $('ars').disabled=true; salva();};
+window.rispondi=function(i){
+  const o=quesito.opz[i];
+  $('aiuti').style.display='none';
+  quesito.opz.forEach((v,k)=>{ const b=$('op'+k); b.onclick=null;
+    if(v.ok) b.classList.add('giusta'); });
+  if(!o.ok) $('op'+i).classList.add('sbagliata');
+  const t=TAPPE[G.i];
+  if(o.ok){
+    G.fatte.push(G.i);
+    const ultima=(G.i===TAPPE.length-1);
+    if(ultima){ G.i++; salva();
+      setTimeout(()=>{chiudiFoglio();debrief();},900); return; }
+    const pross=TAPPE[G.i+1];
+    setTimeout(()=>{
+      apriFoglio('<div class="occhiello">Risposta esatta</div>'
+        +'<h1>'+t.titolo+'</h1>'
+        +'<div class="imparato">'+t.imparato+'</div>'
+        +'<div class="prossimo"><strong>Il prossimo indizio</strong><br>'+pross.indizio+'</div>'
+        +'<div class="bottoni"><button onclick="avanti()">Vado a cercare</button></div>');
+      G.i++; salva();},1000);
+  } else {
+    setTimeout(()=>{
+      apriFoglio('<div class="occhiello">Non è questa</div>'
+        +'<h1>Si ricomincia</h1>'
+        +'<div class="prossimo">La risposta esatta era <strong>'+quesito.q.r+'</strong>.<br>'
+        +quesito.q.sug+'</div>'
+        +'<p>'+(RIPARTI_DA_CAPO
+          ? 'Il percorso riparte dalla prima tappa. Le tappe le conosci già: '
+            +'questa volta ti costeranno molto meno tempo, e le domande saranno altre.'
+          : 'Riprendi da questa stessa tappa: la domanda sarà un\'altra.')+'</p>'
+        +'<div class="bottoni"><button onclick="riprendi()">Riparto</button></div>');},1100);
+  }};
+window.riprendi=function(){
+  if(RIPARTI_DA_CAPO){ G.i=0; G.fatte=[]; }
+  livAiuto=0; salva(); chiudiFoglio(); mostraTappa();
+  if(RIPARTI_DA_CAPO) vaiA(1);};
 window.avanti=function(){livAiuto=0;chiudiFoglio();mostraTappa();};
 
 function debrief(){
