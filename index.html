@@ -320,6 +320,41 @@ function box(p,w,h,d,mat,x,y,z,omb){
   m.position.set(x,y,z); if(omb!==false)m.castShadow=true;
   (p||scene).add(m);return m;}
 
+/* ===================== COLLISIONI =====================================
+   Non si attraversano i muri. Si passa invece da porte, finestre e vetrate:
+   ogni apertura e' registrata come VARCO, cioe' un volume dove il divieto
+   non vale. Cosi' per salire al primo piano non servono le scale: si entra
+   da una finestra, che e' esattamente come vuole muoversi chi gioca in volo.
+   I volumi si calcolano una sola volta a fine costruzione (compilaCollisioni),
+   quando le matrici mondo sono aggiornate: farlo prima darebbe scatole
+   ferme all'origine. */
+const _sol=[], _var=[]; const SOLIDI=[], VARCHI=[];
+function solido(m){ if(m) _sol.push(m); return m; }
+function varco(m){ if(m) _var.push(m); return m; }
+let COLLISIONI=false;
+function compilaCollisioni(){
+  scene.updateMatrixWorld(true);
+  const b=new THREE.Box3();
+  _sol.forEach(m=>{ b.setFromObject(m); if(isFinite(b.min.x)) SOLIDI.push(b.clone()); });
+  /* il varco dev'essere piu' profondo del muro PIU' il raggio del giocatore,
+     altrimenti si entra dalla finestra e si resta incastrati in uscita */
+  _var.forEach(m=>{ b.setFromObject(m); if(isFinite(b.min.x)){
+    const c=b.clone(); c.expandByScalar(0.95); VARCHI.push(c); } });
+  COLLISIONI=true;
+}
+const RAGGIO=0.30;
+function _dentro(lista,p,r){
+  for(let i=0;i<lista.length;i++){ const b=lista[i];
+    if(p.x>b.min.x-r&&p.x<b.max.x+r&&p.y>b.min.y-r&&p.y<b.max.y+r&&
+       p.z>b.min.z-r&&p.z<b.max.z+r) return true; }
+  return false;
+}
+function libero(p){
+  if(!COLLISIONI) return true;
+  if(!_dentro(SOLIDI,p,RAGGIO)) return true;
+  return _dentro(VARCHI,p,0);      /* dentro un muro si passa solo dai varchi */
+}
+
 /* ===================== cielo e luce del mattino ===================== */
 (function cielo(){
   const c=mkCanvas(16,256),g=c.getContext('2d');
@@ -465,11 +500,17 @@ function tetto(p,cx,cz,Lx,Lz,y0,alt,o){
     box(g,1.0,0.14,1.0,lam(0x9c9080),xx,yBase+h-0.25,zz,true);
     box(g,0.5,0.2,0.5,lam(0x8a7f70),xx,yBase+h-0.06,zz,true);
   });
+  /* per le collisioni conta solo il volume delle falde: un proxy invisibile
+     da y0 a y0+alt. Registrare l'intero gruppo includerebbe i pluviali, che
+     arrivano a terra, e l'edificio diventerebbe un parallelepipedo pieno. */
+  const proxy=new THREE.Mesh(new THREE.BoxGeometry(Lx+2*sp,alt+0.3,Lz+2*sp),
+    new THREE.MeshBasicMaterial({visible:false}));
+  proxy.position.set(cx,y0+alt/2,cz); (p||scene).add(proxy); solido(proxy);
   return g;
 }
 /* tetto piano con parapetto (ali moderne sul cortile) */
 function tettoPiano(p,cx,cz,Lx,Lz,y,colPar){
-  const g=new THREE.Group(); (p||scene).add(g);
+  const g=new THREE.Group(); (p||scene).add(g); solido(g);
   const t=box(g,Lx+0.5,0.32,Lz+0.5,lam(0x9a978f),cx,y+0.16,cz,true);
   t.receiveShadow=true;
   const m=lam(colPar||0xeeece4);
@@ -749,10 +790,10 @@ figura(-27,50,0.8,0xd87a2e,0x2a3040);figura(-25,58,-1.4,0x3f6fae);
 /* muro in pietra a vista con finestre incorniciate e, se serve, portale ad arco */
 function muroPietra(p,w,h,fin,x,y,z,ry,o){
   o=o||{}; const g=new THREE.Group();
-  const m=box(g,w,h,0.34,matPietra(Math.max(2,Math.round(w/6)),Math.max(1,Math.round(h/3))),0,h/2,0,true);
+  const m=solido(box(g,w,h,0.34,matPietra(Math.max(2,Math.round(w/6)),Math.max(1,Math.round(h/3))),0,h/2,0,true));
   m.receiveShadow=false;
   fin.forEach(f=>{
-    box(g,f.fw+0.24,f.fh+0.24,0.07,lam(0xdcd4c4),(f.fx-0.5)*w,f.fy,0.18,false);
+    varco(box(g,f.fw+0.24,f.fh+0.24,0.07,lam(0xdcd4c4),(f.fx-0.5)*w,f.fy,0.18,false));
     const v=new THREE.Mesh(new THREE.PlaneGeometry(f.fw,f.fh),
       new THREE.MeshPhongMaterial({color:0x46535e,shininess:110,specular:0x9fc4d8}));
     v.position.set((f.fx-0.5)*w,f.fy,0.225);g.add(v);
@@ -764,7 +805,7 @@ function muroPietra(p,w,h,fin,x,y,z,ry,o){
     box(g,3.0,3.5,0.16,lam(0xd8cfc0),px,1.75,0.2,false);
     const a=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.16,22,1,false,0,Math.PI),lam(0xd8cfc0));
     a.rotation.x=Math.PI/2;a.rotation.y=Math.PI/2;a.position.set(px,3.5,0.2);g.add(a);
-    box(g,2.3,3.05,0.1,lam(0x4a3a2a),px,1.52,0.27,false);
+    varco(box(g,2.3,3.05,0.1,lam(0x4a3a2a),px,1.52,0.27,false));
     const av=new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.15,0.1,20,1,false,0,Math.PI),lam(0x4a3a2a));
     av.rotation.x=Math.PI/2;av.rotation.y=Math.PI/2;av.position.set(px,3.05,0.27);g.add(av);
   }
@@ -773,9 +814,9 @@ function muroPietra(p,w,h,fin,x,y,z,ry,o){
 /* muro intonacato con finestre */
 function muroFin(p,w,h,col,fin,x,y,z,ry){
   const g=new THREE.Group();
-  const m=box(g,w,h,0.24,lam(col),0,h/2,0,true); m.receiveShadow=false;
+  const m=solido(box(g,w,h,0.24,lam(col),0,h/2,0,true)); m.receiveShadow=false;
   fin.forEach(f=>{
-    box(g,f.fw,f.fh,0.08,f.scuro?matTelaioScuro:matTelaio,(f.fx-0.5)*w,f.fy,0.14,false);
+    varco(box(g,f.fw,f.fh,0.08,f.scuro?matTelaioScuro:matTelaio,(f.fx-0.5)*w,f.fy,0.14,false));
     const v=new THREE.Mesh(new THREE.PlaneGeometry(f.fw-0.14,f.fh-0.14),
       new THREE.MeshPhongMaterial({color:0x6f8ba0,shininess:130,specular:0x9fc4d8}));
     v.position.set((f.fx-0.5)*w,f.fy,0.185);g.add(v);
@@ -788,17 +829,17 @@ function muroFin(p,w,h,col,fin,x,y,z,ry){
 function vetrataCorridoio(p,x0,x1,z,ry,y0){
   const g=new THREE.Group(); const w=Math.abs(x1-x0);
   const sill=y0+0.95, hV=2.55;
-  box(g,w,0.95,0.26,matIntonaco,0,y0+0.475,0,false);          /* parapetto sotto */
+  solido(box(g,w,0.95,0.26,matIntonaco,0,y0+0.475,0,false)); /* parapetto sotto */
   box(g,w,0.12,0.3,lam(0xcac6bc),0,sill+0.02,0.03,false);      /* davanzale */
   const v=new THREE.Mesh(new THREE.PlaneGeometry(w-0.3,hV-0.2),matVetro);
-  v.position.set(0,sill+hV/2,0.05);g.add(v);
+  v.position.set(0,sill+hV/2,0.05);g.add(v);varco(v);
   const n=Math.max(3,Math.round(w/2.9));
   for(let i=0;i<=n;i++){
     const px=-w/2+0.14+i*(w-0.28)/n, giallo=(i%5===2);
     box(g,giallo?0.62:0.13,hV,0.22,giallo?matGiallo:matTelaioGrigio,px,sill+hV/2,0.02,false);
   }
   box(g,w,0.13,0.22,matTelaioGrigio,0,sill+1.55,0.02,false);   /* traverso */
-  box(g,w,0.9,0.3,matIntonaco,0,sill+hV+0.45,0,false);         /* fascia sopra */
+  solido(box(g,w,0.9,0.3,matIntonaco,0,sill+hV+0.45,0,false)); /* fascia sopra */
   g.position.set((x0+x1)/2,0,z); if(ry) g.rotation.y=ry;
   mondo.add(g); return g;}
 
@@ -985,7 +1026,7 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
   for(let i=0;i<12;i++) box(g,0.03,1.05,0.03,lam(0x8a9098),pcx-1.1+i*0.38,4.03,pz1+1.18,false);
   contatto(mondo,pcx,0.03,pcz,15,15,0.5);
   /* blocco bianco moderno dietro */
-  box(g,16,10,10,lam(0xe9e6df),-54,5,25,true);
+  solido(box(g,16,10,10,lam(0xe9e6df),-54,5,25,true));
   muroFin(null,16,10,0xe9e6df,(()=>{const f=[];for(let r=0;r<3;r++)for(let i=0;i<4;i++)
     f.push({fx:0.1+i*0.24,fy:1.9+r*3.1,fw:2.7,fh:1.5});return f;})(),-54,0,20,Math.PI);
   contatto(mondo,-54,0.03,25,20,14,0.5);
@@ -1044,7 +1085,7 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
 (function qdvArena(){
   const g=new THREE.Group();mondo.add(g);
   const cx=-61,cz=45,w=22,d=22,hM=8.4,alt=2.3;
-  box(g,w,hM,d,lam(0xe8e5dd),cx,hM/2,cz,true);
+  solido(box(g,w,hM,d,lam(0xe8e5dd),cx,hM/2,cz,true));
   box(g,w+0.3,0.7,d+0.3,lam(0xd6d2c8),cx,0.35,cz,false);
   const mV=lam(0x4e7f5a);
   const f1=new THREE.Mesh(new THREE.BoxGeometry(w/2+1.4,0.22,d+1.2),mV);
@@ -1091,16 +1132,16 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
   const W=9.4, L=17, hM=7.2, alt=3.0;
   const matMur=matPietra(3,3), matCorn=lam(0xcfc4ad);
   /* navata: due muri lunghi e la testata sud */
-  box(g,0.5,hM,L,matMur,-W/2,hM/2,2.5,true);
-  box(g,0.5,hM,L,matMur, W/2,hM/2,2.5,true);
-  box(g,W,hM,0.5,matMur,0,hM/2,11,true);
+  solido(box(g,0.5,hM,L,matMur,-W/2,hM/2,2.5,true));
+  solido(box(g,0.5,hM,L,matMur, W/2,hM/2,2.5,true));
+  solido(box(g,W,hM,0.5,matMur,0,hM/2,11,true));
   /* finestrelle alte sui fianchi */
   for(let i=0;i<4;i++){[-W/2,W/2].forEach(px=>{
     const f=box(g,0.1,1.5,0.7,lam(0x4a5560),px,4.9,-2+i*3.4,false);
     box(g,0.12,1.7,0.9,matCorn,px+(px<0?0.03:-0.03),4.9,-2+i*3.4,false);
     f.position.x=px+(px<0?0.06:-0.06);});}
   /* FACCIATA a capanna, verso nord */
-  box(g,W,hM,0.55,matMur,0,hM/2,-6,true);
+  solido(box(g,W,hM,0.55,matMur,0,hM/2,-6,true));
   const tim=new THREE.Shape();
   tim.moveTo(-W/2,0);tim.lineTo(W/2,0);tim.lineTo(0,alt);tim.closePath();
   const mt=new THREE.Mesh(new THREE.ShapeGeometry(tim),matMur);
@@ -1125,7 +1166,7 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
   box(g,2.5,3.5,0.18,matCorn,0,1.75,-6.34,false);
   const arp=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.25,0.18,16,1,false,0,Math.PI),matCorn);
   arp.rotation.x=Math.PI/2;arp.rotation.y=-Math.PI/2;arp.position.set(0,3.5,-6.34);g.add(arp);
-  box(g,1.9,3.15,0.1,lam(0x53381f),0,1.58,-6.44,false);
+  varco(box(g,1.9,3.15,0.1,lam(0x53381f),0,1.58,-6.44,false));
   for(let i=0;i<3;i++) box(g,3.6-i*0.4,0.16,0.42,lam(0xc6bda7),0,0.08+i*0.16,-6.9-i*0.34,true);
   /* tetto a due falde in coppi sulla navata */
   tetto(g,0,2.5,W,L,hM,alt,{tipo:'capanna',sporto:0.5,colTimpano:0xb3a894});
@@ -2168,7 +2209,17 @@ function anima(){
     const ob=V(0,0,0).addScaledVector(dir,vA*velBase).addScaledVector(lat,vD*velBase)
       .add(V(0,vU*velBase*0.7,0));
     vel.lerp(ob,1-Math.pow(0.0001,dt));
-    camera.position.addScaledVector(vel,dt);
+    /* collisioni: se la diagonale e' bloccata si prova a scivolare lungo un
+       asse alla volta, altrimenti ci si incolla ai muri */
+    const nuova=camera.position.clone().addScaledVector(vel,dt);
+    if(libero(nuova)) camera.position.copy(nuova);
+    else{
+      const p=camera.position;
+      const px=V(nuova.x,p.y,p.z), py=V(p.x,nuova.y,p.z), pz=V(p.x,p.y,nuova.z);
+      if(libero(px)) p.x=nuova.x; else vel.x*=0.2;
+      if(libero(py)) p.y=nuova.y; else vel.y*=0.2;
+      if(libero(pz)) p.z=nuova.z; else vel.z*=0.2;
+    }
     if(camera.position.y<0.6)camera.position.y=0.6;
     if(camera.position.y>260)camera.position.y=260;
   }
@@ -2189,6 +2240,8 @@ function anima(){
   qv.textContent=camera.position.y.toFixed(0);
   renderer.render(scene,camera);
 }
+compilaCollisioni();
+console.log('[Campus3D] ostacoli:',SOLIDI.length,'| varchi:',VARCHI.length);
 guardaVerso(V(-25,0,0));
 anima();
 
