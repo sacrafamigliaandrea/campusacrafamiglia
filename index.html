@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>La chiave del Campus — Scuola Sacra Famiglia</title>
+<title>Campus Sacra Famiglia</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23C73834'/%3E%3Cpath d='M21.6 10.6a7.2 7.2 0 1 0 0 10.8' fill='none' stroke='%23fff' stroke-width='4.6' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="campus-icona.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,13 +17,13 @@
   #scena{position:fixed;inset:0;display:block;touch-action:none}
 
   /* ---- intestazione ---- */
-  #targa{position:fixed;top:12px;left:12px;z-index:20;display:flex;align-items:center;gap:10px;
-    background:rgba(255,255,255,.93);border:1px solid rgba(18,62,144,.18);border-radius:14px;
-    padding:8px 15px 8px 10px;box-shadow:0 4px 18px rgba(13,47,110,.18)}
+  #targa{position:fixed;top:12px;left:12px;z-index:20;display:flex;align-items:center;
+    background:rgba(255,255,255,.96);border:1px solid rgba(0,0,0,.10);border-radius:999px;
+    padding:9px 18px;box-shadow:0 4px 20px rgba(0,0,0,.20)}
+  #marchio{width:104px;height:50px}
   #targa .tit{font-family:'Lexend',sans-serif;font-weight:700;font-size:15px;color:var(--blu);line-height:1.15}
   #targa .sot{font-size:12px;color:#4a5a7a}
-  #marchio{width:86px;height:41px;flex:0 0 auto}
-  #targa .barretta{width:1px;height:30px;background:#d7dde8;flex:0 0 auto}
+
 
   /* ---- carta dell'indizio ---- */
   #carta{position:fixed;top:74px;left:12px;z-index:20;width:min(370px,calc(100vw - 24px));
@@ -60,6 +60,32 @@
     padding:1px 7px;font-weight:700;font-size:12.5px;color:var(--blu);margin-right:3px}
   .foglio .azione{background:#f2f6fd;border:1px dashed #b6c8ea;border-radius:11px;padding:14px 16px;margin-top:14px}
   .foglio .azione h3{font-family:'Lexend',sans-serif;font-size:15px;color:var(--blu);margin-bottom:6px}
+  /* ---- card d'accesso al gioco ---- */
+  .foglio.card{width:min(1000px,100%);padding:0;overflow:hidden;border-top:none;
+    background:#12202f url('cacciatesoro.jpg') no-repeat right center/cover;
+    display:flex;align-items:stretch;min-height:min(480px,72vh)}
+  /* la colonna si ferma prima della coppa: il velo e' pieno solo dove
+     l'immagine e' vuota (campi e ulivi) e sfuma prima del soggetto */
+  .card .colonna{width:min(430px,52%);padding:20px 24px 22px;color:#fff;
+    display:flex;flex-direction:column;justify-content:center;
+    background:linear-gradient(90deg,rgba(8,17,29,.94) 0%,rgba(8,17,29,.90) 62%,
+      rgba(8,17,29,.55) 86%,rgba(8,17,29,0) 100%)}
+  .card .pillola{align-self:flex-start;background:#fff;border-radius:999px;
+    padding:7px 15px;margin-bottom:16px;box-shadow:0 3px 14px rgba(0,0,0,.3)}
+  .card .pillola svg{width:96px;height:46px;display:block}
+  .card .occhiello{color:#f0c04a;margin-bottom:2px}
+  .card h1{color:#fff;font-size:26px;margin-bottom:8px}
+  .card p{color:#dfe6ef;font-size:15.5px;line-height:1.5;margin-bottom:10px}
+  .card .comandi{font-size:13.5px;line-height:1.75;color:#b9c6d6;margin:2px 0 4px}
+  .card .comandi b{color:#fff;font-weight:700}
+  .card .nota{font-size:13px;color:#93a3b6;line-height:1.45;margin-top:8px}
+  .card .bottoni{margin-top:14px}
+  .card .bottoni button{background:#f0c04a;color:#12202f;font-size:16px;padding:13px 18px}
+  .card .bottoni button:hover{background:#ffd166}
+  @media(max-width:720px){
+    .foglio.card{min-height:0;background-position:center top}
+    .card .colonna{width:100%;background:linear-gradient(180deg,rgba(8,17,29,.90),rgba(8,17,29,.97))}
+  }
   .bottoni{display:flex;gap:9px;margin-top:18px;flex-wrap:wrap}
   .bottoni button{flex:1 1 auto;padding:12px 16px;font-family:'Lexend',sans-serif;font-weight:700;
     font-size:15px;color:#fff;background:var(--blu);border:none;border-radius:11px;cursor:pointer}
@@ -189,11 +215,6 @@
           font-weight="400" fill="#C0342F">sacra<tspan font-weight="700">famiglia</tspan><tspan
           fill="#646464">.</tspan><tspan fill="#646464" font-weight="700" font-style="italic">education</tspan></text>
   </svg>
-  <div class="barretta"></div>
-  <div>
-    <div class="tit">La chiave del Campus</div>
-    <div class="sot">Scuola Sacra Famiglia · Orzinuovi</div>
-  </div>
 </div>
 
 <div id="quota">Quota <span id="qv">0</span> m</div>
@@ -527,12 +548,7 @@ const texCalcio=(()=>{const c=mkCanvas(672,1024),g=c.getContext('2d'),rnd=seme(4
   g.beginPath();g.arc(336,512,88,0,Math.PI*2);g.stroke();
   g.strokeRect(166,24,340,120);g.strokeRect(166,880,340,120);
   return tex(c,false);})();
-const texTennis=(()=>{const c=mkCanvas(512,512),g=c.getContext('2d');
-  g.fillStyle='#4e7d44';g.fillRect(0,0,512,512);
-  g.fillStyle='#3f6fae';g.fillRect(70,60,372,392);
-  g.strokeStyle='#fff';g.lineWidth=4;g.strokeRect(70,60,372,392);
-  g.beginPath();g.moveTo(70,256);g.lineTo(442,256);g.stroke();
-  g.strokeRect(140,60,232,392);return tex(c,false);})();
+/* nessun campo da tennis nel campus: il tappeto azzurro non esiste */
 const matAcqua=new THREE.MeshPhongMaterial({map:(()=>{
   const c=mkCanvas(256,256),g=c.getContext('2d'),rnd=seme(55);
   g.fillStyle='#3fa9d6';g.fillRect(0,0,256,256);
@@ -561,7 +577,6 @@ const mondo=new THREE.Group(); scene.add(mondo);
   tappeto(matCemento,54,36,-17,11,0.02);
   tappeto(lam(0xffffff,{map:texBasket}),28,15,-6,3.5,0.045);
   tappeto(lam(0xffffff,{map:texVerde}),28,13,-6,19.5,0.04);
-  tappeto(lam(0xffffff,{map:texTennis}),17,17,35,30,0.04);
   tappeto(lam(0xffffff,{map:texCalcio}),35,55,-26.5,59.5,0.03);
   tappeto(matAsfalto,92,24,-16,-41,0.02);
   tappeto(matAsfalto,92,5,-16,-27.5,0.02);
@@ -608,7 +623,7 @@ function auto(x,z,ry,col){
   contatto(mondo,x,0.03,z,2.6,4.8,0.6);}
 for(let i=0;i<8;i++){albero(-46.5,33+i*7.4,1.2+((i*7)%3)*0.12);albero(-6.6,33+i*7.4,1.15+((i*5)%3)*0.12);}
 for(let i=0;i<5;i++) albero(-52+i*13,-36.5,1.0);
-albero(-40,-29,0.9);albero(20,-29,0.95);albero(-45,-34,1.5);albero(-45,-42,1.3);
+albero(-40,-29,0.9);albero(20,-29,0.95);albero(-42,-30,1.2);
 albero(96,-14,1.1);albero(90,4,1.0);albero(34,10,0.9);albero(-56,2,1.35);
 (function autoNord(){
   const cols=[0xd8d8d8,0x8a9098,0x2a2e34,0x4a5a78,0xb0b6bc,0x6a6e74,0xe8e8e8,0x3a4148];
@@ -629,7 +644,6 @@ function reteAlta(x1,z1,x2,z2,h,col,passo){
 reteAlta(-44.5,31.5,-8.5,31.5,4);reteAlta(-44.5,87.5,-8.5,87.5,4);
 reteAlta(-44.5,31.5,-44.5,87.5,4);reteAlta(-8.5,31.5,-8.5,87.5,4);
 reteAlta(-20.4,26.6,8.4,26.6,3.2);reteAlta(-20.4,12.6,-20.4,26.6,3.2);reteAlta(8.4,12.6,8.4,26.6,3.2);
-reteAlta(26.5,21,43.5,21,3,0x4a5a6a);reteAlta(26.5,39,43.5,39,3,0x4a5a6a);
 function portaCalcio(x,z,rot){
   const g=new THREE.Group(),m=lam(0xf2f2f2);
   box(g,0.1,2.0,0.1,m,-2.5,1.0,0);box(g,0.1,2.0,0.1,m,2.5,1.0,0);box(g,5.1,0.1,0.1,m,0,2.0,0);
@@ -638,6 +652,15 @@ function portaCalcio(x,z,rot){
   r.position.set(0,1.0,-0.5);g.add(r);
   g.position.set(x,0,z);g.rotation.y=rot;mondo.add(g);}
 portaCalcio(-26.5,33.2,Math.PI);portaCalcio(-26.5,85.8,0);
+/* ringhiera bassa in ferro grigio fra Campo Calcio e Campo Volley */
+(function ringhieraCampi(){
+  const m=lam(0x8d9297), x0=-32, x1=10, z=29.4, h=1.05;
+  for(let i=0;i<=Math.round((x1-x0)/2.2);i++){
+    const x=x0+i*2.2; if(x>x1)break;
+    box(mondo,0.07,h,0.07,m,x,h/2,z,false);
+    box(mondo,0.09,0.13,0.09,m,x,h+0.05,z,false);}
+  [h,h*0.62,h*0.3].forEach(y=>box(mondo,x1-x0,0.045,0.045,m,(x0+x1)/2,y,z,false));
+  contatto(mondo,(x0+x1)/2,0.02,z,x1-x0,0.7,0.35);})();
 (function parcoSud(){
   const e=new THREE.Mesh(new THREE.PlaneGeometry(30,14),matPrato);
   e.rotation.x=-Math.PI/2;e.position.set(-27,0.03,95);mondo.add(e);
@@ -651,15 +674,44 @@ portaCalcio(-26.5,33.2,Math.PI);portaCalcio(-26.5,85.8,0);
 [['#e8c020',-21.5,-4.6],['#2255aa',-20.4,-4.6],['#3a8a3a',-19.3,-4.6],['#777',-18.2,-4.6]].forEach(b=>{
   box(mondo,0.85,1.1,0.85,lam(b[0]),b[1],0.55,b[2]);
   contatto(mondo,b[1],0.03,b[2],1.5,1.5,0.6);});
+/* canestro completo: tabellone con riquadro dipinto e bordo, anello su piastra,
+   e la RETE fatta di maglie che si stringono verso il basso */
+function tabelloneRete(g,y,zf,scala){
+  const s2=scala||1;
+  box(g,1.8*s2,1.15*s2,0.05,lam(0xf6f6f4),0,y,zf,true);              /* tabellone */
+  const bordo=lam(0x2a2f36);
+  box(g,1.8*s2,0.05,0.06,bordo,0,y+0.55*s2,zf+0.01,false);
+  box(g,1.8*s2,0.05,0.06,bordo,0,y-0.55*s2,zf+0.01,false);
+  box(g,0.05,1.15*s2,0.06,bordo,-0.875*s2,y,zf+0.01,false);
+  box(g,0.05,1.15*s2,0.06,bordo, 0.875*s2,y,zf+0.01,false);
+  [[0,-0.30*s2,0.59*s2,0.04],[0,-0.01*s2,0.59*s2,0.04],
+   [-0.29*s2,-0.155*s2,0.04,0.33*s2],[0.29*s2,-0.155*s2,0.04,0.33*s2]].forEach(q=>
+    box(g,q[2],q[3],0.05,bordo,q[0],y+q[1],zf+0.02,false));            /* riquadro */
+  box(g,0.30*s2,0.09,0.16,lam(0xd8d8d4),0,y-0.62*s2,zf+0.09,false);    /* piastra */
+  const r=0.225*s2;
+  const an=new THREE.Mesh(new THREE.TorusGeometry(r,0.028,8,22),lam(0xd8541e));
+  an.rotation.x=Math.PI/2;an.position.set(0,y-0.66*s2,zf+0.30*s2);g.add(an);
+  const mRete=new THREE.LineBasicMaterial({color:0xf2f2ee});
+  const N=12, hR=0.42*s2, giri=4;
+  const punto=(i,k)=>{const t=k/giri, rr=r*(1-0.42*t)+ (k%2?0.012:0);
+    const a2=(i+(k%2)*0.5)*Math.PI*2/N;
+    return new THREE.Vector3(Math.cos(a2)*rr, y-0.66*s2-hR*t, zf+0.30*s2+Math.sin(a2)*rr);};
+  for(let k=0;k<giri;k++) for(let i=0;i<N;i++){
+    [[punto(i,k),punto(i,k+1)],[punto(i,k),punto(i+1,k+1)]].forEach(seg=>
+      g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(seg),mRete)));}
+  for(let k=1;k<=giri;k++){const cer=[];
+    for(let i=0;i<=N;i++) cer.push(punto(i,k));
+    g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(cer),mRete));}
+}
 function canestroPalo(x,z,rot){
   const g=new THREE.Group();
-  box(g,0.16,3.6,0.16,lam(0x8a8f95),0,1.8,0);
-  box(g,0.16,0.16,1.1,lam(0x8a8f95),0,3.45,0.55);
-  box(g,1.6,1.05,0.06,lam(0xf4f4f2),0,3.3,1.12);
-  const a=new THREE.Mesh(new THREE.TorusGeometry(0.24,0.03,8,20),lam(0xd86a2a));
-  a.rotation.x=Math.PI/2;a.position.set(0,3.0,1.4);g.add(a);
+  const p=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.11,3.65,10),lam(0x7f858b));
+  p.position.y=1.82;p.castShadow=true;g.add(p);
+  box(g,0.12,0.12,1.05,lam(0x7f858b),0,3.5,0.55,false);
+  const br=box(g,0.09,0.55,0.09,lam(0x7f858b),0,3.2,0.95,false);br.rotation.x=-0.6;
+  tabelloneRete(g,3.32,1.1,1);
   g.position.set(x,0,z);g.rotation.y=rot;mondo.add(g);
-  contatto(mondo,x,0.03,z,1.4,1.4,0.65);}
+  contatto(mondo,x,0.03,z,1.6,1.6,0.65);}
 canestroPalo(-19.2,3.5,Math.PI/2);canestroPalo(7.2,3.5,-Math.PI/2);
 (function volley(){
   /* la rete corre NORD-SUD sulla mezzeria del campo (campo x[-20,8] z[13,26]) */
@@ -795,9 +847,9 @@ const H_MOD=7.6;
   box(mondo,w,0.55,0.07,lam(0x2e5f9e),(x0+x1)/2,0.3,-5.83,false);   /* zoccolo blu */
   [-52,-38,-16,2].forEach(x=>box(mondo,0.13,H_MOD-0.4,0.13,lam(0x3a3f45),x,H_MOD/2,-5.78,false));
   [-14,0].forEach(x=>{
-    box(mondo,1.5,1.0,0.08,lam(0xf4f4f2),x,3.15,-5.72,false);
-    const a=new THREE.Mesh(new THREE.TorusGeometry(0.22,0.03,8,20),lam(0xd86a2a));
-    a.rotation.x=Math.PI/2;a.position.set(x,2.83,-5.47);mondo.add(a);});
+    const cg=new THREE.Group();cg.position.set(x,0,-5.85);cg.rotation.y=Math.PI;mondo.add(cg);
+    box(cg,0.1,0.1,0.5,lam(0x7f858b),0,3.35,-0.25,false);
+    tabelloneRete(cg,3.35,-0.06,0.92);});
   contatto(mondo,(x0+x1)/2,0.025,-9,w+3,9,0.45);
 })();
 
@@ -906,13 +958,18 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
 /* ============ GIARDINO chiostro, INFANZIA, portico colorato ============== */
 (function giardino(){
   const g=new THREE.Group(); mondo.add(g);
-  const e=new THREE.Mesh(new THREE.PlaneGeometry(20,26),matPrato);
+  /* GIARDINO DELLA SCUOLA DELL'INFANZIA: e' il cortile chiuso che sulla mappa
+     porta l'etichetta "Mensa" (la mensa sta nell'edificio dietro). Il prato e'
+     SINTETICO, con una fascia di pavimento antitrauma verso l'edificio. */
+  const matSint=lam(0xffffff,{map:(()=>{const t=tex(texPunti('#4f8f47',
+    ['#478239','#5c9c54','#427a3c'],71),true);t.repeat.set(14,18);return t;})()});
+  const e=new THREE.Mesh(new THREE.PlaneGeometry(20,26),matSint);
   e.rotation.x=-Math.PI/2;e.position.set(-56,0.035,7);e.receiveShadow=true;g.add(e);
-  [[1.6,26,-56,7],[20,1.6,-56,4]].forEach(q=>{
-    const v=new THREE.Mesh(new THREE.PlaneGeometry(q[0],q[1]),matGhiaia);
-    v.rotation.x=-Math.PI/2;v.position.set(q[2],0.045,q[3]);g.add(v);});
-  siepe(-63.5,-2,3.4,1.0,0.8);siepe(-48.5,-2,3.4,1.0,0.8);
-  siepe(-63.5,14,3.4,1.0,0.8);siepe(-56,-4.6,16,0.9,0.75);
+  const anti=new THREE.Mesh(new THREE.PlaneGeometry(5.4,24),matGomma);
+  anti.rotation.x=-Math.PI/2;anti.position.set(-48.2,0.045,7);anti.receiveShadow=true;g.add(anti);
+  const cam=new THREE.Mesh(new THREE.PlaneGeometry(2.2,26),matGhiaia);
+  cam.rotation.x=-Math.PI/2;cam.position.set(-64.6,0.045,7);g.add(cam);
+  siepe(-56,-5.4,15,0.9,0.7);
   /* palazzina gialla dell'infanzia */
   const px0=-56,px1=-44,pz0=8,pz1=20,ph=6.4,pcx=(px0+px1)/2,pcz=(pz0+pz1)/2;
   muroFin(null,px1-px0,ph,0xe3bd62,
@@ -952,52 +1009,132 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
     p.position.set(-40,0,7);mondo.add(p);
     contatto(mondo,-41.5,0.03,7,5,19,0.45);})();
   /* recinto giochi con steccato bianco */
-  const mSt=lam(0xf4f4f2);
-  function stecca(ax,az,bx,bz){
-    const dx=bx-ax,dz=bz-az,len=Math.hypot(dx,dz),n=Math.round(len/0.5);
-    for(let i=0;i<=n;i++){const t=i/n;box(g,0.09,0.9,0.05,mSt,ax+dx*t,0.45,az+dz*t,false);}
-    const c=box(g,0.06,0.08,len,mSt,(ax+bx)/2,0.7,(az+bz)/2,false);c.rotation.y=Math.atan2(dx,dz);}
-  stecca(-40,0,-26,0);stecca(-26,0,-26,14);stecca(-40,14,-26,14);
-  const gm=new THREE.Mesh(new THREE.PlaneGeometry(13,13),matGomma);
-  gm.rotation.x=-Math.PI/2;gm.position.set(-33,0.05,7);gm.receiveShadow=true;g.add(gm);
-  box(g,0.22,2.0,0.22,lam(0xa8a09a),-31,1.0,6,false);
-  const cap=new THREE.Mesh(new THREE.SphereGeometry(1.7,20,12,0,Math.PI*2,0,Math.PI/2.6),lam(0xc23a34));
-  cap.position.set(-31,1.7,6);cap.castShadow=true;g.add(cap);
-  [[.7,.4],[-.8,-.3],[.1,-.8],[-.3,.7]].forEach(q=>{
-    const b=new THREE.Mesh(new THREE.SphereGeometry(0.16,8,6),lam(0xffffff));
-    b.position.set(-31+q[0],2.55,6+q[1]);g.add(b);});
-  contatto(mondo,-31,0.06,6,4,4,0.6);
-  box(g,1.2,1.5,1.2,lam(0xdcb23a),-36,0.75,4,true);
-  const rp=box(g,0.9,0.1,2.6,lam(0xc23a34),-36,0.85,6,true);rp.rotation.x=0.5;
-  contatto(mondo,-36,0.06,5,3,5,0.6);
-  box(g,1.6,1.3,1.4,lam(0xcfc2a8),-29,0.65,11,true);
-  const t1=box(g,1.9,0.09,1.7,lam(0x9aa0a5),-29,1.5,11,true);t1.rotation.z=0.25;
-  const t2=box(g,1.9,0.09,1.7,lam(0x9aa0a5),-29,1.5,11,true);t2.rotation.z=-0.25;
-  contatto(mondo,-29,0.06,11,2.6,2.4,0.6);
+  /* i giochi: fungo gigante, scivolo e casetta, dentro il cortile */
+  box(g,0.24,2.0,0.24,lam(0xa8a09a),-58.5,1.0,3.5,false);
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(1.8,22,12,0,Math.PI*2,0,Math.PI/2.5),lam(0xc23a34));
+  cap.position.set(-58.5,1.7,3.5);cap.castShadow=true;g.add(cap);
+  const orlo=new THREE.Mesh(new THREE.TorusGeometry(1.78,0.09,7,24),lam(0xa82f28));
+  orlo.rotation.x=Math.PI/2;orlo.position.set(-58.5,1.74,3.5);g.add(orlo);
+  [[.85,.5],[-.95,-.35],[.15,-.95],[-.4,.85],[.55,-.4]].forEach(q=>{
+    const b=new THREE.Mesh(new THREE.SphereGeometry(0.17,9,7),lam(0xffffff));
+    b.position.set(-58.5+q[0],2.62,3.5+q[1]);b.scale.y=0.5;g.add(b);});
+  contatto(mondo,-58.5,0.06,3.5,4.4,4.4,0.6);
+  (function scivolo(x,z){
+    box(g,1.25,1.55,1.25,lam(0xdcb23a),x,0.78,z,true);
+    const rp=box(g,0.92,0.1,2.7,lam(0xc23a34),x,0.88,z+1.6,true);rp.rotation.x=0.52;
+    [0.46,-0.46].forEach(o=>{const b=box(g,0.07,0.28,2.7,lam(0xb02f24),x+o,1.0,z+1.6,false);
+      b.rotation.x=0.52;});
+    for(let i=0;i<4;i++) box(g,0.9,0.06,0.2,lam(0xd8843a),x,0.28+i*0.35,z-0.75-i*0.18,false);
+    [[-0.55,-0.55],[0.55,-0.55],[-0.55,0.55],[0.55,0.55]].forEach(q=>
+      box(g,0.09,1.55,0.09,lam(0xb8912e),x+q[0],0.78,z+q[1],false));
+    contatto(mondo,x,0.06,z+0.8,3.2,5,0.6);})(-53.5,11.5);
+  (function casetta(x,z){
+    box(g,1.7,1.35,1.5,lam(0xd2c8b2),x,0.68,z,true);
+    const t1=box(g,2.0,0.1,1.85,lam(0x8f959b),x,1.56,z,true);t1.rotation.z=0.3;
+    const t2=box(g,2.0,0.1,1.85,lam(0x8f959b),x,1.56,z,true);t2.rotation.z=-0.3;
+    box(g,0.52,0.85,0.06,lam(0x7d6a4a),x+0.35,0.42,z+0.77,false);
+    box(g,0.46,0.42,0.06,lam(0x9fc0d4),x-0.42,0.85,z+0.77,false);
+    box(g,0.5,0.05,0.05,lam(0xd2c8b2),x-0.42,0.62,z+0.79,false);
+    contatto(mondo,x,0.06,z,2.8,2.6,0.6);})(-61,13);
 })();
 
 /* ===================== PALESTRA, capannone, CHIESA ====================== */
-(function palestra(){
+/* QdV Arena: il "tendone". Falde a doppio spiovente che salgono verso il colmo
+   (prima erano invertite) e manto VERDE, come nella foto della facciata. */
+(function qdvArena(){
   const g=new THREE.Group();mondo.add(g);
-  box(g,22,8.5,22,lam(0xe2e0da),-61,4.25,45,true);
-  const f1=box(g,12,0.2,23,lam(0xcfcdc6),-66.5,9.2,45,true);f1.rotation.z=-0.12;
-  const f2=box(g,12,0.2,23,lam(0xcfcdc6),-55.5,9.2,45,true);f2.rotation.z=0.12;
-  contatto(mondo,-61,0.03,45,26,26,0.5);
-  box(mondo,18,7,12,lam(0xe6e4de),-68,3.5,-46,true);
-  const cf=box(mondo,19,0.18,13,lam(0xc9c7c0),-68,7.4,-46,true);cf.rotation.z=0.1;
-  contatto(mondo,-68,0.03,-46,22,16,0.5);
+  const cx=-61,cz=45,w=22,d=22,hM=8.4,alt=2.3;
+  box(g,w,hM,d,lam(0xe8e5dd),cx,hM/2,cz,true);
+  box(g,w+0.3,0.7,d+0.3,lam(0xd6d2c8),cx,0.35,cz,false);
+  const mV=lam(0x4e7f5a);
+  const f1=new THREE.Mesh(new THREE.BoxGeometry(w/2+1.4,0.22,d+1.2),mV);
+  f1.position.set(cx-w/4,hM+alt/2,cz);f1.rotation.z= alt/(w/2)*0.92;f1.castShadow=true;g.add(f1);
+  const f2=new THREE.Mesh(new THREE.BoxGeometry(w/2+1.4,0.22,d+1.2),mV);
+  f2.position.set(cx+w/4,hM+alt/2,cz);f2.rotation.z=-alt/(w/2)*0.92;f2.castShadow=true;g.add(f2);
+  const colmo=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,d+1.3,8),lam(0x3f6b4b));
+  colmo.rotation.x=Math.PI/2;colmo.position.set(cx,hM+alt+0.1,cz);g.add(colmo);
+  [cz-d/2-0.6,cz+d/2+0.6].forEach(zz=>{
+    const sh=new THREE.Shape();sh.moveTo(-w/2-0.6,0);sh.lineTo(w/2+0.6,0);sh.lineTo(0,alt+0.2);sh.closePath();
+    const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),lam(0xe8e5dd));
+    m.position.set(cx,hM,zz);if(zz<cz)m.rotation.y=Math.PI;g.add(m);});
+  for(let i=0;i<5;i++) box(g,0.9,1.6,0.1,lam(0x9fb6c4),cx-8+i*4,5.6,cz-d/2-0.02,false);
+  contatto(mondo,cx,0.03,cz,26,26,0.5);
 })();
+/* al fianco del tendone non c'e' un capannone bianco: c'e' un'ala della scuola
+   a ferro di cavallo (Aula Musica, Aula Informatica, Mensa) con tetto in coppi */
+(function alaMensa(){
+  const x0=-52,x1=-38,z0=30,z1=42,hM=8.2,cx=(x0+x1)/2,cz=(z0+z1)/2;
+  muroFin(null,x1-x0,hM,0xcfc6b0,(()=>{const f=[];for(let r=0;r<2;r++)for(let i=0;i<4;i++)
+    f.push({fx:0.12+i*0.25,fy:2.2+r*3.1,fw:1.5,fh:1.5});return f;})(),cx,0,z0,Math.PI);
+  muroFin(null,x1-x0,hM,0xcfc6b0,(()=>{const f=[];for(let i=0;i<4;i++)
+    f.push({fx:0.12+i*0.25,fy:5.3,fw:1.5,fh:1.5});return f;})(),cx,0,z1,0);
+  muroFin(null,z1-z0,hM,0xcfc6b0,(()=>{const f=[];for(let r=0;r<2;r++)for(let i=0;i<3;i++)
+    f.push({fx:0.16+i*0.34,fy:2.2+r*3.1,fw:1.4,fh:1.5});return f;})(),x0,0,cz,-Math.PI/2);
+  muroFin(null,z1-z0,hM,0xcfc6b0,[{fx:0.5,fy:5.3,fw:1.4,fh:1.5}],x1,0,cz,Math.PI/2);
+  /* loggia ad archi verso il chiostro */
+  for(let i=0;i<4;i++){
+    const px=x0+2+i*3.4;
+    box(mondo,0.5,3.2,0.5,lam(0xc6bda7),px,1.6,z0-1.6,false);
+    const ar=new THREE.Mesh(new THREE.CylinderGeometry(1.45,1.45,0.45,16,1,false,0,Math.PI),lam(0xc6bda7));
+    ar.rotation.x=Math.PI/2;ar.rotation.y=Math.PI/2;ar.position.set(px+1.7,3.2,z0-1.6);mondo.add(ar);}
+  box(mondo,x1-x0,0.4,3.4,lam(0xc6bda7),cx,4.9,z0-1.6,true);
+  tetto(mondo,cx,cz,x1-x0,z1-z0,hM,2.7,{pluviali:0,comignoli:[[0,2,1.3]]});
+  contatto(mondo,cx,0.03,cz,18,16,0.5);
+})();
+/* CHIESA — ricostruita dall'aerea etichettata: facciata a capanna in muratura
+   con timpano e cornice marcapiano, DUE finestre alte ad arco ai lati del
+   portale, porta rettangolare con archetto, gradini d'accesso; navata lunga
+   con tetto a due falde in coppi; cipressi ai lati. La facciata guarda a NORD,
+   verso la strada e la rotonda. L'interno non e' modellato: non l'ho visto. */
 (function chiesa(){
-  /* interno non modellato: non l'ho visto, e non invento cio' che non e' nelle fonti */
-  const g=new THREE.Group();g.position.set(-51.5,0,-36);mondo.add(g);
-  box(g,9,6.5,12,lam(0xd9cfb8),0,3.25,0,true);
-  tetto(g,0,0,9,12,6.5,2.7,{tipo:'capanna',sporto:0.5,colTimpano:0xe6dcc4});
-  box(g,0.14,1.5,0.14,lam(0xd9cfb8),0,10.0,-5.6,false);
-  box(g,0.8,0.14,0.14,lam(0xd9cfb8),0,9.8,-5.6,false);
-  box(g,1.8,2.9,0.1,lam(0x6a4a2a),0,1.45,-6.06,false);
-  const r=new THREE.Mesh(new THREE.CircleGeometry(0.85,16),lam(0x8fa8c8));
-  r.position.set(0,4.7,-6.07);r.rotation.y=Math.PI;g.add(r);
-  contatto(mondo,-51.5,0.03,-36,12,16,0.5);
+  const g=new THREE.Group();g.position.set(-51.5,0,-34);mondo.add(g);
+  const W=9.4, L=17, hM=7.2, alt=3.0;
+  const matMur=matPietra(3,3), matCorn=lam(0xcfc4ad);
+  /* navata: due muri lunghi e la testata sud */
+  box(g,0.5,hM,L,matMur,-W/2,hM/2,2.5,true);
+  box(g,0.5,hM,L,matMur, W/2,hM/2,2.5,true);
+  box(g,W,hM,0.5,matMur,0,hM/2,11,true);
+  /* finestrelle alte sui fianchi */
+  for(let i=0;i<4;i++){[-W/2,W/2].forEach(px=>{
+    const f=box(g,0.1,1.5,0.7,lam(0x4a5560),px,4.9,-2+i*3.4,false);
+    box(g,0.12,1.7,0.9,matCorn,px+(px<0?0.03:-0.03),4.9,-2+i*3.4,false);
+    f.position.x=px+(px<0?0.06:-0.06);});}
+  /* FACCIATA a capanna, verso nord */
+  box(g,W,hM,0.55,matMur,0,hM/2,-6,true);
+  const tim=new THREE.Shape();
+  tim.moveTo(-W/2,0);tim.lineTo(W/2,0);tim.lineTo(0,alt);tim.closePath();
+  const mt=new THREE.Mesh(new THREE.ShapeGeometry(tim),matMur);
+  mt.position.set(0,hM,-6.28);mt.rotation.y=Math.PI;g.add(mt);
+  /* cornice del timpano e marcapiano */
+  /* cornici inclinate del timpano: ruotate attorno al proprio centro, quindi
+     vanno posizionate a meta' dello spiovente, non all'angolo del muro */
+  [-1,1].forEach(sgn=>{
+    const lung=Math.hypot(W/2,alt)+0.25;
+    const c=box(g,lung,0.24,0.3,matCorn,sgn*W/4,hM+alt/2,-6.32,false);
+    c.rotation.z=-sgn*Math.atan2(alt,W/2);});
+  box(g,W+0.35,0.28,0.34,matCorn,0,hM-0.12,-6.32,false);
+  /* due finestre alte ad arco ai lati del portale */
+  [-2.55,2.55].forEach(px=>{
+    box(g,1.05,2.5,0.16,matCorn,px,4.5,-6.33,false);
+    const ac=new THREE.Mesh(new THREE.CylinderGeometry(0.525,0.525,0.16,14,1,false,0,Math.PI),matCorn);
+    ac.rotation.x=Math.PI/2;ac.rotation.y=-Math.PI/2;ac.position.set(px,5.75,-6.33);g.add(ac);
+    box(g,0.72,2.3,0.06,lam(0x3d4650),px,4.5,-6.42,false);
+    const av=new THREE.Mesh(new THREE.CylinderGeometry(0.36,0.36,0.06,14,1,false,0,Math.PI),lam(0x3d4650));
+    av.rotation.x=Math.PI/2;av.rotation.y=-Math.PI/2;av.position.set(px,5.75,-6.42);g.add(av);});
+  /* portale con archetto e gradini */
+  box(g,2.5,3.5,0.18,matCorn,0,1.75,-6.34,false);
+  const arp=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.25,0.18,16,1,false,0,Math.PI),matCorn);
+  arp.rotation.x=Math.PI/2;arp.rotation.y=-Math.PI/2;arp.position.set(0,3.5,-6.34);g.add(arp);
+  box(g,1.9,3.15,0.1,lam(0x53381f),0,1.58,-6.44,false);
+  for(let i=0;i<3;i++) box(g,3.6-i*0.4,0.16,0.42,lam(0xc6bda7),0,0.08+i*0.16,-6.9-i*0.34,true);
+  /* tetto a due falde in coppi sulla navata */
+  tetto(g,0,2.5,W,L,hM,alt,{tipo:'capanna',sporto:0.5,colTimpano:0xb3a894});
+  contatto(mondo,-51.5,0.03,-31.5,13,20,0.5);
+  /* cipressi ai lati della facciata */
+  [[-8.5,-5],[8.5,-5],[-8.5,4],[9,7]].forEach(q=>{
+    const c=new THREE.Mesh(new THREE.ConeGeometry(1.15,8.5,9),lam(0x33512f));
+    c.position.set(-51.5+q[0],4.25,-34+q[1]);c.castShadow=true;mondo.add(c);
+    contatto(mondo,-51.5+q[0],0.03,-34+q[1],3,3,0.5);});
 })();
 
 /* ===================== PISCINE ANDREANA (nord-est) ======================
@@ -1471,24 +1608,20 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
   banco(g,-56,-7.4,0,lam(0xcfe0c8),Q_ALTA);sedia(g,-56.5,-8.1,Math.PI,cLegno,Q_ALTA);
   box(g,1.2,0.9,0.45,matPortaChiara,-59,Q_ALTA+0.45,-7.2,true);
   /* corridoio est (quota bassa) con le due gradinate */
-  guscio(-24.2,-6,Q_BASSA,11);
-  /* alzata di raccordo con il pavimento alto dell'atrio */
-  box(g,0.3,0.64,z1-z0,matGrigioScuroMat,-24.05,Q_BASSA+0.32,(z0+z1)/2,false);
-  for(let i=0;i<3;i++) porta(g,matPortaChiara,-20.5+i*5.6,Q_BASSA,z0+0.1,0,0);
-  listello(g,15,-15,Q_BASSA+1.3,z0+0.09,0); listello(g,15,-15,Q_BASSA+1.9,z0+0.09,0);
-  quadro(g,texQuadro(145),0.8,1.0,-17.6,Q_BASSA+1.6,z0+0.1,0);
-  quadro(g,texQuadro(147),0.9,1.1,-11.8,Q_BASSA+1.6,z0+0.1,0);
-  banco(g,-16,-7.4,0,lam(0xd8cfc0),Q_BASSA);sedia(g,-16.5,-8.1,Math.PI,cLegno,Q_BASSA);
+  guscio(-24.2,-6,Q_ALTA,11);
+  for(let i=0;i<3;i++) porta(g,matPortaChiara,-20.5+i*5.6,Q_ALTA,z0+0.1,0,0);
+  listello(g,15,-15,Q_ALTA+1.3,z0+0.09,0); listello(g,15,-15,Q_ALTA+1.9,z0+0.09,0);
+  quadro(g,texQuadro(145),0.8,1.0,-17.6,Q_ALTA+1.6,z0+0.1,0);
+  quadro(g,texQuadro(147),0.9,1.1,-11.8,Q_ALTA+1.6,z0+0.1,0);
+  banco(g,-16,-7.4,0,lam(0xd8cfc0),Q_ALTA);sedia(g,-16.5,-8.1,Math.PI,cLegno,Q_ALTA);
   /* scaffale bianco 2x2 (Kallax) visto nel video */
   (function kallax(x,z){
     const m=lam(0xf4f2ee);
-    box(g,0.78,0.78,0.36,m,x,Q_BASSA+0.39,z,true);
-    box(g,0.72,0.03,0.34,lam(0xe4e2dc),x,Q_BASSA+0.39,z+0.01,false);
-    box(g,0.03,0.72,0.34,lam(0xe4e2dc),x,Q_BASSA+0.39,z+0.01,false);
-    box(g,0.34,0.12,0.24,matLegno,x,Q_BASSA+0.84,z,true);
-    contatto(g,x,Q_BASSA+0.012,z,1.2,0.8,0.6);})(-9.9,-7.2);
-  gradinata(g,-22.88,false,z0,z1);
-  gradinata(g,-8.42,true,z0,z1);
+    box(g,0.78,0.78,0.36,m,x,Q_ALTA+0.39,z,true);
+    box(g,0.72,0.03,0.34,lam(0xe4e2dc),x,Q_ALTA+0.39,z+0.01,false);
+    box(g,0.03,0.72,0.34,lam(0xe4e2dc),x,Q_ALTA+0.39,z+0.01,false);
+    box(g,0.34,0.12,0.24,matLegno,x,Q_ALTA+0.84,z,true);
+    contatto(g,x,Q_ALTA+0.012,z,1.2,0.8,0.6);})(-9.9,-7.2);
   /* angolo scala a est, con stemmi delle 4 Case e ringhiera nera */
   guscio(-6.2,13.55,Q_ALTA,12);
   quadro(g,texStemmiMuro,3.0,2.2,11,Q_ALTA+1.7,z0+0.1,0);
@@ -1502,6 +1635,11 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
     ringhiera(g,2.2,sx1,Q_ALTA,sz0+1.1,Math.PI/2,0x2a2a2e);
     for(let i=0;i<8;i++)
       box(g,sx1-sx0-0.2,0.18,0.3,lam(0xb5b3ae),(sx0+sx1)/2,Q_ALTA-0.09-i*0.18,sz0+0.3+i*0.26,false);})();
+  /* gli unici gradini del piano: nell'angolo fra corridoio nord e corridoio
+     est della Scuola Secondaria */
+  for(let i=0;i<3;i++)
+    box(g,4.6,0.15*(3-i),0.34,lam(0xb5b3ae),11.2,Q_ALTA+0.075*(3-i),-6.9+i*0.34,true);
+  box(g,4.6,0.06,1.1,lam(0xc9c6be),11.2,Q_ALTA+0.03,-7.6,false);
   const te=box(g,z1-z0,SOFF-Q_ALTA,0.16,matBiancoInt,13.57,(SOFF+Q_ALTA)/2,(z0+z1)/2,false);
   te.rotation.y=Math.PI/2;
   const vcu=new THREE.Mesh(new THREE.PlaneGeometry(3,2.2),matVetroC(4,3));
@@ -1746,7 +1884,8 @@ function salva(){try{localStorage.setItem('campus3d',JSON.stringify(G));}catch(e
 
 const $=id=>document.getElementById(id);
 const velo=$('velo'), foglio=$('foglio');
-function apriFoglio(html){foglio.innerHTML=html;velo.style.display='flex';}
+function apriFoglio(html,classe){foglio.className='foglio'+(classe?' '+classe:'');
+  foglio.innerHTML=html;velo.style.display='flex';}
 function chiudiFoglio(){velo.style.display='none';}
 
 function perline(){
@@ -1818,7 +1957,7 @@ window.avanti=function(){livAiuto=0;chiudiFoglio();mostraTappa();};
 function debrief(){
   const senza=TAPPE.length-G.usati.filter(x=>x>0).length;
   apriFoglio('<div class="occhiello">Percorso concluso</div>'
-    +'<h1>La chiave del Campus</h1>'
+    +'<h1>Campus Sacra Famiglia</h1>'
     +'<p>Hai attraversato tutte e nove le tappe: il portale di pietra, il cortile, '
     +'la Primaria, la scala delle tabelline, il muro dei colori, la gradinata, '
     +'il campo fra i filari, le piscine e l\'atrio.</p>'
@@ -1983,30 +2122,28 @@ segnaAudio();
 
 /* ===================== tutorial in quattro momenti ===================== */
 function apriIntro(){
-  apriFoglio('<div class="occhiello">Caccia al tesoro</div>'
-    +'<h1>La chiave del Campus</h1>'
-    +'<p>Da qualche parte nella scuola c\'è un piccolo forziere. Per arrivarci devi '
-    +'attraversare <strong>nove tappe</strong>: ognuna nasconde una cassetta di legno, '
-    +'e dentro c\'è l\'indizio della tappa successiva.</p>'
-    +'<p>Gli indizi <strong>non ti dicono mai il nome del posto</strong>: te lo descrivono. '
-    +'Tocca a te riconoscerlo e andarci volando.</p>'
-    +'<table>'
+  /* Card d'accesso: l'immagine occupa tutta la superficie, il testo sta solo
+     sulla fascia sinistra (campi e ulivi) dove non copre nulla. In alto il
+     marchio del Campus. Solo l'essenziale: che cos'e', come ci si muove, via. */
+  apriFoglio(
+     '<div class="colonna">'
+    +'<div class="pillola">'+$('marchio').outerHTML.replace('id="marchio"','')+'</div>'
+    +'<div class="occhiello">Caccia al tesoro</div>'
+    +'<h1>Campus Sacra Famiglia</h1>'
+    +'<p>Nove tappe nascoste nel campus. In ognuna c\'è una cassetta di legno, '
+    +'e dentro l\'indizio della tappa successiva. Gli indizi <strong>non dicono il '
+    +'nome del posto</strong>: lo descrivono.</p>'
+    +'<div class="comandi">'
     +(TOCCO
-      ? '<tr><td colspan="2"><strong>Comandi</strong></td></tr>'
-        +'<tr><td></td><td>Levetta di sinistra: muoversi</td></tr>'
-        +'<tr><td></td><td>Levetta di destra: guardarsi intorno</td></tr>'
-        +'<tr><td></td><td>Tasti a destra: salire e scendere</td></tr>'
-        +'<tr><td></td><td>Tocca la cassetta per aprirla</td></tr>'
-      : '<tr><td colspan="2"><strong>Comandi</strong></td></tr>'
-        +'<tr><td></td><td>Trascina con il mouse: guardarsi intorno</td></tr>'
-        +'<tr><td></td><td><span class="tasto">W</span><span class="tasto">A</span><span class="tasto">S</span><span class="tasto">D</span> o frecce: muoversi</td></tr>'
-        +'<tr><td></td><td><span class="tasto">E</span> sali · <span class="tasto">Q</span> scendi · rotellina: velocità</td></tr>'
-        +'<tr><td></td><td>Clicca la cassetta per aprirla</td></tr>')
-    +'</table>'
-    +'<p style="font-size:14.5px;color:#5c6a7c">Se ti blocchi, <strong>Chiedi un aiuto</strong>: '
-    +'il primo ti dice la zona, il secondo che cosa cercare, il terzo ti porta sul posto. '
-    +'Nessuno tiene il punteggio — alla fine ti servirà solo per capire dove hai faticato.</p>'
-    +'<div class="bottoni"><button onclick="viaAlGioco()">Comincia dal portale</button></div>');}
+      ? '<b>Levetta sinistra</b> muoversi · <b>destra</b> guardarsi intorno<br>'
+        +'<b>Frecce</b> salire e scendere · <b>tocca</b> la cassetta per aprirla'
+      : '<b>Mouse</b> guardarsi intorno · <b>W A S D</b> muoversi<br>'
+        +'<b>E</b> sali · <b>Q</b> scendi · <b>clic</b> sulla cassetta per aprirla')
+    +'</div>'
+    +'<div class="bottoni"><button onclick="viaAlGioco()">Comincia dal portale</button></div>'
+    +'<div class="nota">Se ti blocchi, <strong>Chiedi un aiuto</strong>: prima la zona, '
+    +'poi che cosa cercare, infine ti porto sul posto. Nessun punteggio.</div>'
+    +'</div>','card');}
 window.viaAlGioco=function(){chiudiFoglio();$('carta').style.display='block';
   avviaMusica();               /* gesto utente reale: e' qui che l'autoplay e' concesso */
   mostraTappa(); vaiA(1);};
