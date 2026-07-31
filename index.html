@@ -70,9 +70,9 @@
     display:flex;flex-direction:column;justify-content:center;
     background:linear-gradient(90deg,rgba(8,17,29,.94) 0%,rgba(8,17,29,.90) 62%,
       rgba(8,17,29,.55) 86%,rgba(8,17,29,0) 100%)}
-  .card .pillola{align-self:flex-start;background:#fff;border-radius:999px;
-    padding:7px 15px;margin-bottom:16px;box-shadow:0 3px 14px rgba(0,0,0,.3)}
-  .card .pillola svg{width:96px;height:46px;display:block}
+  .card .pillola{align-self:flex-start;margin-bottom:16px;
+    filter:drop-shadow(0 3px 14px rgba(0,0,0,.35))}
+  .card .pillola svg{width:172px;height:83px;display:block}
   .card .occhiello{color:#f0c04a;margin-bottom:2px}
   .card h1{color:#fff;font-size:26px;margin-bottom:8px}
   .card p{color:#dfe6ef;font-size:15.5px;line-height:1.5;margin-bottom:10px}
@@ -108,6 +108,20 @@
   #barra .sep{width:1px;height:19px;background:#d5dbe6}
 
   /* ---- mirino oggetto ---- */
+  /* mirino al centro: la vista e' automatica, si punta con la testa */
+  #mirino{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:22;
+    width:22px;height:22px;display:none;pointer-events:none}
+  #mirino i{position:absolute;background:rgba(255,255,255,.9);
+    box-shadow:0 0 3px rgba(0,0,0,.7)}
+  #mirino i:nth-child(1){left:10px;top:0;width:2px;height:7px}
+  #mirino i:nth-child(2){left:10px;bottom:0;width:2px;height:7px}
+  #mirino i:nth-child(3){top:10px;left:0;height:2px;width:7px}
+  #mirino i:nth-child(4){top:10px;right:0;height:2px;width:7px}
+  #mirino.su i{background:#f0c04a}
+  #avviso{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:22;
+    background:rgba(8,17,29,.82);color:#fff;font-family:'Lexend',sans-serif;font-weight:600;
+    font-size:15px;padding:11px 20px;border-radius:12px;display:none;pointer-events:none;
+    box-shadow:0 4px 18px rgba(0,0,0,.35)}
   #vicino{position:fixed;left:50%;bottom:62px;transform:translateX(-50%);z-index:20;
     background:rgba(18,62,144,.94);color:#fff;font-family:'Lexend',sans-serif;font-weight:600;
     font-size:14px;padding:8px 15px;border-radius:999px;display:none;box-shadow:0 3px 14px rgba(0,0,0,.25)}
@@ -232,6 +246,8 @@
   </div>
 </div>
 
+<div id="mirino"><i></i><i></i><i></i><i></i></div>
+<div id="avviso">Clicca per guardarti intorno · <span style="opacity:.7">Esc per uscire</span></div>
 <div id="vicino">Clicca la cassetta</div>
 
 <div id="barra">
@@ -1063,10 +1079,26 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
   for(let i=0;i<12;i++) box(g,0.03,1.05,0.03,lam(0x8a9098),pcx-1.1+i*0.38,4.03,pz1+1.18,false);
   contatto(mondo,pcx,0.03,pcz,15,15,0.5);
   /* blocco bianco moderno dietro */
-  solido(box(g,16,10,10,lam(0xe9e6df),-54,5,25,true));
-  muroFin(null,16,10,0xe9e6df,(()=>{const f=[];for(let r=0;r<3;r++)for(let i=0;i<4;i++)
-    f.push({fx:0.1+i*0.24,fy:1.9+r*3.1,fw:2.7,fh:1.5});return f;})(),-54,0,20,Math.PI);
-  contatto(mondo,-54,0.03,25,20,14,0.5);
+  /* IMG_4898: non una scatola, ma un corpo a tre livelli con fasce di finestre
+     continue a telaio scuro, balcone al primo piano e cornicione piatto. */
+  (function corpoVetrato(){
+    const cx=-54,cz=25,w=17,d=11,h=10.4,crema=0xe9e4d6;
+    solido(box(g,w,h,d,lam(crema),cx,h/2,cz,true));
+    const fasce=()=>{const f=[];for(let r=0;r<3;r++)for(let i=0;i<5;i++)
+      f.push({fx:0.09+i*0.205,fy:2.3+r*3.05,fw:2.55,fh:1.7,scuro:true});return f;};
+    muroFin(null,w,h,crema,fasce(),cx,0,cz-d/2,Math.PI);
+    muroFin(null,d,h,crema,(()=>{const f=[];for(let r=0;r<3;r++)for(let i=0;i<3;i++)
+      f.push({fx:0.15+i*0.35,fy:2.3+r*3.05,fw:2.2,fh:1.7,scuro:true});return f;})(),
+      cx-w/2,0,cz,-Math.PI/2);
+    /* marcapiani chiari fra una fascia e l'altra */
+    [3.55,6.6].forEach(y=>box(g,w+0.3,0.30,d+0.3,lam(0xf2eee2),cx,y,cz,false));
+    /* balcone con ringhiera al primo piano, verso il cortile */
+    box(g,7.2,0.16,1.5,lam(0xdedacd),cx+2,3.75,cz-d/2-0.75,true);
+    box(g,7.2,0.06,0.05,lam(0x8a8f95),cx+2,4.85,cz-d/2-1.45,false);
+    for(let i=0;i<19;i++) box(g,0.028,1.05,0.028,lam(0x8a8f95),cx-1.5+i*0.39,4.33,cz-d/2-1.45,false);
+    /* cornicione piatto di coronamento */
+    box(g,w+0.7,0.35,d+0.7,lam(0xdad5c6),cx,h+0.17,cz,true);
+    contatto(mondo,cx,0.03,cz,w+4,d+4,0.5);})();
   /* PERGOLA BIANCA lunga a listelli (vista dalle finestre del mezzanino) */
   (function pergolaLunga(){
     const p=new THREE.Group(),mL=lam(0xf2f0ea),L=17;
@@ -1077,15 +1109,35 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
     p.position.set(-49,0,26.5);mondo.add(p);
     contatto(mondo,-49,0.04,26.5,18,4.4,0.45);})();
   /* portico colorato verso il cortile */
-  (function portico(){
-    const p=new THREE.Group(),L=18;
-    box(p,3.6,0.12,L,lam(0xe8e8e4),-1.7,3.25,0,true);
-    box(p,0.3,0.25,L,lam(0xf4f4f2),-0.1,3.3,0,false);
-    for(let i=0;i<6;i++) box(p,0.18,3.2,0.18,lam(0xf4f4f2),-0.2,1.6,-L/2+1+i*(L-2)/5,false);
-    [0x3a8a3a,0x2255aa,0xe8c020,0xc23a3a,0x3a8a3a].forEach((c,i)=>
-      box(p,0.06,1.1,(L-2)/5-0.5,lam(c),-0.2,0.6,-L/2+1+(i+0.5)*(L-2)/5,false));
-    p.position.set(-40,0,7);mondo.add(p);
-    contatto(mondo,-41.5,0.03,7,5,19,0.45);})();
+  /* PENSILINA (IMG_4898): non un porticato addossato, ma una copertura PIANA
+     e continua che COLLEGA due edifici, su pilastri bianchi a sezione quadrata.
+     Sotto, verso il cortile, una parete con grandi pannelli colorati a tutta
+     altezza; su un pilastro e' fissato un tabellone da basket. */
+  (function pensilina(){
+    const p=new THREE.Group(); p.position.set(-40,0,7); mondo.add(p);
+    const L=26, prof=4.4, h=3.45, bianco=lam(0xf4f2ee);
+    /* lastra piana con fascia di bordo sottile */
+    box(p,prof,0.16,L,lam(0xeceae4),prof/2-0.4,h,0,true);
+    box(p,0.16,0.34,L,bianco,prof-0.48,h+0.05,0,false);      /* fascia sul fronte */
+    box(p,prof,0.10,0.16,bianco,prof/2-0.4,h+0.05,-L/2,false);
+    box(p,prof,0.10,0.16,bianco,prof/2-0.4,h+0.05, L/2,false);
+    /* pilastri bianchi a sezione quadrata, sul filo esterno */
+    const nP=8;
+    for(let i=0;i<nP;i++){
+      const z=-L/2+0.9+i*(L-1.8)/(nP-1);
+      box(p,0.26,h,0.26,bianco,prof-0.62,h/2,z,true);
+      box(p,0.40,0.10,0.40,lam(0xe2e0d8),prof-0.62,0.05,z,false);}
+    /* parete di fondo con i grandi pannelli colorati */
+    box(p,0.16,h-0.1,L,lam(0xf0eee6),0.05,(h-0.1)/2,0,false);
+    [0xd21f12,0x3fa02a,0x1f8ede,0xf5b300,0xd21f12,0x3fa02a].forEach((c,i)=>{
+      const w=(L-1.2)/6, z=-L/2+0.6+(i+0.5)*w;
+      box(p,0.07,2.05,w-0.28,lam(c),0.16,1.15,z,false);});
+    /* tabellone da basket fissato al terzo pilastro */
+    const zb=-L/2+0.9+2*(L-1.8)/(nP-1);
+    box(p,0.10,0.10,0.55,bianco,prof-0.62,2.95,zb-0.35,false);
+    tabelloneRete(p,2.9,0,0.86);
+    p.children[p.children.length-1];
+    contatto(mondo,-40+prof/2-0.4,0.03,7,prof+1.2,L+1,0.45);})();
   /* recinto giochi con steccato bianco */
   /* i giochi: fungo gigante, scivolo e casetta, dentro il cortile */
   box(g,0.24,2.0,0.24,lam(0xa8a09a),-58.5,1.0,3.5,false);
@@ -2098,8 +2150,11 @@ function salva(){try{localStorage.setItem('campus3d',JSON.stringify(G));}catch(e
 const $=id=>document.getElementById(id);
 const velo=$('velo'), foglio=$('foglio');
 function apriFoglio(html,classe){foglio.className='foglio'+(classe?' '+classe:'');
-  foglio.innerHTML=html;velo.style.display='flex';}
-function chiudiFoglio(){velo.style.display='none';}
+  foglio.innerHTML=html;velo.style.display='flex';
+  if(document.exitPointerLock) document.exitPointerLock();
+  if(typeof segnaVista==='function') segnaVista();}
+function chiudiFoglio(){velo.style.display='none';
+  if(typeof segnaVista==='function') segnaVista();}
 
 function perline(){
   $('perline').innerHTML=TAPPE.map((t,k)=>
@@ -2195,18 +2250,36 @@ window.addEventListener('keydown',e=>{tasti[e.code]=true;
 window.addEventListener('keyup',e=>{tasti[e.code]=false;});
 window.addEventListener('wheel',e=>{velBase=Math.max(3,Math.min(60,velBase*(e.deltaY>0?0.9:1.12)));},{passive:true});
 
-let trasc=false,px=0,py=0,mosso=0;
-canvas.addEventListener('mousedown',e=>{trasc=true;px=e.clientX;py=e.clientY;mosso=0;});
-window.addEventListener('mousemove',e=>{if(!trasc)return;
-  const dx=e.clientX-px,dy=e.clientY-py; mosso+=Math.abs(dx)+Math.abs(dy);
-  yaw-=dx*0.0032;pitch-=dy*0.0032;pitch=Math.max(-1.45,Math.min(1.45,pitch));
-  px=e.clientX;py=e.clientY;});
-window.addEventListener('mouseup',e=>{
-  if(trasc&&mosso<6) provaClic(e.clientX,e.clientY);
-  trasc=false;});
+/* Vista automatica: pointer lock, come nelle escape room gia' fatte. Un clic
+   aggancia il mouse, poi lo sguardo segue il movimento senza tenere premuto;
+   Esc lo rilascia. Si mira con il mirino al centro dello schermo, non con la
+   punta del cursore. Su touch il pointer lock non esiste: restano i joystick. */
+let bloccato=false;
+const mirino=$('mirino'), avviso=$('avviso');
+function agganciaMouse(){ if(!TOCCO && canvas.requestPointerLock) canvas.requestPointerLock(); }
+function segnaVista(){
+  const inGioco = velo.style.display!=='flex';
+  mirino.style.display = (bloccato||TOCCO) && inGioco ? 'block':'none';
+  avviso.style.display = (!bloccato && !TOCCO && inGioco) ? 'block':'none';
+}
+document.addEventListener('pointerlockchange',()=>{
+  bloccato = (document.pointerLockElement===canvas); segnaVista();});
+window.addEventListener('mousemove',e=>{
+  if(!bloccato) return;
+  yaw   -= e.movementX*0.0022;
+  pitch -= e.movementY*0.0022;
+  pitch = Math.max(-1.45,Math.min(1.45,pitch));});
+canvas.addEventListener('click',()=>{
+  if(velo.style.display==='flex') return;
+  if(!TOCCO && !bloccato){ agganciaMouse(); return; }
+  provaMirino();});
 
 const ray=new THREE.Raycaster();
-function provaClic(cx,cy){
+function provaMirino(){
+  if(!cassetta||velo.style.display==='flex')return;
+  ray.setFromCamera({x:0,y:0},camera);
+  if(ray.intersectObject(cassetta,true).length) trovata();}
+function provaClic(cx,cy){          /* usato dal tocco su iPad */
   if(!cassetta||velo.style.display==='flex')return;
   const m={x:(cx/window.innerWidth)*2-1, y:-(cy/window.innerHeight)*2+1};
   ray.setFromCamera(m,camera);
@@ -2345,8 +2418,9 @@ function apriIntro(){
     +(TOCCO
       ? '<b>Levetta sinistra</b> muoversi · <b>destra</b> guardarsi intorno<br>'
         +'<b>Frecce</b> salire e scendere · <b>tocca</b> la cassetta per aprirla'
-      : '<b>Mouse</b> guardarsi intorno · <b>W A S D</b> muoversi<br>'
-        +'<b>E</b> sali · <b>Q</b> scendi · <b>clic</b> sulla cassetta per aprirla')
+      : '<b>Clic</b> per agganciare la vista, poi il <b>mouse</b> guarda in giro<br>'
+        +'<b>W A S D</b> muoversi · <b>E</b> sali · <b>Q</b> scendi · <b>Esc</b> libera il mouse<br>'
+        +'Punta la cassetta col <b>mirino</b> al centro e fai clic')
     +'</div>'
     +'<div class="bottoni"><button onclick="viaAlGioco()">Comincia dal portale</button></div>'
     +'<div class="nota">Se ti blocchi, <strong>Chiedi un aiuto</strong>: prima la zona, '
@@ -2403,7 +2477,11 @@ function anima(){
       : cassetta.userData.y0+(vicinoOra?Math.sin(pulsa*2.6)*0.045:0);
     cassetta.rotation.y+=dt*(vicinoOra?0.55:0.18);
     vicino.style.display=(d<9)?'block':'none';
-  } else vicino.style.display='none';
+    if(bloccato||TOCCO){
+      ray.setFromCamera({x:0,y:0},camera);
+      mirino.classList.toggle('su', ray.intersectObject(cassetta,true).length>0);
+    }
+  } else { vicino.style.display='none'; mirino.classList.remove('su'); }
   qv.textContent=camera.position.y.toFixed(0);
   renderer.render(scene,camera);
 }
