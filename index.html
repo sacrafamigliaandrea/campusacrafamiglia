@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>La chiave del Campus — Scuola Sacra Famiglia</title>
+<link rel="icon" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --blu:#123E90; --blu2:#0d2f6e; --ambra:#B8860B; --ambra2:#D4A017; --verde:#1f7a43; }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{width:100%;height:100%;overflow:hidden;background:#dfe8ef;
+    font-family:'Atkinson Hyperlegible',sans-serif;font-size:18px}
+  #scena{position:fixed;inset:0;display:block;touch-action:none}
+
+  /* ---- intestazione ---- */
+  #targa{position:fixed;top:12px;left:12px;z-index:20;display:flex;align-items:center;gap:10px;
+    background:rgba(255,255,255,.93);border:1px solid rgba(18,62,144,.18);border-radius:14px;
+    padding:8px 15px 8px 10px;box-shadow:0 4px 18px rgba(13,47,110,.18)}
+  #targa .tit{font-family:'Lexend',sans-serif;font-weight:700;font-size:15px;color:var(--blu);line-height:1.15}
+  #targa .sot{font-size:12px;color:#4a5a7a}
+
+  /* ---- carta dell'indizio ---- */
+  #carta{position:fixed;top:74px;left:12px;z-index:20;width:min(370px,calc(100vw - 24px));
+    background:rgba(255,255,255,.96);border:1px solid rgba(18,62,144,.2);border-left:5px solid var(--ambra2);
+    border-radius:12px;padding:13px 16px;box-shadow:0 6px 22px rgba(13,47,110,.16)}
+  #carta .tappa{font-family:'Lexend',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--ambra)}
+  #carta h2{font-family:'Lexend',sans-serif;font-size:17px;color:var(--blu);margin:2px 0 6px;line-height:1.25}
+  #carta p{font-size:15px;line-height:1.5;color:#33404f}
+  #carta .fila{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
+  #carta button{font-family:'Lexend',sans-serif;font-weight:600;font-size:13px;cursor:pointer;
+    border-radius:9px;padding:7px 12px;border:1px solid rgba(18,62,144,.3);background:#fff;color:var(--blu)}
+  #carta button:hover{background:#eef3fc}
+  #aiutoTesto{margin-top:9px;padding:9px 11px;background:#fdf6e3;border:1px solid #e6d3a3;
+    border-radius:9px;font-size:14px;line-height:1.45;color:#6b5312;display:none}
+
+  /* ---- pannello grande (scoperta / diario / debrief) ---- */
+  #velo{position:fixed;inset:0;z-index:40;background:rgba(13,32,66,.5);display:flex;
+    align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}
+  .foglio{width:min(560px,100%);max-height:88vh;overflow-y:auto;background:#fffdf7;border-radius:16px;
+    padding:26px 28px;box-shadow:0 18px 60px rgba(0,0,0,.35);border-top:6px solid var(--blu)}
+  .foglio h1{font-family:'Lexend',sans-serif;font-size:22px;color:var(--blu);margin-bottom:4px;line-height:1.2}
+  .foglio .occhiello{font-family:'Lexend',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--ambra);margin-bottom:3px}
+  .foglio p{font-size:16px;line-height:1.6;color:#33404f;margin-bottom:11px}
+  .foglio .imparato{background:#eef6f0;border-left:4px solid var(--verde);border-radius:0 10px 10px 0;
+    padding:11px 14px;margin:13px 0;font-size:15.5px;line-height:1.55;color:#1d4a30}
+  .foglio .prossimo{background:#fdf6e3;border-left:4px solid var(--ambra2);border-radius:0 10px 10px 0;
+    padding:11px 14px;margin:13px 0;font-size:15.5px;line-height:1.55;color:#6b5312}
+  .foglio table{width:100%;border-collapse:collapse;font-size:15px;margin:10px 0}
+  .foglio td{padding:6px 3px;border-bottom:1px solid #eceadf;vertical-align:top}
+  .foglio td:first-child{width:34px}
+  .foglio .tasto{display:inline-block;background:#eef3fc;border:1px solid #c9d6ef;border-radius:6px;
+    padding:1px 7px;font-weight:700;font-size:12.5px;color:var(--blu);margin-right:3px}
+  .foglio .azione{background:#f2f6fd;border:1px dashed #b6c8ea;border-radius:11px;padding:14px 16px;margin-top:14px}
+  .foglio .azione h3{font-family:'Lexend',sans-serif;font-size:15px;color:var(--blu);margin-bottom:6px}
+  .bottoni{display:flex;gap:9px;margin-top:18px;flex-wrap:wrap}
+  .bottoni button{flex:1 1 auto;padding:12px 16px;font-family:'Lexend',sans-serif;font-weight:700;
+    font-size:15px;color:#fff;background:var(--blu);border:none;border-radius:11px;cursor:pointer}
+  .bottoni button:hover{background:var(--blu2)}
+  .bottoni button.chiaro{background:#fff;color:var(--blu);border:1px solid rgba(18,62,144,.3)}
+  .bottoni button.chiaro:hover{background:#eef3fc}
+
+  /* ---- barra tappe + strumenti ---- */
+  #barra{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:20;
+    display:flex;gap:7px;align-items:center;background:rgba(255,255,255,.93);
+    border:1px solid rgba(18,62,144,.2);border-radius:999px;padding:7px 13px;
+    box-shadow:0 3px 14px rgba(13,47,110,.16)}
+  #perline{display:flex;gap:5px}
+  .perla{width:13px;height:13px;border-radius:50%;background:#d5dbe6;border:1px solid #b9c3d4}
+  .perla.fatta{background:var(--verde);border-color:var(--verde)}
+  .perla.ora{background:var(--ambra2);border-color:var(--ambra);box-shadow:0 0 0 3px rgba(212,160,23,.25)}
+  #barra button{font-family:'Lexend',sans-serif;font-weight:600;font-size:13px;color:var(--blu);
+    background:none;border:none;cursor:pointer;padding:3px 7px;border-radius:7px}
+  #barra button:hover{background:#eef3fc}
+  #barra .sep{width:1px;height:19px;background:#d5dbe6}
+
+  /* ---- mirino oggetto ---- */
+  #vicino{position:fixed;left:50%;bottom:62px;transform:translateX(-50%);z-index:20;
+    background:rgba(18,62,144,.94);color:#fff;font-family:'Lexend',sans-serif;font-weight:600;
+    font-size:14px;padding:8px 15px;border-radius:999px;display:none;box-shadow:0 3px 14px rgba(0,0,0,.25)}
+
+  /* ---- comandi touch ---- */
+  .stick{position:fixed;z-index:25;width:118px;height:118px;border-radius:50%;display:none;
+    background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.55)}
+  .stick .pomo{position:absolute;left:50%;top:50%;width:50px;height:50px;border-radius:50%;
+    background:rgba(255,255,255,.85);border:2px solid rgba(18,62,144,.4);transform:translate(-50%,-50%)}
+  #stickMov{left:18px;bottom:78px} #stickVis{right:18px;bottom:78px}
+  .tq{position:fixed;z-index:25;width:52px;height:52px;border-radius:14px;display:none;
+    background:rgba(255,255,255,.85);border:2px solid rgba(18,62,144,.35);
+    align-items:center;justify-content:center}
+  #su{right:30px;bottom:212px} #giu{right:92px;bottom:212px}
+  body.tocco .stick,body.tocco .tq{display:flex}
+  body.tocco #carta{top:70px;width:min(300px,58vw);padding:10px 12px}
+  body.tocco #carta p{font-size:13.5px}
+  body.tocco #carta h2{font-size:15px}
+
+  #quota{position:fixed;top:12px;right:12px;z-index:20;background:rgba(255,255,255,.9);
+    border:1px solid rgba(18,62,144,.18);border-radius:11px;padding:6px 11px;font-size:12.5px;color:#4a5a7a}
+  /* lettore YouTube: serve solo l'audio, resta fuori campo ma non display:none
+     (alcuni browser non avviano un iframe non renderizzato) */
+  #yt{position:fixed;width:1px;height:1px;left:-9999px;top:0;opacity:0;pointer-events:none}
+  #bAudio{display:flex;align-items:center;gap:5px;padding:3px 7px !important}
+  #bAudio svg{display:block}
+  #bAudio.spento{opacity:.5}
+  @media(max-width:780px){ #targa .sot{display:none} #quota{display:none} }
+</style>
+</head>
+<body>
+<!--
+  ============================================================================
+  LA CHIAVE DEL CAMPUS — Scuola Sacra Famiglia di Orzinuovi (BS)
+  Campus 3D navigabile in volo + caccia al tesoro a tappe.
+  Single-file, Three.js r128, vanilla JS. Nessun build step.
+
+  FONTI LETTE (mai dedotte):
+  - Campus.png (aerea annotata) riletta A PIENA RISOLUZIONE in 6 ritagli.
+    ATTENZIONE: l'aerea e' ruotata — SUD in alto, NORD in basso, EST a sinistra.
+    Scala dal campo da basket (28 m = ~390 px → ~13.9 px/m).
+    Coordinate reali confermate da Andrea: 45.3999212, 9.9029869.
+  - scuola_primo_piano.MOV (335 s): sequenza fitta 1 fotogramma ogni 3 s,
+    guardata IN ORDINE. E' la fonte della CONTINUITA' del primo piano.
+  - IMG_4847..4903, scuola_primaria.jpeg, scuola_secondaria.jpeg, 3.jpg.
+
+  CORREZIONI IMPOSTE DAL VIDEO (v3):
+  - Le facciate sul cortile sono BIANCO/CREMA intonacate, non grigie, con
+    vetrate molto piu' alte (davanzale 0.95 → quasi soffitto) e pannelli
+    d'accento GIALLI fra le campate.
+  - Primaria: pareti GIALLO FORTE con stipiti/fasce ARANCIO, pavimento a
+    scacchi caldi, 4 Case come pannello dipinto 2x2 con DUE biliardini davanti.
+  - Mezzanino: colonne tonde d'acciaio, nicchie rettangolari nei muri,
+    soffitto a fasce arancio/celeste, scacchi piccoli, ficus, Mondrian con
+    divano grigio e panchina a listelli, scala delle tabelline.
+  - Corridoi: DUE listelli portalavori, tavoli gambe blu/piano verde,
+    gradinata di 5 gradini a tutta larghezza, ringhiera nera al vano scala.
+  - Aule: crema sopra + fascia GRIGIO-VERDE sotto, infissi NERI,
+    sedie lime e blu.
+
+  ==================== FOGLIO COORDINATE (metri) =============================
+  Assi: X+ = EST, Z+ = SUD, Y = alto. Origine ~ angolo NE del campo basket.
+
+  ALA NORD storica (pietra)      x[-64,+14]  z[-24,-12]  muri 9.6  colmo 12.6
+  FASCIA MODERNA nord (bianca)   x[-64,+14]  z[-12,-6]   h 7.6, tetto piano
+  BLOCCO CORRIDOIO (bianco 3p)   x[-78,-64]  z[-24,-6]   muri 10.2 colmo 12.4
+  ALA EST storica (pietra)       x[+14,+26]  z[-24,+18]  muri 10.4 colmo 13.4
+  FASCIA MODERNA est (bianca)    x[+8,+14]   z[-6,+18]   h 7.6, tetto piano
+  PALAZZINA CREMA + scala est.   x[+8,+22]   z[+18,+30]  coppi
+  ALA PRIMARIA (crema, coppi)    x[-78,-66]  z[-6,+34]   muri 9.6  colmo 12.6
+  GIARDINO chiostro              x[-66,-46]  z[-6,+22]
+  PALAZZINA GIALLA infanzia      x[-56,-44]  z[+8,+20]   coppi
+  BLOCCO BIANCO moderno          x[-62,-46]  z[+20,+30]
+  PORTICO COLORATO + GIOCHI      portico x[-44,-40] z[-2,+16]; giochi x[-40,-26] z[0,+14]
+  CORTILE: basket x[-20,+8] z[-4,+11]; verde x[-20,+8] z[+13,+26]
+  CAMPI EST (tennis/padel)       x[+26,+44]  z[+20,+42]
+  CALCIO N-S                     x[-44,-9]   z[+32,+87]; filari x=-46.5 e x=-6.5
+  PALESTRA x[-72,-50] z[+34,+56]; PARCHEGGIO NORD x[-62,+26] z[-52,-30]
+  CHIESA x[-56,-47] z[-42,-30]; PISCINE x[+30,+96] z[-58,+6]
+
+  INTERNI 1P (quota bassa 3.55 al centro uffici, alta 4.19 altrove):
+  ATRIO doppia altezza x[-35.8,-24.2] z[-19.8,-6.35] (vuoto + mezzanino)
+  UFFICI ovest x[-64,-36], est x[-24,-6], angolo scala x[-6,+13.55]
+  SECONDARIA corridoio x[8.55,13.55] z[-6.4,16.5]; aule x[13.55,25.3]
+  PRIMARIA salone x[-76.85,-67.15] z[-3.7,33.3]
+
+  Note tecniche gia' risolte:
+  - geoSmussata(w,h,d,r) e' gia' orientata: NIENTE rotation.x sui piani.
+  - Pareti che NON ricevono ombre; ombre di contatto sotto ogni ingombro.
+  - Vetro mai complanare al muro (5 mm avanti).
+  - Volo libero senza collisioni; ?touch=1 per provare i comandi iPad.
+  ============================================================================
+-->
+<canvas id="scena"></canvas>
+
+<div id="targa">
+  <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+    <rect x="1.5" y="1.5" width="31" height="31" rx="7" fill="#123E90"/>
+    <path d="M17 6 L28 12 L17 18 L6 12 Z" fill="#fff"/>
+    <path d="M10 15.5 V22 Q17 26.5 24 22 V15.5 L17 19.5 Z" fill="#fff" opacity=".85"/>
+  </svg>
+  <div>
+    <div class="tit">La chiave del Campus</div>
+    <div class="sot">Scuola Sacra Famiglia · Orzinuovi</div>
+  </div>
+</div>
+
+<div id="quota">Quota <span id="qv">0</span> m</div>
+
+<div id="carta">
+  <div class="tappa" id="cTappa">Tappa 1 di 9</div>
+  <h2 id="cTitolo">—</h2>
+  <p id="cTesto">—</p>
+  <div id="aiutoTesto"></div>
+  <div class="fila">
+    <button id="bAiuto">Chiedi un aiuto</button>
+    <button id="bRileggi">Il diario</button>
+  </div>
+</div>
+
+<div id="vicino">Clicca la cassetta</div>
+
+<div id="barra">
+  <div id="perline"></div>
+  <div class="sep"></div>
+  <button id="bMappa">Luoghi</button>
+  <button id="bRicomincia">Ricomincia</button>
+  <div class="sep"></div>
+  <button id="bAudio" title="Musica di sottofondo" aria-label="Attiva o spegni la musica">
+    <svg id="icoAudio" width="17" height="17" viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M3 7.5h3L10 4v12L6 12.5H3z" fill="#123E90"/>
+      <g id="onde"><path d="M12.6 7.2a4 4 0 0 1 0 5.6" stroke="#123E90" stroke-width="1.6"
+        fill="none" stroke-linecap="round"/><path d="M14.8 5.2a7 7 0 0 1 0 9.6" stroke="#123E90"
+        stroke-width="1.6" fill="none" stroke-linecap="round"/></g>
+      <g id="crocetta" style="display:none"><path d="M13 7.5l5 5M18 7.5l-5 5" stroke="#123E90"
+        stroke-width="1.7" stroke-linecap="round"/></g>
+    </svg>
+    <span id="etAudio">Musica</span>
+  </button>
+</div>
+<div id="yt"></div>
+
+<div id="stickMov" class="stick"><div class="pomo"></div></div>
+<div id="stickVis" class="stick"><div class="pomo"></div></div>
+<div id="su" class="tq"><svg width="21" height="21" viewBox="0 0 22 22"><path d="M11 4 L18 13 H4 Z" fill="#123E90"/></svg></div>
+<div id="giu" class="tq"><svg width="21" height="21" viewBox="0 0 22 22"><path d="M11 18 L4 9 H18 Z" fill="#123E90"/></svg></div>
+
+<div id="velo"><div class="foglio" id="foglio"></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+'use strict';
+/* ===================== impostazioni ===================== */
+const TOCCO = /[?&]touch=1/.test(location.search)
+  || (('ontouchstart' in window) && navigator.maxTouchPoints>0 && /Mobi|iPad|iPhone|Android|Tablet/i.test(navigator.userAgent))
+  || (navigator.maxTouchPoints>1 && /Mac/.test(navigator.platform));
+if(TOCCO) document.body.classList.add('tocco');
+
+const canvas=document.getElementById('scena');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=0.92;
+
+const scene=new THREE.Scene();
+scene.fog=new THREE.Fog(0xe6ecef,300,1100);
+const camera=new THREE.PerspectiveCamera(62,window.innerWidth/window.innerHeight,0.1,2400);
+
+/* ===================== utilita' ===================== */
+function mkCanvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
+function tex(c,rip){const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;
+  if(rip){t.wrapS=t.wrapT=THREE.RepeatWrapping;} t.anisotropy=4; return t;}
+function lam(col,o){return new THREE.MeshLambertMaterial(Object.assign({color:col},o||{}));}
+function seme(n){let s=n>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+
+const _gc={};
+function geoSmussata(w,h,d,r){
+  const k=w.toFixed(3)+'|'+h.toFixed(3)+'|'+d.toFixed(3)+'|'+r.toFixed(3);
+  if(_gc[k])return _gc[k];
+  const rr=Math.min(r,w/2-0.001,h/2-0.001);
+  const s=new THREE.Shape(),x=-w/2,y=-h/2;
+  s.moveTo(x+rr,y); s.lineTo(x+w-rr,y); s.quadraticCurveTo(x+w,y,x+w,y+rr);
+  s.lineTo(x+w,y+h-rr); s.quadraticCurveTo(x+w,y+h,x+w-rr,y+h);
+  s.lineTo(x+rr,y+h); s.quadraticCurveTo(x,y+h,x,y+h-rr);
+  s.lineTo(x,y+rr); s.quadraticCurveTo(x,y,x+rr,y);
+  const b=Math.min(0.006,d/4);
+  const g=new THREE.ExtrudeGeometry(s,{depth:d-b*2,bevelEnabled:true,bevelThickness:b,
+    bevelSize:b,bevelSegments:1,curveSegments:2,steps:1});
+  g.translate(0,0,-(d-b*2)/2-b); g.computeVertexNormals(); _gc[k]=g; return g;
+}
+const texOmbra=(()=>{const c=mkCanvas(128,128),g=c.getContext('2d');
+  const gr=g.createRadialGradient(64,64,4,64,64,62);
+  gr.addColorStop(0,'rgba(0,0,0,.55)');gr.addColorStop(.55,'rgba(0,0,0,.28)');gr.addColorStop(1,'rgba(0,0,0,0)');
+  g.fillStyle=gr;g.fillRect(0,0,128,128);return tex(c,false);})();
+const matOmbra=new THREE.MeshBasicMaterial({map:texOmbra,transparent:true,depthWrite:false});
+function contatto(p,x,y,z,w,d,f){
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),matOmbra.clone());
+  m.material.opacity=(f===undefined)?0.8:f;
+  m.rotation.x=-Math.PI/2;m.position.set(x,y,z);m.renderOrder=1;
+  (p||scene).add(m);return m;}
+function box(p,w,h,d,mat,x,y,z,omb){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+  m.position.set(x,y,z); if(omb!==false)m.castShadow=true;
+  (p||scene).add(m);return m;}
+
+/* ===================== cielo e luce del mattino ===================== */
+(function cielo(){
+  const c=mkCanvas(16,256),g=c.getContext('2d');
+  const gr=g.createLinearGradient(0,0,0,256);
+  gr.addColorStop(0,'#7fb0dd');gr.addColorStop(.5,'#a9c9e6');
+  gr.addColorStop(.78,'#dfe4e2');gr.addColorStop(1,'#efe9d8');
+  g.fillStyle=gr;g.fillRect(0,0,16,256);
+  const t=tex(c,false);t.mapping=THREE.EquirectangularReflectionMapping;
+  scene.add(new THREE.Mesh(new THREE.SphereGeometry(1500,24,16),
+    new THREE.MeshBasicMaterial({map:t,side:THREE.BackSide,fog:false})));
+})();
+scene.add(new THREE.HemisphereLight(0xcfe0f0,0x9a8f78,0.55));
+const sole=new THREE.DirectionalLight(0xffe6bd,1.55);
+sole.position.set(150,52,22); sole.castShadow=true;
+sole.shadow.mapSize.set(2048,2048);
+sole.shadow.camera.left=-160;sole.shadow.camera.right=160;
+sole.shadow.camera.top=160;sole.shadow.camera.bottom=-160;
+sole.shadow.camera.far=520;sole.shadow.bias=-0.0012;
+scene.add(sole); scene.add(sole.target);
+
+/* ===================== TETTI: coppi veri, falde vere ===================== */
+/* I coppi corrono NELLA DIREZIONE DELLA PENDENZA: nella texture le colonne
+   sono i canali/coppi (asse v = risalita della falda), le righe orizzontali
+   sono le sovrapposizioni, ciascuna con la sua ombra portata. */
+const texCoppi=(()=>{
+  const S=512,c=mkCanvas(S,S),g=c.getContext('2d'),rnd=seme(7);
+  g.fillStyle='#8c4a35';g.fillRect(0,0,S,S);
+  const nC=8,wC=S/nC,nR=7,hR=S/nR;
+  for(let r=0;r<nR;r++){
+    const y=r*hR;
+    for(let i=0;i<nC;i++){
+      const x=i*wC;
+      const b=[[178,98,70],[158,84,58],[190,112,82],[142,76,52],[168,92,64],[150,80,55]][(rnd()*6)|0];
+      const gr=g.createLinearGradient(x,0,x+wC,0);
+      const sc=k=>'rgb('+Math.min(255,b[0]*k|0)+','+Math.min(255,b[1]*k|0)+','+Math.min(255,b[2]*k|0)+')';
+      gr.addColorStop(0,sc(.5)); gr.addColorStop(.18,sc(.78)); gr.addColorStop(.42,sc(1.0));
+      gr.addColorStop(.52,sc(1.16)); gr.addColorStop(.74,sc(.92)); gr.addColorStop(1,sc(.46));
+      g.fillStyle=gr; g.fillRect(x,y,wC+0.7,hR+0.7);
+    }
+    /* ombra della sovrapposizione: la fila di monte copre quella di valle */
+    const so=g.createLinearGradient(0,y,0,y+hR*0.3);
+    so.addColorStop(0,'rgba(0,0,0,.45)'); so.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle=so; g.fillRect(0,y,S,hR*0.3);
+    /* bordo di gronda della fila, appena piu' chiaro */
+    g.fillStyle='rgba(255,225,200,.10)'; g.fillRect(0,y+hR-2.5,S,2.5);
+  }
+  /* patina e muschio, deterministici */
+  for(let i=0;i<160;i++){
+    g.fillStyle='rgba('+(90+rnd()*40|0)+','+(100+rnd()*40|0)+','+(70+rnd()*30|0)+',.10)';
+    g.beginPath(); g.arc(rnd()*S,rnd()*S,3+rnd()*9,0,Math.PI*2); g.fill();
+  }
+  return tex(c,true);
+})();
+const matTegole=lam(0xffffff,{map:texCoppi});
+const matColmo=lam(0xa05a42);
+const matGronda=lam(0xb8b2a6);
+const matLattoneria=lam(0x8f8a80);
+
+/* una falda: 3 o 4 punti, UV proiettate in metri sul piano della falda */
+function falda(p,pts,mat,scala){
+  const p0=pts[0];
+  const e1=V(0,0,0).subVectors(pts[1],pts[0]).normalize();
+  const nrm=V(0,0,0).subVectors(pts[1],pts[0])
+    .cross(V(0,0,0).subVectors(pts[pts.length-1],pts[0])).normalize();
+  const e2=V(0,0,0).crossVectors(nrm,e1).normalize();
+  const idx = pts.length===4 ? [0,1,2,0,2,3] : [0,1,2];
+  const pos=[],uv=[];
+  for(const i of idx){
+    const q=pts[i]; pos.push(q.x,q.y,q.z);
+    const d=V(0,0,0).subVectors(q,p0);
+    uv.push(d.dot(e1)/scala, d.dot(e2)/scala);
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  g.computeVertexNormals();
+  const m=new THREE.Mesh(g,mat); m.castShadow=true; m.receiveShadow=true;
+  (p||scene).add(m); return m;
+}
+/* fila di coppi di colmo/displuvio fra due punti */
+function colmo(p,a,b,r){
+  r=r||0.16;
+  const len=a.distanceTo(b);
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,8,1,false,0,Math.PI),matColmo);
+  m.position.copy(a).add(b).multiplyScalar(0.5);
+  m.quaternion.setFromUnitVectors(V(0,1,0),V(0,0,0).subVectors(b,a).normalize());
+  m.castShadow=true; (p||scene).add(m); return m;
+}
+/* tetto a falde completo: padiglione o capanna, con sporto, gronda, colmo,
+   displuvi, comignoli. Il colmo corre sempre lungo il lato lungo. */
+function tetto(p,cx,cz,Lx,Lz,y0,alt,o){
+  o=o||{};
+  const sp=(o.sporto===undefined)?0.62:o.sporto;
+  const g=new THREE.Group(); g.position.set(cx,0,cz); (p||scene).add(g);
+  const ruota=Lz>Lx;
+  const L=(ruota?Lz:Lx), W=(ruota?Lx:Lz);
+  if(ruota) g.rotation.y=Math.PI/2;
+  const Le=L+2*sp, We=W+2*sp, hw=Le/2, hd=We/2, yb=y0, yt=y0+alt, SC=2.0;
+  const A=V(-hw,yb,-hd),B=V(hw,yb,-hd),C=V(hw,yb,hd),D=V(-hw,yb,hd);
+  if(o.tipo==='capanna'){
+    const E=V(-hw,yt,0),F=V(hw,yt,0);
+    falda(g,[A,B,F,E],matTegole,SC); falda(g,[D,C,F,E],matTegole,SC);
+    colmo(g,E,F);
+    /* timpani verticali alle testate, sul filo del muro */
+    const s=new THREE.Shape(); s.moveTo(-W/2,0); s.lineTo(W/2,0); s.lineTo(0,alt); s.closePath();
+    [[-L/2,Math.PI/2],[L/2,-Math.PI/2]].forEach(t=>{
+      const m=new THREE.Mesh(new THREE.ShapeGeometry(s),lam(o.colTimpano||0xd8d0bd));
+      m.position.set(t[0],yb,0); m.rotation.y=t[1]; g.add(m);
+    });
+  } else {
+    const rl=Math.max(0.05,(Le-We)/2);
+    const E=V(-rl,yt,0),F=V(rl,yt,0);
+    falda(g,[A,B,F,E],matTegole,SC);  /* nord */
+    falda(g,[D,C,F,E],matTegole,SC);  /* sud  */
+    falda(g,[C,B,F],matTegole,SC);    /* est  */
+    falda(g,[A,D,E],matTegole,SC);    /* ovest*/
+    colmo(g,E,F);
+    [[A,E],[B,F],[C,F],[D,E]].forEach(q=>colmo(g,q[0],q[1],0.125));
+  }
+  /* sporto di gronda: fascia + canale semicilindrico su tutto il perimetro */
+  const fasce=[[Le,0.2,-hd],[Le,0.2,hd]];
+  fasce.forEach(f=>box(g,f[0]+0.1,0.2,0.12,matGronda,0,yb-0.1,f[2],false));
+  box(g,0.12,0.2,We+0.1,matGronda,-hw,yb-0.1,0,false);
+  box(g,0.12,0.2,We+0.1,matGronda, hw,yb-0.1,0,false);
+  [[-hd,0],[hd,0]].forEach(q=>{
+    const cn=new THREE.Mesh(new THREE.CylinderGeometry(0.085,0.085,Le,8,1,false,0,Math.PI),matLattoneria);
+    cn.rotation.z=Math.PI/2; cn.rotation.y=Math.PI/2;
+    cn.position.set(0,yb-0.2,q[0]); g.add(cn);
+  });
+  /* pluviali agli angoli, fino a terra se richiesto */
+  if(o.pluviali!==undefined){
+    const hP=yb-0.25-o.pluviali;
+    if(hP>0.5)[[-hw+0.25,-hd+0.25],[hw-0.25,-hd+0.25],[-hw+0.25,hd-0.25],[hw-0.25,hd-0.25]].forEach(q=>{
+      const t=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,hP,7),matLattoneria);
+      t.position.set(q[0],o.pluviali+hP/2,q[1]); g.add(t);
+    });
+  }
+  /* comignoli */
+  (o.comignoli||[]).forEach(q=>{
+    const h=q[2]||1.5, xx=q[0], zz=q[1];
+    const yBase=yt-Math.abs(zz)/hd*alt*0.5;
+    box(g,0.75,h,0.75,lam(0xc4b8a2),xx,yBase+h/2-0.3,zz,true);
+    box(g,1.0,0.14,1.0,lam(0x9c9080),xx,yBase+h-0.25,zz,true);
+    box(g,0.5,0.2,0.5,lam(0x8a7f70),xx,yBase+h-0.06,zz,true);
+  });
+  return g;
+}
+/* tetto piano con parapetto (ali moderne sul cortile) */
+function tettoPiano(p,cx,cz,Lx,Lz,y,colPar){
+  const g=new THREE.Group(); (p||scene).add(g);
+  const t=box(g,Lx+0.5,0.32,Lz+0.5,lam(0x9a978f),cx,y+0.16,cz,true);
+  t.receiveShadow=true;
+  const m=lam(colPar||0xeeece4);
+  box(g,Lx+0.6,0.62,0.22,m,cx,y+0.62,cz-Lz/2-0.19,false);
+  box(g,Lx+0.6,0.62,0.22,m,cx,y+0.62,cz+Lz/2+0.19,false);
+  box(g,0.22,0.62,Lz+0.6,m,cx-Lx/2-0.19,y+0.62,cz,false);
+  box(g,0.22,0.62,Lz+0.6,m,cx+Lx/2+0.19,y+0.62,cz,false);
+  /* scossalina di coronamento */
+  const s=lam(0xb0aca2);
+  box(g,Lx+0.75,0.07,0.3,s,cx,y+0.95,cz-Lz/2-0.19,false);
+  box(g,Lx+0.75,0.07,0.3,s,cx,y+0.95,cz+Lz/2+0.19,false);
+  return g;
+}
+/* ===================== materiali e texture del mondo ===================== */
+const texPietra=(()=>{const c=mkCanvas(512,512),g=c.getContext('2d'),rnd=seme(19);
+  g.fillStyle='#b3a894';g.fillRect(0,0,512,512);
+  let y=0;
+  while(y<512){const h=18+rnd()*20;let x=-(rnd()*40);
+    while(x<512){const w=30+rnd()*52;
+      g.fillStyle=['#c3b69e','#b0a48c','#cabda4','#a2957e','#bbae96','#d2c5ac','#988c76','#b6aa92'][(rnd()*8)|0];
+      g.fillRect(x+1.5,y+1.5,w-3,h-3);
+      g.fillStyle='rgba(255,255,255,.10)';g.fillRect(x+1.5,y+1.5,w-3,3);
+      g.fillStyle='rgba(0,0,0,.16)';g.fillRect(x+1.5,y+h-4.5,w-3,3);
+      x+=w;}
+    y+=h;}
+  return tex(c,true);})();
+function matPietra(rx,ry){const t=texPietra.clone();t.needsUpdate=true;t.repeat.set(rx,ry);
+  return lam(0xffffff,{map:t});}
+
+function texPunti(base,punti,n){
+  const c=mkCanvas(128,128),g=c.getContext('2d'),rnd=seme(n||3);
+  g.fillStyle=base;g.fillRect(0,0,128,128);
+  for(let i=0;i<420;i++){g.fillStyle=punti[(rnd()*punti.length)|0];
+    g.fillRect(rnd()*128,rnd()*128,2.2,2.2);}
+  return c;}
+const matPrato=lam(0xffffff,{map:(()=>{const t=tex(texPunti('#6f8a4c',['#647e44','#7a9656','#5d7740'],5),true);t.repeat.set(60,60);return t;})()});
+const matMais =lam(0xffffff,{map:(()=>{const t=tex(texPunti('#8a9a52',['#7a8c48','#98a862','#6f843f'],9),true);t.repeat.set(90,90);return t;})()});
+const matAsfalto=lam(0xffffff,{map:(()=>{const t=tex(texPunti('#5e6165',['#54575b','#67696d','#4e5155'],11),true);t.repeat.set(30,30);return t;})()});
+const matGhiaia=lam(0xffffff,{map:(()=>{const t=tex(texPunti('#c9c2b2',['#bfb8a8','#d3ccbc','#b5ae9e'],15),true);t.repeat.set(20,4);return t;})()});
+const matCemento=lam(0xffffff,{map:(()=>{
+  const c=texPunti('#b5b3ae',['#adaba6','#bdbbb6','#a5a39e'],13),g=c.getContext('2d');
+  g.strokeStyle='rgba(80,78,74,.5)';g.lineWidth=2;g.strokeRect(0,0,128,128);
+  const t=tex(c,true);t.repeat.set(27,18);return t;})()});
+const matGomma=lam(0x4a4245);
+
+const texBasket=(()=>{const c=mkCanvas(1024,548),g=c.getContext('2d'),rnd=seme(21);
+  g.fillStyle='#7d3b40';g.fillRect(0,0,1024,548);
+  for(let i=0;i<1600;i++){g.fillStyle='rgba(0,0,0,.06)';g.fillRect(rnd()*1024,rnd()*548,3,3);}
+  g.fillStyle='#7fa5c4';
+  g.fillRect(0,169,160,210);g.fillRect(864,169,160,210);
+  g.beginPath();g.arc(512,274,80,0,Math.PI*2);g.fill();
+  g.strokeStyle='#fff';g.lineWidth=6;g.strokeRect(8,8,1008,532);
+  g.beginPath();g.moveTo(512,8);g.lineTo(512,540);g.stroke();
+  g.beginPath();g.arc(512,274,80,0,Math.PI*2);g.stroke();
+  g.strokeRect(0,169,160,210);g.strokeRect(864,169,160,210);
+  g.beginPath();g.arc(160,274,105,-Math.PI/2,Math.PI/2);g.stroke();
+  g.beginPath();g.arc(864,274,105,Math.PI/2,Math.PI*1.5);g.stroke();
+  return tex(c,false);})();
+const texVerde=(()=>{const c=mkCanvas(1024,476),g=c.getContext('2d'),rnd=seme(33);
+  g.fillStyle='#4e7d44';g.fillRect(0,0,1024,476);
+  for(let i=0;i<2800;i++){g.fillStyle=['#46733d','#578a4c','#3f6a38'][(rnd()*3)|0];
+    g.fillRect(rnd()*1024,rnd()*476,3,3);}
+  g.strokeStyle='#fff';g.lineWidth=5;g.strokeRect(120,60,784,356);
+  [238,416].forEach(y=>{g.beginPath();g.moveTo(120,y);g.lineTo(904,y);g.stroke();});
+  g.beginPath();g.moveTo(120,238);g.lineTo(904,238);g.stroke();
+  return tex(c,false);})();
+const texCalcio=(()=>{const c=mkCanvas(672,1024),g=c.getContext('2d'),rnd=seme(41);
+  for(let i=0;i<8;i++){g.fillStyle=(i%2)?'#5e8c3e':'#54803a';g.fillRect(0,i*128,672,128);}
+  for(let i=0;i<2000;i++){g.fillStyle='rgba(255,255,255,.03)';g.fillRect(rnd()*672,rnd()*1024,3,3);}
+  g.strokeStyle='rgba(255,255,255,.9)';g.lineWidth=5;g.strokeRect(30,24,612,976);
+  g.beginPath();g.moveTo(30,512);g.lineTo(642,512);g.stroke();
+  g.beginPath();g.arc(336,512,88,0,Math.PI*2);g.stroke();
+  g.strokeRect(166,24,340,120);g.strokeRect(166,880,340,120);
+  return tex(c,false);})();
+const texTennis=(()=>{const c=mkCanvas(512,512),g=c.getContext('2d');
+  g.fillStyle='#4e7d44';g.fillRect(0,0,512,512);
+  g.fillStyle='#3f6fae';g.fillRect(70,60,372,392);
+  g.strokeStyle='#fff';g.lineWidth=4;g.strokeRect(70,60,372,392);
+  g.beginPath();g.moveTo(70,256);g.lineTo(442,256);g.stroke();
+  g.strokeRect(140,60,232,392);return tex(c,false);})();
+const matAcqua=new THREE.MeshPhongMaterial({map:(()=>{
+  const c=mkCanvas(256,256),g=c.getContext('2d'),rnd=seme(55);
+  g.fillStyle='#3fa9d6';g.fillRect(0,0,256,256);
+  for(let i=0;i<300;i++){g.strokeStyle='rgba(255,255,255,.22)';g.lineWidth=1.4;
+    const x=rnd()*256,y=rnd()*256;g.beginPath();g.moveTo(x,y);
+    g.quadraticCurveTo(x+10,y+4,x+22,y);g.stroke();}
+  return tex(c,true);})(),shininess:120,specular:0x99ccdd});
+
+const matVetro=new THREE.MeshPhongMaterial({color:0x9fc4dc,transparent:true,opacity:0.42,
+  shininess:160,specular:0xcfe8f8,side:THREE.DoubleSide});
+const matTelaio=lam(0xf4f4f2), matTelaioScuro=lam(0x33383e), matTelaioGrigio=lam(0xb9bdc2);
+const matIntonaco=lam(0xeeece4);      /* facciate sul cortile: BIANCO CREMA (video) */
+const matIntonaco2=lam(0xe3e0d6);
+const matGiallo=lam(0xe8c33a);        /* pannelli d'accento fra le vetrate */
+
+/* ===================== terreno ===================== */
+const mondo=new THREE.Group(); scene.add(mondo);
+(function terreno(){
+  const b=new THREE.Mesh(new THREE.PlaneGeometry(2400,2400),matMais);
+  b.rotation.x=-Math.PI/2;b.position.y=-0.06;b.receiveShadow=true;mondo.add(b);
+  function tappeto(mat,w,d,x,z,y){
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat);
+    m.rotation.x=-Math.PI/2;m.position.set(x,y===undefined?0:y,z);m.receiveShadow=true;mondo.add(m);return m;}
+  tappeto(matPrato,220,260,-40,30,0);
+  tappeto(matPrato,160,120,50,-30,0);
+  tappeto(matCemento,54,36,-17,11,0.02);
+  tappeto(lam(0xffffff,{map:texBasket}),28,15,-6,3.5,0.045);
+  tappeto(lam(0xffffff,{map:texVerde}),28,13,-6,19.5,0.04);
+  tappeto(lam(0xffffff,{map:texTennis}),17,17,35,30,0.04);
+  tappeto(lam(0xffffff,{map:texCalcio}),35,55,-26.5,59.5,0.03);
+  tappeto(matAsfalto,92,24,-16,-41,0.02);
+  tappeto(matAsfalto,92,5,-16,-27.5,0.02);
+  tappeto(matAsfalto,6,190,-82,10,0.02);
+  tappeto(matAsfalto,5,32,-47,45,0.02);
+  tappeto(matGhiaia,92,3.4,-25,-25.4,0.03);
+  const rv=new THREE.Mesh(new THREE.CircleGeometry(4.5,24),matPrato);
+  rv.rotation.x=-Math.PI/2;rv.position.set(-2,0.06,-34);mondo.add(rv);
+  const cs=mkCanvas(512,128),gg=cs.getContext('2d');
+  gg.strokeStyle='rgba(255,255,255,.8)';gg.lineWidth=4;
+  for(let i=0;i<18;i++){gg.beginPath();gg.moveTo(i*28+8,4);gg.lineTo(i*28+8,60);gg.stroke();
+    gg.beginPath();gg.moveTo(i*28+8,68);gg.lineTo(i*28+8,124);gg.stroke();}
+  const r=new THREE.Mesh(new THREE.PlaneGeometry(84,18),
+    new THREE.MeshBasicMaterial({map:tex(cs,false),transparent:true}));
+  r.rotation.x=-Math.PI/2;r.position.set(-16,0.05,-41);mondo.add(r);
+})();
+
+/* ===================== verde, auto, recinzioni, arredo esterno ============ */
+const matTronco=lam(0x5f4630),mCh1=lam(0x4a6b38),mCh2=lam(0x557a41),mCh3=lam(0x3f5f30);
+function albero(x,z,s){
+  const g=new THREE.Group(); s=s||1;
+  const t=new THREE.Mesh(new THREE.CylinderGeometry(0.16*s,0.26*s,3.2*s,7),matTronco);
+  t.position.y=1.6*s;t.castShadow=true;g.add(t);
+  [[0,4.6,0,2.9,mCh1],[1.5,3.9,.7,1.9,mCh2],[-1.6,4.0,-.5,2.0,mCh3],
+   [.4,5.8,-.6,1.9,mCh2],[-.7,3.4,1.2,1.7,mCh1],[.9,3.3,-1.3,1.6,mCh3]].forEach(p=>{
+    const c=new THREE.Mesh(new THREE.SphereGeometry(p[3]*s,9,7),p[4]);
+    c.position.set(p[0]*s,p[1]*s,p[2]*s);c.scale.y=0.78;c.castShadow=true;g.add(c);});
+  g.rotation.y=(x*7+z*13)%6.28; g.position.set(x,0,z); mondo.add(g);
+  contatto(mondo,x,0.02,z,5.6*s,5.6*s,0.55); return g;}
+function siepe(x,z,w,d,h){
+  box(mondo,w,h||1.1,d,lam(0x4a6e3a),x,(h||1.1)/2,z);
+  contatto(mondo,x,0.025,z,w+0.6,d+0.6,0.5);}
+function auto(x,z,ry,col){
+  const g=new THREE.Group();
+  const c=new THREE.Mesh(geoSmussata(1.75,0.55,4.1,0.12),lam(col));
+  c.position.y=0.55;c.castShadow=true;g.add(c);
+  const t=new THREE.Mesh(geoSmussata(1.6,0.5,2.1,0.16),lam(col));
+  t.position.set(0,1.03,-0.2);t.castShadow=true;g.add(t);
+  box(g,1.55,0.32,1.9,lam(0x2a3540),0,1.06,-0.2,false);
+  [[-.8,1.35],[.8,1.35],[-.8,-1.35],[.8,-1.35]].forEach(p=>{
+    const r=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.22,10),lam(0x1e1e22));
+    r.rotation.z=Math.PI/2;r.position.set(p[0],0.3,p[1]);g.add(r);});
+  g.position.set(x,0,z);g.rotation.y=ry||0;mondo.add(g);
+  contatto(mondo,x,0.03,z,2.6,4.8,0.6);}
+for(let i=0;i<8;i++){albero(-46.5,33+i*7.4,1.2+((i*7)%3)*0.12);albero(-6.6,33+i*7.4,1.15+((i*5)%3)*0.12);}
+for(let i=0;i<5;i++) albero(-52+i*13,-36.5,1.0);
+albero(-40,-29,0.9);albero(20,-29,0.95);albero(-45,-34,1.5);albero(-45,-42,1.3);
+albero(96,-14,1.1);albero(90,4,1.0);albero(34,10,0.9);albero(-56,2,1.35);
+(function autoNord(){
+  const cols=[0xd8d8d8,0x8a9098,0x2a2e34,0x4a5a78,0xb0b6bc,0x6a6e74,0xe8e8e8,0x3a4148];
+  const rnd=seme(87);
+  for(let i=0;i<11;i++) if(rnd()<0.8) auto(-52+i*7,-44.5,0,cols[(rnd()*cols.length)|0]);
+  for(let i=0;i<11;i++) if(rnd()<0.7) auto(-52+i*7,-37.5,Math.PI,cols[(rnd()*cols.length)|0]);
+  for(let i=0;i<4;i++)  if(rnd()<0.9) auto(-47.3,36+i*6,Math.PI/2,cols[(rnd()*cols.length)|0]);})();
+function reteAlta(x1,z1,x2,z2,h,col,passo){
+  const mR=new THREE.MeshBasicMaterial({color:col||0x3f5a44,transparent:true,opacity:0.3,
+    side:THREE.DoubleSide,depthWrite:false});
+  const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz);
+  const r=new THREE.Mesh(new THREE.PlaneGeometry(len,h),mR);
+  r.position.set((x1+x2)/2,h/2,(z1+z2)/2);r.rotation.y=Math.atan2(dx,dz)+Math.PI/2;mondo.add(r);
+  const n=Math.round(len/(passo||4));
+  for(let i=0;i<=n;i++){const t=i/n;
+    const p=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,h,6),lam(0x4a5a50));
+    p.position.set(x1+dx*t,h/2,z1+dz*t);mondo.add(p);}}
+reteAlta(-44.5,31.5,-8.5,31.5,4);reteAlta(-44.5,87.5,-8.5,87.5,4);
+reteAlta(-44.5,31.5,-44.5,87.5,4);reteAlta(-8.5,31.5,-8.5,87.5,4);
+reteAlta(-20.4,26.6,8.4,26.6,3.2);reteAlta(-20.4,12.6,-20.4,26.6,3.2);reteAlta(8.4,12.6,8.4,26.6,3.2);
+reteAlta(26.5,21,43.5,21,3,0x4a5a6a);reteAlta(26.5,39,43.5,39,3,0x4a5a6a);
+function portaCalcio(x,z,rot){
+  const g=new THREE.Group(),m=lam(0xf2f2f2);
+  box(g,0.1,2.0,0.1,m,-2.5,1.0,0);box(g,0.1,2.0,0.1,m,2.5,1.0,0);box(g,5.1,0.1,0.1,m,0,2.0,0);
+  const r=new THREE.Mesh(new THREE.PlaneGeometry(4.9,1.9),
+    new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.18,side:THREE.DoubleSide}));
+  r.position.set(0,1.0,-0.5);g.add(r);
+  g.position.set(x,0,z);g.rotation.y=rot;mondo.add(g);}
+portaCalcio(-26.5,33.2,Math.PI);portaCalcio(-26.5,85.8,0);
+(function parcoSud(){
+  const e=new THREE.Mesh(new THREE.PlaneGeometry(30,14),matPrato);
+  e.rotation.x=-Math.PI/2;e.position.set(-27,0.03,95);mondo.add(e);
+  box(mondo,1.2,1.5,1.2,lam(0xdcb23a),-30,0.75,93,true);
+  const r=box(mondo,0.9,0.1,2.6,lam(0x3f6fae),-30,0.85,95,true);r.rotation.x=0.5;
+  contatto(mondo,-30,0.05,94,3,5,0.6);
+  for(let i=0;i<2;i++){
+    box(mondo,2.2,0.08,0.45,lam(0x9a7a4a),-22+i*5,0.5,95,true);
+    box(mondo,0.08,0.5,0.4,lam(0x555a60),-23+i*5,0.25,95,false);
+    box(mondo,0.08,0.5,0.4,lam(0x555a60),-21+i*5,0.25,95,false);}})();
+[['#e8c020',-21.5,-4.6],['#2255aa',-20.4,-4.6],['#3a8a3a',-19.3,-4.6],['#777',-18.2,-4.6]].forEach(b=>{
+  box(mondo,0.85,1.1,0.85,lam(b[0]),b[1],0.55,b[2]);
+  contatto(mondo,b[1],0.03,b[2],1.5,1.5,0.6);});
+function canestroPalo(x,z,rot){
+  const g=new THREE.Group();
+  box(g,0.16,3.6,0.16,lam(0x8a8f95),0,1.8,0);
+  box(g,0.16,0.16,1.1,lam(0x8a8f95),0,3.45,0.55);
+  box(g,1.6,1.05,0.06,lam(0xf4f4f2),0,3.3,1.12);
+  const a=new THREE.Mesh(new THREE.TorusGeometry(0.24,0.03,8,20),lam(0xd86a2a));
+  a.rotation.x=Math.PI/2;a.position.set(0,3.0,1.4);g.add(a);
+  g.position.set(x,0,z);g.rotation.y=rot;mondo.add(g);
+  contatto(mondo,x,0.03,z,1.4,1.4,0.65);}
+canestroPalo(-19.2,3.5,Math.PI/2);canestroPalo(7.2,3.5,-Math.PI/2);
+(function volley(){
+  /* la rete corre NORD-SUD sulla mezzeria del campo (campo x[-20,8] z[13,26]) */
+  const g=new THREE.Group();
+  box(g,0.09,2.6,0.09,lam(0x555a60),0,1.3,-6.5);box(g,0.09,2.6,0.09,lam(0x555a60),0,1.3,6.5);
+  const r=new THREE.Mesh(new THREE.PlaneGeometry(13,0.9),
+    new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.35,
+      side:THREE.DoubleSide,depthWrite:false}));
+  r.rotation.y=Math.PI/2;r.position.set(0,2.05,0);g.add(r);
+  g.position.set(-6,0,19.5);mondo.add(g);})();
+function figura(x,z,ry,cm,cp){
+  const g=new THREE.Group();
+  const gm=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.11,0.52,7),lam(cp||0x2a3040));
+  gm.position.y=0.26;g.add(gm);
+  const b=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.11,0.42,7),lam(cm));
+  b.position.y=0.72;b.castShadow=true;g.add(b);
+  const t=new THREE.Mesh(new THREE.SphereGeometry(0.11,8,7),lam(0xd8b090));t.position.y=1.05;g.add(t);
+  const cp2=new THREE.Mesh(new THREE.SphereGeometry(0.115,8,6,0,Math.PI*2,0,Math.PI/2.4),lam(0x4a3626));
+  cp2.position.y=1.08;g.add(cp2);
+  g.position.set(x,0,z);g.rotation.y=ry||0;mondo.add(g);
+  contatto(mondo,x,0.05,z,0.8,0.8,0.5);}
+figura(-10,4,0.6,0xd8b23a);figura(-4,6,-1.2,0xc23a34);figura(-7,1.5,2.4,0x3a8a3a);
+figura(1,3,-0.5,0xe8e0d0);figura(-13,8,1.8,0x2255aa,0x3a3a3a);
+figura(-6,17,0.4,0xd87a2e);figura(-2,21,-2.2,0xdcb23a);
+figura(-27,50,0.8,0xd87a2e,0x2a3040);figura(-25,58,-1.4,0x3f6fae);
+(function dettagliCortile(){
+  for(let i=0;i<4;i++) box(mondo,1.6,0.02,0.24,lam(0x3a3d40),-16+i*8,0.055,-5.2,false);
+  [[-12,12.2],[2,12.2]].forEach(p=>{
+    const c=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,0.02,12),lam(0x4a4d50));
+    c.position.set(p[0],0.056,p[1]);mondo.add(c);});
+  const p=new THREE.Mesh(new THREE.SphereGeometry(0.14,10,8),lam(0xc06a2a));
+  p.position.set(-8,0.14,3.4);mondo.add(p);})();
+
+/* ===================== costruttori di facciata ===================== */
+/* muro in pietra a vista con finestre incorniciate e, se serve, portale ad arco */
+function muroPietra(p,w,h,fin,x,y,z,ry,o){
+  o=o||{}; const g=new THREE.Group();
+  const m=box(g,w,h,0.34,matPietra(Math.max(2,Math.round(w/6)),Math.max(1,Math.round(h/3))),0,h/2,0,true);
+  m.receiveShadow=false;
+  fin.forEach(f=>{
+    box(g,f.fw+0.24,f.fh+0.24,0.07,lam(0xdcd4c4),(f.fx-0.5)*w,f.fy,0.18,false);
+    const v=new THREE.Mesh(new THREE.PlaneGeometry(f.fw,f.fh),
+      new THREE.MeshPhongMaterial({color:0x46535e,shininess:110,specular:0x9fc4d8}));
+    v.position.set((f.fx-0.5)*w,f.fy,0.225);g.add(v);
+    box(g,0.05,f.fh-0.08,0.04,matTelaioScuro,(f.fx-0.5)*w,f.fy,0.245,false);
+    box(g,f.fw+0.3,0.09,0.16,lam(0xcfc6b4),(f.fx-0.5)*w,f.fy-f.fh/2-0.16,0.2,false);
+  });
+  if(o.portale!==undefined){
+    const px=(o.portale-0.5)*w;
+    box(g,3.0,3.5,0.16,lam(0xd8cfc0),px,1.75,0.2,false);
+    const a=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.16,22,1,false,0,Math.PI),lam(0xd8cfc0));
+    a.rotation.x=Math.PI/2;a.rotation.y=Math.PI/2;a.position.set(px,3.5,0.2);g.add(a);
+    box(g,2.3,3.05,0.1,lam(0x4a3a2a),px,1.52,0.27,false);
+    const av=new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.15,0.1,20,1,false,0,Math.PI),lam(0x4a3a2a));
+    av.rotation.x=Math.PI/2;av.rotation.y=Math.PI/2;av.position.set(px,3.05,0.27);g.add(av);
+  }
+  g.position.set(x,y,z); if(ry) g.rotation.y=ry;
+  mondo.add(g); return g;}
+/* muro intonacato con finestre */
+function muroFin(p,w,h,col,fin,x,y,z,ry){
+  const g=new THREE.Group();
+  const m=box(g,w,h,0.24,lam(col),0,h/2,0,true); m.receiveShadow=false;
+  fin.forEach(f=>{
+    box(g,f.fw,f.fh,0.08,f.scuro?matTelaioScuro:matTelaio,(f.fx-0.5)*w,f.fy,0.14,false);
+    const v=new THREE.Mesh(new THREE.PlaneGeometry(f.fw-0.14,f.fh-0.14),
+      new THREE.MeshPhongMaterial({color:0x6f8ba0,shininess:130,specular:0x9fc4d8}));
+    v.position.set((f.fx-0.5)*w,f.fy,0.185);g.add(v);
+  });
+  g.position.set(x,y,z); if(ry) g.rotation.y=ry;
+  mondo.add(g); return g;}
+/* VETRATA CONTINUA del corridoio (corretta sul video):
+   davanzale 0.95, altezza fino a quasi soffitto, campate da ~2.9 m con
+   traverso orizzontale, e pannelli d'accento GIALLI ogni 5 montanti. */
+function vetrataCorridoio(p,x0,x1,z,ry,y0){
+  const g=new THREE.Group(); const w=Math.abs(x1-x0);
+  const sill=y0+0.95, hV=2.55;
+  box(g,w,0.95,0.26,matIntonaco,0,y0+0.475,0,false);          /* parapetto sotto */
+  box(g,w,0.12,0.3,lam(0xcac6bc),0,sill+0.02,0.03,false);      /* davanzale */
+  const v=new THREE.Mesh(new THREE.PlaneGeometry(w-0.3,hV-0.2),matVetro);
+  v.position.set(0,sill+hV/2,0.05);g.add(v);
+  const n=Math.max(3,Math.round(w/2.9));
+  for(let i=0;i<=n;i++){
+    const px=-w/2+0.14+i*(w-0.28)/n, giallo=(i%5===2);
+    box(g,giallo?0.62:0.13,hV,0.22,giallo?matGiallo:matTelaioGrigio,px,sill+hV/2,0.02,false);
+  }
+  box(g,w,0.13,0.22,matTelaioGrigio,0,sill+1.55,0.02,false);   /* traverso */
+  box(g,w,0.9,0.3,matIntonaco,0,sill+hV+0.45,0,false);         /* fascia sopra */
+  g.position.set((x0+x1)/2,0,z); if(ry) g.rotation.y=ry;
+  mondo.add(g); return g;}
+
+/* ===================== ALA NORD storica (pietra + coppi) ================== */
+(function alaNord(){
+  const x0=-64,x1=14,z0=-24,z1=-12,hM=9.6,alt=3.0,w=x1-x0,cx=(x0+x1)/2,cz=(z0+z1)/2;
+  const fN=[];
+  for(let i=0;i<16;i++) fN.push({fx:0.032+i*0.062,fy:7.0,fw:1.25,fh:1.7});
+  for(let i=0;i<16;i++) if(i!==10) fN.push({fx:0.032+i*0.062,fy:3.1,fw:1.25,fh:1.9});
+  muroPietra(null,w,hM,fN,cx,0,z0,Math.PI,{portale:0.647});
+  /* la facciata sud e' interrotta dal vuoto dell'atrio (x -35.8 .. -24.2) */
+  muroPietra(null,28.2,hM,(()=>{const f=[];for(let i=0;i<5;i++)f.push({fx:0.09+i*0.2,fy:7.0,fw:1.2,fh:1.6});return f;})(),
+    -49.9,0,z1,0);
+  muroPietra(null,38.2,hM,(()=>{const f=[];for(let i=0;i<7;i++)f.push({fx:0.07+i*0.145,fy:7.0,fw:1.2,fh:1.6});return f;})(),
+    -5.1,0,z1,0);
+  muroPietra(null,12,hM,[{fx:0.5,fy:7.0,fw:1.2,fh:1.6}],x1,0,cz,Math.PI/2);
+  tetto(mondo,cx,cz,w,12,hM,alt,{pluviali:0,comignoli:[[-30,0,1.6],[-8,0,1.5],[8,0,1.5]]});
+  for(let i=0;i<9;i++) siepe(-58+i*8.6,-25.3,5.4,1.4,1.0+((i*3)%2)*0.2);
+  contatto(mondo,cx,0.025,cz,w+4,17,0.5);
+})();
+
+/* ============== FASCIA MODERNA NORD sul cortile (BIANCA) ================== */
+const H_MOD=7.6;
+(function fasciaNord(){
+  const x0=-64,x1=14,z=-6,w=x1-x0;
+  muroFin(null,w,3.5,0xeeece4,
+    (()=>{const f=[];for(let i=0;i<12;i++)f.push({fx:0.04+i*0.083,fy:2.1,fw:2.6,fh:1.35});return f;})(),
+    (x0+x1)/2,0,z,0);
+  vetrataCorridoio(null,x0,-36,z,0,3.5);
+  vetrataCorridoio(null,-24,x1,z,0,3.5);
+  /* tratto atrio: vetrata a tutta altezza fra i due corridoi */
+  (function atrioVetro(){
+    const g=new THREE.Group(),vw=12,vh=7.1;
+    const v=new THREE.Mesh(new THREE.PlaneGeometry(vw-0.4,vh-0.4),matVetro);
+    v.position.set(0,vh/2+0.1,0.03);g.add(v);
+    for(let i=0;i<=4;i++) box(g,0.15,vh-0.2,0.18,matTelaioGrigio,-vw/2+0.2+i*(vw-0.4)/4,vh/2+0.05,0,false);
+    [1.2,3.5,5.8].forEach(h=>box(g,vw-0.3,0.13,0.18,matTelaioGrigio,0,h,0,false));
+    box(g,vw,0.6,0.3,matIntonaco,0,vh+0.3,0,false);
+    g.position.set(-30,0,z);mondo.add(g);})();
+  tettoPiano(mondo,(x0+x1)/2,-9,w,6.2,H_MOD);
+  box(mondo,w,0.55,0.07,lam(0x2e5f9e),(x0+x1)/2,0.3,-5.83,false);   /* zoccolo blu */
+  [-52,-38,-16,2].forEach(x=>box(mondo,0.13,H_MOD-0.4,0.13,lam(0x3a3f45),x,H_MOD/2,-5.78,false));
+  [-14,0].forEach(x=>{
+    box(mondo,1.5,1.0,0.08,lam(0xf4f4f2),x,3.15,-5.72,false);
+    const a=new THREE.Mesh(new THREE.TorusGeometry(0.22,0.03,8,20),lam(0xd86a2a));
+    a.rotation.x=Math.PI/2;a.position.set(x,2.83,-5.47);mondo.add(a);});
+  contatto(mondo,(x0+x1)/2,0.025,-9,w+3,9,0.45);
+})();
+
+/* ===================== ALA EST storica + fascia moderna ================== */
+(function alaEst(){
+  const x0=14,x1=26,z0=-24,z1=18,hM=10.4,d=z1-z0,cx=(x0+x1)/2,cz=(z0+z1)/2;
+  muroPietra(null,d,hM,(()=>{const f=[];for(let i=0;i<7;i++){
+      f.push({fx:0.06+i*0.145,fy:7.6,fw:1.25,fh:1.7});
+      f.push({fx:0.06+i*0.145,fy:4.4,fw:1.25,fh:1.7});
+      f.push({fx:0.06+i*0.145,fy:1.6,fw:1.1,fh:1.4});}return f;})(),x1,0,cz,Math.PI/2);
+  muroPietra(null,d,hM,(()=>{const f=[];for(let i=0;i<6;i++)f.push({fx:0.08+i*0.17,fy:8.4,fw:1.2,fh:1.5});return f;})(),
+    x0,0,cz,-Math.PI/2);
+  muroPietra(null,12,hM,[{fx:0.3,fy:7.4,fw:1.2,fh:1.6},{fx:0.7,fy:7.4,fw:1.2,fh:1.6},{fx:0.5,fy:3.6,fw:1.3,fh:1.8}],cx,0,z0,Math.PI);
+  muroPietra(null,12,hM,[{fx:0.5,fy:7.6,fw:1.3,fh:1.6}],cx,0,z1,0);
+  tetto(mondo,cx,cz,12,d,hM,3.0,{pluviali:0,comignoli:[[0,-12,1.5],[0,10,1.5]]});
+  contatto(mondo,cx,0.025,cz,17,d+4,0.5);
+  /* fascia moderna bianca sul cortile */
+  const mx=8,mz0=-6,mz1=18,md=mz1-mz0,mcz=(mz0+mz1)/2;
+  muroFin(null,md,3.5,0xeeece4,
+    (()=>{const f=[];for(let i=0;i<4;i++)f.push({fx:0.1+i*0.24,fy:2.1,fw:2.8,fh:1.35});return f;})(),
+    mx,0,mcz,-Math.PI/2);
+  for(let i=0;i<3;i++){const zz=mz0+3+i*7.5;
+    const c1=box(mondo,0.1,4.4,0.1,lam(0x555a60),mx-0.2,1.7,zz,false);c1.rotation.x=Math.PI/4.6;
+    const c2=box(mondo,0.1,4.4,0.1,lam(0x555a60),mx-0.2,1.7,zz,false);c2.rotation.x=-Math.PI/4.6;}
+  vetrataCorridoio(null,mz0,mz1,mx,-Math.PI/2,3.5);
+  tettoPiano(mondo,11,mcz,6.2,md,H_MOD);
+  box(mondo,0.07,0.55,md,lam(0x2e5f9e),7.83,0.3,mcz,false);
+  contatto(mondo,11,0.025,mcz,9,md+3,0.45);
+})();
+
+/* ============ PALAZZINA CREMA + scala esterna (angolo SE) ================ */
+(function palazzina(){
+  const x0=8,x1=22,z0=18,z1=30,h=6.6,cx=(x0+x1)/2,cz=(z0+z1)/2;
+  muroFin(null,x1-x0,h,0xe8e0cd,
+    [{fx:0.25,fy:5.2,fw:1.6,fh:1.3},{fx:0.7,fy:5.2,fw:1.6,fh:1.3},
+     {fx:0.25,fy:1.8,fw:1.5,fh:1.6},{fx:0.7,fy:1.8,fw:1.5,fh:1.6}],cx,0,z0,Math.PI);
+  muroFin(null,z1-z0,h,0xe8e0cd,[{fx:0.3,fy:5.2,fw:1.5,fh:1.2},{fx:0.7,fy:5.2,fw:1.5,fh:1.2}],x0,0,cz,-Math.PI/2);
+  muroFin(null,z1-z0,h,0xe8e0cd,[{fx:0.5,fy:5.2,fw:1.6,fh:1.3}],x1,0,cz,Math.PI/2);
+  muroFin(null,x1-x0,h,0xe8e0cd,[{fx:0.3,fy:5.2,fw:1.6,fh:1.3},{fx:0.72,fy:5.2,fw:1.6,fh:1.3}],cx,0,z1,0);
+  box(mondo,3.2,0.14,1.3,lam(0xd8d0c0),cx+1.5,3.4,z0-0.7,true);
+  box(mondo,3.2,0.08,0.05,lam(0x7a8794),cx+1.5,4.5,z0-1.32,false);
+  for(let i=0;i<9;i++) box(mondo,0.03,1.05,0.03,lam(0x7a8794),cx+0.05+i*0.38,3.98,z0-1.32,false);
+  box(mondo,1.0,2.1,0.08,lam(0x6a5a44),cx+1.5,4.5,z0-0.05,false);
+  tetto(mondo,cx,cz,x1-x0,z1-z0,h,2.4,{pluviali:0,comignoli:[[3,0,1.2]]});
+  (function scala(){
+    const s=new THREE.Group(),mM=lam(0x7a8794);
+    box(s,2.2,0.12,2.6,mM,0,3.5,0,false);
+    for(let i=0;i<12;i++) box(s,2.0,0.07,0.34,mM,0,3.32-i*0.27,-1.5-i*0.36,false);
+    [[-.95,0],[.95,0],[-.95,-5.6],[.95,-5.6]].forEach(q=>box(s,0.08,3.6,0.08,mM,q[0],1.8,q[1],false));
+    const c1=box(s,0.06,0.06,5.4,mM,-0.95,3.15,-2.9,false);c1.rotation.x=-0.62;
+    const c2=box(s,0.06,0.06,5.4,mM,0.95,3.15,-2.9,false);c2.rotation.x=-0.62;
+    box(s,2.2,0.9,0.06,mM,0,4.0,1.28,false);
+    s.position.set(6.8,0,20.8);mondo.add(s);
+    contatto(mondo,6.8,0.028,18.4,3.4,8,0.55);})();
+  contatto(mondo,cx,0.025,cz,17,15,0.5);
+  /* festone di bandierine sul cortile (presente in tutte le foto) */
+  (function festone(){
+    const a=V(7,6.4,19),b=V(-38.5,4.8,7),n=44,pt=[];
+    for(let i=0;i<=n;i++){const t=i/n;
+      const p=V(0,0,0).lerpVectors(a,b,t); p.y-=Math.sin(Math.PI*t)*1.0; pt.push(p.clone());
+      if(i<n){const bd=new THREE.Mesh(new THREE.ConeGeometry(0.075,0.22,3),
+          new THREE.MeshBasicMaterial({color:(i%2)?0x2f5fae:0xf2f2ee}));
+        bd.position.copy(p);bd.position.y-=0.13;bd.rotation.x=Math.PI;mondo.add(bd);}}
+    mondo.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pt),
+      new THREE.LineBasicMaterial({color:0x4a5058})));})();
+})();
+
+/* ============ BLOCCO CORRIDOIO (bianco, 3 piani, finestre a nastro) ====== */
+const texVetroC=(()=>{const c=mkCanvas(256,256),g=c.getContext('2d');
+  g.fillStyle='#cfd8d6';g.fillRect(0,0,256,256);
+  for(let y=0;y<8;y++)for(let x=0;x<8;x++){
+    const gr=g.createLinearGradient(x*32,y*32,x*32+32,y*32+32);
+    gr.addColorStop(0,'#e6efee');gr.addColorStop(1,'#aebfc4');
+    g.fillStyle=gr;g.fillRect(x*32+3,y*32+3,26,26);}
+  return tex(c,true);})();
+function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.set(rx,ry);
+  return lam(0xffffff,{map:t});}
+(function blocco(){
+  const x0=-78,x1=-64,z0=-24,z1=-6,hM=10.2,cx=(x0+x1)/2,cz=(z0+z1)/2;
+  const nastro=()=>{const f=[];for(let r=0;r<3;r++)for(let i=0;i<4;i++)
+    f.push({fx:0.08+i*0.25,fy:1.9+r*3.1,fw:2.9,fh:1.5});return f;};
+  muroFin(null,x1-x0,hM,0xe9e6df,nastro(),cx,0,z0,Math.PI);
+  muroFin(null,x1-x0,hM,0xe9e6df,nastro(),cx,0,z1,0);
+  muroFin(null,z1-z0,hM,0xe9e6df,(()=>{const f=[];for(let r=0;r<3;r++)for(let i=0;i<5;i++)
+    f.push({fx:0.06+i*0.2,fy:1.9+r*3.1,fw:2.6,fh:1.5});return f;})(),x0,0,cz,-Math.PI/2);
+  const v=new THREE.Mesh(new THREE.PlaneGeometry(3,6.4),matVetroC(4,8));
+  v.position.set(x0-0.02,5.2,-15);v.rotation.y=-Math.PI/2;mondo.add(v);
+  tetto(mondo,cx,cz,x1-x0,z1-z0,hM,2.2,{pluviali:0,colTimpano:0xe9e6df});
+  contatto(mondo,cx,0.025,cz,19,23,0.5);
+})();
+
+/* ===================== ALA PRIMARIA (crema, coppi) ====================== */
+(function alaPrimaria(){
+  const x0=-78,x1=-66,z0=-6,z1=34,hM=9.6,d=z1-z0,cx=(x0+x1)/2,cz=(z0+z1)/2;
+  muroFin(null,d,hM,0xecdfc4,(()=>{const f=[];for(let i=0;i<7;i++){
+      f.push({fx:0.06+i*0.145,fy:6.9,fw:1.5,fh:1.8});
+      f.push({fx:0.06+i*0.145,fy:2.2,fw:1.5,fh:1.8});}return f;})(),x0,0,cz,-Math.PI/2);
+  muroFin(null,d,3.5,0xecdfc4,(()=>{const f=[];for(let i=0;i<6;i++)
+    f.push({fx:0.08+i*0.17,fy:2.0,fw:2.4,fh:1.4});return f;})(),x1,0,cz,Math.PI/2);
+  vetrataCorridoio(null,z0,z1,x1,Math.PI/2,3.5);
+  muroFin(null,x1-x0,hM,0xecdfc4,[{fx:0.5,fy:2.0,fw:1.4,fh:2.4},{fx:0.5,fy:6.9,fw:1.4,fh:1.6}],cx,0,z1,0);
+  tetto(mondo,cx,cz,x1-x0,d,hM,3.0,{pluviali:0,comignoli:[[0,-10,1.4],[0,12,1.4]]});
+  contatto(mondo,cx,0.025,cz,17,d+4,0.5);
+})();
+
+/* ============ GIARDINO chiostro, INFANZIA, portico colorato ============== */
+(function giardino(){
+  const g=new THREE.Group(); mondo.add(g);
+  const e=new THREE.Mesh(new THREE.PlaneGeometry(20,26),matPrato);
+  e.rotation.x=-Math.PI/2;e.position.set(-56,0.035,7);e.receiveShadow=true;g.add(e);
+  [[1.6,26,-56,7],[20,1.6,-56,4]].forEach(q=>{
+    const v=new THREE.Mesh(new THREE.PlaneGeometry(q[0],q[1]),matGhiaia);
+    v.rotation.x=-Math.PI/2;v.position.set(q[2],0.045,q[3]);g.add(v);});
+  siepe(-63.5,-2,3.4,1.0,0.8);siepe(-48.5,-2,3.4,1.0,0.8);
+  siepe(-63.5,14,3.4,1.0,0.8);siepe(-56,-4.6,16,0.9,0.75);
+  /* palazzina gialla dell'infanzia */
+  const px0=-56,px1=-44,pz0=8,pz1=20,ph=6.4,pcx=(px0+px1)/2,pcz=(pz0+pz1)/2;
+  muroFin(null,px1-px0,ph,0xe3bd62,
+    [{fx:0.2,fy:4.9,fw:1.6,fh:1.3},{fx:0.5,fy:4.9,fw:1.6,fh:1.3},{fx:0.8,fy:4.9,fw:1.6,fh:1.3},
+     {fx:0.3,fy:1.7,fw:1.7,fh:2.1},{fx:0.7,fy:1.7,fw:1.7,fh:2.1}],pcx,0,pz0,Math.PI);
+  muroFin(null,px1-px0,ph,0xe3bd62,[{fx:0.3,fy:4.9,fw:1.6,fh:1.3},{fx:0.7,fy:4.9,fw:1.6,fh:1.3}],pcx,0,pz1,0);
+  muroFin(null,pz1-pz0,ph,0xe3bd62,[{fx:0.5,fy:4.9,fw:1.5,fh:1.2}],px0,0,pcz,-Math.PI/2);
+  muroFin(null,pz1-pz0,ph,0xe3bd62,[{fx:0.35,fy:4.9,fw:1.5,fh:1.2},{fx:0.7,fy:1.7,fw:1.6,fh:2.1}],px1,0,pcz,Math.PI/2);
+  tetto(mondo,pcx,pcz,px1-px0,pz1-pz0,ph,2.6,{pluviali:0,comignoli:[[2,0,1.2]]});
+  /* balconcino con ringhiera (visto dal mezzanino nel video) */
+  box(g,4.4,0.13,1.2,lam(0xd8d0c0),pcx+1,3.5,pz1+0.6,true);
+  box(g,4.4,0.07,0.05,lam(0x8a9098),pcx+1,4.55,pz1+1.18,false);
+  for(let i=0;i<12;i++) box(g,0.03,1.05,0.03,lam(0x8a9098),pcx-1.1+i*0.38,4.03,pz1+1.18,false);
+  contatto(mondo,pcx,0.03,pcz,15,15,0.5);
+  /* blocco bianco moderno dietro */
+  box(g,16,10,10,lam(0xe9e6df),-54,5,25,true);
+  muroFin(null,16,10,0xe9e6df,(()=>{const f=[];for(let r=0;r<3;r++)for(let i=0;i<4;i++)
+    f.push({fx:0.1+i*0.24,fy:1.9+r*3.1,fw:2.7,fh:1.5});return f;})(),-54,0,20,Math.PI);
+  contatto(mondo,-54,0.03,25,20,14,0.5);
+  /* PERGOLA BIANCA lunga a listelli (vista dalle finestre del mezzanino) */
+  (function pergolaLunga(){
+    const p=new THREE.Group(),mL=lam(0xf2f0ea),L=17;
+    for(let i=0;i<6;i++){box(p,0.15,2.5,0.15,mL,-L/2+0.6+i*(L-1.2)/5,1.25,-1.5,false);
+      box(p,0.15,2.5,0.15,mL,-L/2+0.6+i*(L-1.2)/5,1.25,1.5,false);}
+    box(p,L,0.16,0.14,mL,0,2.55,-1.5,false);box(p,L,0.16,0.14,mL,0,2.55,1.5,false);
+    for(let i=0;i<26;i++) box(p,0.09,0.1,3.3,mL,-L/2+0.4+i*(L-0.8)/25,2.66,0,false);
+    p.position.set(-49,0,26.5);mondo.add(p);
+    contatto(mondo,-49,0.04,26.5,18,4.4,0.45);})();
+  /* portico colorato verso il cortile */
+  (function portico(){
+    const p=new THREE.Group(),L=18;
+    box(p,3.6,0.12,L,lam(0xe8e8e4),-1.7,3.25,0,true);
+    box(p,0.3,0.25,L,lam(0xf4f4f2),-0.1,3.3,0,false);
+    for(let i=0;i<6;i++) box(p,0.18,3.2,0.18,lam(0xf4f4f2),-0.2,1.6,-L/2+1+i*(L-2)/5,false);
+    [0x3a8a3a,0x2255aa,0xe8c020,0xc23a3a,0x3a8a3a].forEach((c,i)=>
+      box(p,0.06,1.1,(L-2)/5-0.5,lam(c),-0.2,0.6,-L/2+1+(i+0.5)*(L-2)/5,false));
+    p.position.set(-40,0,7);mondo.add(p);
+    contatto(mondo,-41.5,0.03,7,5,19,0.45);})();
+  /* recinto giochi con steccato bianco */
+  const mSt=lam(0xf4f4f2);
+  function stecca(ax,az,bx,bz){
+    const dx=bx-ax,dz=bz-az,len=Math.hypot(dx,dz),n=Math.round(len/0.5);
+    for(let i=0;i<=n;i++){const t=i/n;box(g,0.09,0.9,0.05,mSt,ax+dx*t,0.45,az+dz*t,false);}
+    const c=box(g,0.06,0.08,len,mSt,(ax+bx)/2,0.7,(az+bz)/2,false);c.rotation.y=Math.atan2(dx,dz);}
+  stecca(-40,0,-26,0);stecca(-26,0,-26,14);stecca(-40,14,-26,14);
+  const gm=new THREE.Mesh(new THREE.PlaneGeometry(13,13),matGomma);
+  gm.rotation.x=-Math.PI/2;gm.position.set(-33,0.05,7);gm.receiveShadow=true;g.add(gm);
+  box(g,0.22,2.0,0.22,lam(0xa8a09a),-31,1.0,6,false);
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(1.7,20,12,0,Math.PI*2,0,Math.PI/2.6),lam(0xc23a34));
+  cap.position.set(-31,1.7,6);cap.castShadow=true;g.add(cap);
+  [[.7,.4],[-.8,-.3],[.1,-.8],[-.3,.7]].forEach(q=>{
+    const b=new THREE.Mesh(new THREE.SphereGeometry(0.16,8,6),lam(0xffffff));
+    b.position.set(-31+q[0],2.55,6+q[1]);g.add(b);});
+  contatto(mondo,-31,0.06,6,4,4,0.6);
+  box(g,1.2,1.5,1.2,lam(0xdcb23a),-36,0.75,4,true);
+  const rp=box(g,0.9,0.1,2.6,lam(0xc23a34),-36,0.85,6,true);rp.rotation.x=0.5;
+  contatto(mondo,-36,0.06,5,3,5,0.6);
+  box(g,1.6,1.3,1.4,lam(0xcfc2a8),-29,0.65,11,true);
+  const t1=box(g,1.9,0.09,1.7,lam(0x9aa0a5),-29,1.5,11,true);t1.rotation.z=0.25;
+  const t2=box(g,1.9,0.09,1.7,lam(0x9aa0a5),-29,1.5,11,true);t2.rotation.z=-0.25;
+  contatto(mondo,-29,0.06,11,2.6,2.4,0.6);
+})();
+
+/* ===================== PALESTRA, capannone, CHIESA ====================== */
+(function palestra(){
+  const g=new THREE.Group();mondo.add(g);
+  box(g,22,8.5,22,lam(0xe2e0da),-61,4.25,45,true);
+  const f1=box(g,12,0.2,23,lam(0xcfcdc6),-66.5,9.2,45,true);f1.rotation.z=-0.12;
+  const f2=box(g,12,0.2,23,lam(0xcfcdc6),-55.5,9.2,45,true);f2.rotation.z=0.12;
+  contatto(mondo,-61,0.03,45,26,26,0.5);
+  box(mondo,18,7,12,lam(0xe6e4de),-68,3.5,-46,true);
+  const cf=box(mondo,19,0.18,13,lam(0xc9c7c0),-68,7.4,-46,true);cf.rotation.z=0.1;
+  contatto(mondo,-68,0.03,-46,22,16,0.5);
+})();
+(function chiesa(){
+  /* interno non modellato: non l'ho visto, e non invento cio' che non e' nelle fonti */
+  const g=new THREE.Group();g.position.set(-51.5,0,-36);mondo.add(g);
+  box(g,9,6.5,12,lam(0xd9cfb8),0,3.25,0,true);
+  tetto(g,0,0,9,12,6.5,2.7,{tipo:'capanna',sporto:0.5,colTimpano:0xe6dcc4});
+  box(g,0.14,1.5,0.14,lam(0xd9cfb8),0,10.0,-5.6,false);
+  box(g,0.8,0.14,0.14,lam(0xd9cfb8),0,9.8,-5.6,false);
+  box(g,1.8,2.9,0.1,lam(0x6a4a2a),0,1.45,-6.06,false);
+  const r=new THREE.Mesh(new THREE.CircleGeometry(0.85,16),lam(0x8fa8c8));
+  r.position.set(0,4.7,-6.07);r.rotation.y=Math.PI;g.add(r);
+  contatto(mondo,-51.5,0.03,-36,12,16,0.5);
+})();
+
+/* ===================== PISCINE ANDREANA (nord-est) ======================
+   Riletto da IMG_4893-4896 (riprese dal tetto della scuola) e dall'aerea:
+   - la vasca vicina alla scuola e' coperta da un PORTICATO a colonne bianche
+     con FASCIA BLU, non da falde vetrate;
+   - la sala coperta vetrata a griglia sta piu' a nord;
+   - vasca centrale a FORMA LIBERA con fungo d'acqua;
+   - seconda vasca rettangolare con corsie e galleggianti;
+   - SCIVOLI A SPIRALE azzurri su torre con scala (non dritti e paralleli);
+   - la TERRAZZA DEL BAR con ombrelloni rossi, tavolini, sedie e fioriere sta
+     sul lato verso la scuola: e' li' che stanno gli ombrelloni.
+   ======================================================================== */
+(function piscine(){
+  const g=new THREE.Group();mondo.add(g);
+  const matPiastre=lam(0xffffff,{map:(()=>{const t=tex(texPunti('#d9b89a',['#d0af91','#e2c1a3','#c7a688'],23),true);
+    t.repeat.set(40,38);return t;})()});
+  const piastra=new THREE.Mesh(new THREE.PlaneGeometry(64,64),matPiastre);
+  piastra.rotation.x=-Math.PI/2;piastra.position.set(64,0.02,-24);piastra.receiveShadow=true;g.add(piastra);
+  const matBordo=lam(0xe6e2d8);
+  function vascaRett(cx,cz,w,d,corsie){
+    box(g,w+1.4,0.3,d+1.4,matBordo,cx,0.15,cz,false);
+    const a2=new THREE.Mesh(new THREE.PlaneGeometry(w,d),matAcqua);
+    a2.rotation.x=-Math.PI/2;a2.position.set(cx,0.33,cz);g.add(a2);
+    for(let i=1;i<corsie;i++){const t=i/corsie;
+      for(let k=0.4;k<w;k+=0.9){
+        const b2=new THREE.Mesh(new THREE.SphereGeometry(0.085,6,5),
+          lam((Math.floor(k/0.9)%2)?0xe8e4dc:0xd8443a));
+        b2.position.set(cx-w/2+k,0.4,cz-d/2+d*t);g.add(b2);}}
+    for(let i=0;i<corsie;i++){const t=(i+0.5)/corsie;
+      box(g,0.4,0.32,0.4,lam(0xd8d4cc),cx-w/2+0.6,0.44,cz-d/2+d*t,true);}
+  }
+  /* 1) vasca coperta dal porticato a colonne bianche con fascia blu */
+  vascaRett(46,-14,20,10,5);
+  (function porticato(){
+    const x0=34,x1=60,z0=-21.5,z1=-6.5,y=4.6;
+    box(g,x1-x0,0.45,z1-z0,lam(0xf0eee8),(x0+x1)/2,y,(z0+z1)/2,true);
+    box(g,x1-x0+0.5,1.15,0.35,lam(0x2f6fb5),(x0+x1)/2,y+0.5,z0-0.1,false);
+    box(g,x1-x0+0.5,1.15,0.35,lam(0x2f6fb5),(x0+x1)/2,y+0.5,z1+0.1,false);
+    box(g,0.35,1.15,z1-z0,lam(0x2f6fb5),x1+0.1,y+0.5,(z0+z1)/2,false);
+    for(let i=0;i<9;i++){const px=x0+1.5+i*((x1-x0-3)/8);
+      [z0+0.9,z1-0.9].forEach(pz=>{
+        const c=new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.3,y,14),lam(0xf4f2ec));
+        c.position.set(px,y/2,pz);c.castShadow=true;g.add(c);
+        box(g,0.7,0.16,0.7,lam(0xe8e6de),px,y-0.1,pz,false);});}
+    contatto(mondo,47,0.03,-14,28,17,0.4);})();
+  /* 2) sala coperta vetrata a griglia, piu' a nord */
+  (function salaVetrata(){
+    const cx=46,cz=-40,w=26,d=17,h=4.4;
+    const vM=new THREE.MeshPhongMaterial({color:0xbcd6e4,transparent:true,opacity:0.42,
+      shininess:150,specular:0xdcf0fa,side:THREE.DoubleSide});
+    vascaRett(cx,cz,18,9,5);
+    [-w/2,w/2].forEach(q=>box(g,0.3,h,d,lam(0xdedad2),cx+q,h/2,cz,true));
+    box(g,w,0.3,d,vM,cx,h+0.9,cz,false);
+    for(let i=0;i<=7;i++){const px=cx-w/2+i*w/7;
+      box(g,0.14,h+0.9,d,vM,px,(h+0.9)/2,cz,false);
+      box(g,0.16,0.16,d+0.3,lam(0xb8bcc0),px,h+0.9,cz,false);}
+    for(let k=0;k<=5;k++) box(g,w+0.3,0.14,0.14,lam(0xb8bcc0),cx,h+0.92,cz-d/2+k*d/5,false);
+    contatto(mondo,cx,0.03,cz,w+3,d+3,0.45);})();
+  /* 3) vasca a forma libera con fungo d'acqua */
+  (function libera(){
+    const sh=new THREE.Shape();
+    sh.moveTo(-10,-5);sh.quadraticCurveTo(-13,1,-6,5.5);sh.quadraticCurveTo(1,9,8,5);
+    sh.quadraticCurveTo(13,1.5,9,-4);sh.quadraticCurveTo(2,-8.5,-10,-5);
+    const b2=new THREE.Mesh(new THREE.ShapeGeometry(sh),matBordo);
+    b2.rotation.x=-Math.PI/2;b2.position.set(74,0.14,-24);b2.scale.set(1.1,1.1,1);g.add(b2);
+    const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),matAcqua);
+    m.rotation.x=-Math.PI/2;m.position.set(74,0.33,-24);g.add(m);
+    const st=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,2.1,10),lam(0xb8bcc0));
+    st.position.set(74,1.05,-24);g.add(st);
+    const cap=new THREE.Mesh(new THREE.SphereGeometry(1.15,18,10,0,Math.PI*2,0,Math.PI/2.6),lam(0xcfe4ee));
+    cap.position.set(74,2.0,-24);cap.castShadow=true;g.add(cap);
+    contatto(mondo,74,0.04,-24,24,18,0.4);})();
+  /* 4) vasca lunga con corsie, all'aperto */
+  vascaRett(80,-44,24,12,6);
+  /* 5) SCIVOLI A SPIRALE su torre con scala metallica */
+  (function scivoli(){
+    const cx=92,cz=-16;
+    box(g,3.0,8.6,3.0,lam(0xd8d4cc),cx,4.3,cz,true);
+    box(g,3.4,0.25,3.4,lam(0xb8bcc0),cx,8.7,cz,true);
+    for(let i=0;i<10;i++) box(g,1.5,0.07,0.32,lam(0x9aa0a5),cx-2.4,0.5+i*0.82,cz+1.2-i*0.28,false);
+    [[0,1],[1,-1]].forEach((v,k)=>{
+      const pts=[];
+      for(let i=0;i<=44;i++){
+        const an=v[1]*i*0.30+k*2.2, r=4.6-i*0.045;
+        pts.push(new THREE.Vector3(cx+Math.cos(an)*r,8.2-i*0.165,cz+Math.sin(an)*r));}
+      const cu=new THREE.CatmullRomCurve3(pts);
+      const tu=new THREE.Mesh(new THREE.TubeGeometry(cu,110,0.55,10,false),
+        lam(k?0x2f6fb5:0x5aa8dc));
+      tu.castShadow=true;g.add(tu);});
+    contatto(mondo,cx,0.03,cz,13,13,0.45);})();
+  /* 6) TERRAZZA DEL BAR: ombrelloni rossi, tavolini, sedie, fioriere, tenda */
+  (function terrazzaBar(){
+    const bx=40,bz=2;
+    const pav=new THREE.Mesh(new THREE.PlaneGeometry(20,12),
+      lam(0xffffff,{map:(()=>{const t=tex(texPunti('#d9a894',['#cf9e8a','#e2b19d','#c69382'],31),true);
+        t.repeat.set(14,9);return t;})()}));
+    pav.rotation.x=-Math.PI/2;pav.position.set(bx,0.04,bz);pav.receiveShadow=true;g.add(pav);
+    box(g,0.14,2.9,12,lam(0xcfcbc2),bx-9.4,1.45,bz,false);
+    const tenda=box(g,5.2,0.12,12,lam(0xe6ded0),bx-6.9,2.95,bz,true);tenda.rotation.z=-0.09;
+    for(let i=0;i<5;i++) box(g,0.07,1.5,0.07,lam(0xb8b4ac),bx-4.4,2.2,bz-5+i*2.5,false);
+    const rnd=seme(211);
+    for(let i=0;i<5;i++){
+      const tx=bx-2+((i%2)?2.6:0), tz=bz-4.6+i*2.35;
+      const top=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.05,16),lam(0xd8d4cc));
+      top.position.set(tx,0.76,tz);top.castShadow=true;g.add(top);
+      box(g,0.07,0.72,0.07,lam(0x4a4a4c),tx,0.38,tz,false);
+      box(g,0.5,0.03,0.5,lam(0x4a4a4c),tx,0.03,tz,false);
+      for(let k=0;k<2;k++){
+        const an=rnd()*6.28, sx=tx+Math.cos(an)*0.78, sz=tz+Math.sin(an)*0.78;
+        const sd=new THREE.Mesh(geoSmussata(0.4,0.04,0.4,0.03),lam(0x33373c));
+        sd.position.set(sx,0.44,sz);sd.castShadow=true;g.add(sd);
+        const sc=new THREE.Mesh(geoSmussata(0.4,0.38,0.035,0.03),lam(0x33373c));
+        sc.position.set(sx,0.66,sz-0.19);g.add(sc);
+        for(let q=0;q<4;q++) box(g,0.02,0.44,0.02,lam(0x555a60),
+          sx+((q%2)?0.16:-0.16),0.22,sz+((q<2)?0.16:-0.16),false);}
+      const ox=tx+1.15, oz=tz+0.35;
+      box(g,0.05,2.5,0.05,lam(0xb8bcc0),ox,1.25,oz,false);
+      const om=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.3,1.7,10),lam(0xc23a2e));
+      om.position.set(ox,1.9,oz);om.castShadow=true;g.add(om);
+      const base=new THREE.Mesh(new THREE.CylinderGeometry(0.34,0.4,0.14,12),lam(0x8a8f95));
+      base.position.set(ox,0.07,oz);g.add(base);
+      contatto(g,tx,0.05,tz,2.6,2.2,0.45);}
+    for(let i=0;i<4;i++){
+      const fx=bx+5.6, fz=bz-4.2+i*2.8;
+      box(g,0.85,0.7,0.85,lam(0x5f8a52),fx,0.35,fz,true);
+      const pl=new THREE.Mesh(new THREE.SphereGeometry(0.52,9,7),mCh2);
+      pl.position.set(fx,1.0,fz);pl.scale.y=0.85;pl.castShadow=true;g.add(pl);
+      contatto(g,fx,0.05,fz,1.6,1.6,0.5);}})();
+  for(let i=0;i<6;i++){
+    const st=new THREE.Mesh(new THREE.PlaneGeometry(4.4,1.0),
+      lam(0xffffff,{map:texLavori(120+i,'#f4f2ee')}));
+    st.position.set(33.2,1.15,-46+i*7);st.rotation.y=Math.PI/2;g.add(st);}
+  reteAlta(33,-54,33,8,2.4,0x6a7a8a,6);
+})();
+
+/* ===================== INTERNI PRIMO PIANO ===================== */
+const interni=new THREE.Group(); scene.add(interni);
+const Q_BASSA=3.55,Q_ALTA=4.19,SOFF=6.6;
+
+/* pavimenti */
+function texScacchi(pal,n,celle){
+  const N=celle||8,c=mkCanvas(N*32,N*32),g=c.getContext('2d'),rnd=seme(n);
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    g.fillStyle=pal[(rnd()*pal.length)|0];g.fillRect(x*32,y*32,32,32);
+    g.strokeStyle='rgba(90,84,80,.5)';g.lineWidth=2;g.strokeRect(x*32,y*32,32,32);}
+  return c;}
+/* primaria: scacchi CALDI (beige/terracotta/bruno/grigio) — dal video */
+const palPrimaria=['#d9c9a8','#c9a882','#a8845e','#8a7360','#e0d3b6','#b89070','#cfc0a2','#9c8468'];
+/* atrio/mezzanino: scacchi piccoli beige/grigio/rosa/bruno */
+const palAtrio=['#d8c3bb','#cfc2b4','#a9938c','#c2aa9f','#948a85','#ded3c6'];
+function matPav(pal,n,rx,ry,celle){
+  const t=tex(texScacchi(pal,n,celle),true);t.repeat.set(rx,ry);
+  return new THREE.MeshPhongMaterial({map:t,shininess:28,specular:0x2e2e2e,side:THREE.DoubleSide});}
+const texGres=(()=>{const c=mkCanvas(256,256),g=c.getContext('2d'),rnd=seme(61);
+  g.fillStyle='#a3a29c';g.fillRect(0,0,256,256);
+  for(let y=0;y<2;y++)for(let x=0;x<2;x++){
+    g.fillStyle=['#a7a6a0','#9d9c96','#aaa9a3','#a1a09a'][(rnd()*4)|0];
+    g.fillRect(x*128+2,y*128+2,124,124);
+    for(let i=0;i<40;i++){g.fillStyle='rgba(255,255,255,.05)';
+      g.fillRect(x*128+rnd()*124,y*128+rnd()*124,3,3);}}
+  g.strokeStyle='#84837e';g.lineWidth=3;g.strokeRect(0,0,256,256);
+  g.beginPath();g.moveTo(128,0);g.lineTo(128,256);g.moveTo(0,128);g.lineTo(256,128);g.stroke();
+  return tex(c,true);})();
+function matGres(rx,ry){const t=texGres.clone();t.needsUpdate=true;t.repeat.set(rx,ry);
+  return new THREE.MeshPhongMaterial({map:t,shininess:30,specular:0x303030,side:THREE.DoubleSide});}
+/* soffitto a quadrotti con PLAFONIERE LINEARI incassate (dal video) */
+const texSoff=(()=>{const c=mkCanvas(256,256),g=c.getContext('2d');
+  g.fillStyle='#f2efe8';g.fillRect(0,0,256,256);
+  g.strokeStyle='#cbc7bc';g.lineWidth=3;
+  g.strokeRect(0,0,128,128);g.strokeRect(128,0,128,128);
+  g.strokeRect(0,128,128,128);g.strokeRect(128,128,128,128);
+  g.fillStyle='#fdfcf6';g.fillRect(18,42,92,16);
+  g.fillStyle='#e2ded2';g.fillRect(18,40,92,2);
+  return tex(c,true);})();
+function matSoffitto(rx,ry){const t=texSoff.clone();t.needsUpdate=true;t.repeat.set(rx,ry);
+  return lam(0xffffff,{map:t,side:THREE.DoubleSide});}
+
+/* materiali interni — colori corretti sul video */
+const matGialloPrim=lam(0xE8B41E), matArancioPrim=lam(0xE8722A);
+const matBiancoInt=lam(0xf2efe8), matCrema=lam(0xEFE8D8);
+const matGialloAula=lam(0xefe8c8), matFasciaVerde=lam(0x8c9484);
+const matGrigioScuroMat=lam(0x5a5a5c), matTerracotta=lam(0xb85a3a);
+const matPortaBronzo=lam(0x6b4a2e), matPortaChiara=lam(0xdedbd3);
+const matLegno=lam(0xb9905e), matLegnoScuro=lam(0x7a5230), matGambeBlu=lam(0x2b5cae);
+
+function porta(p,mat,x,y,z,ry,ap){
+  const g=new THREE.Group();
+  const a=new THREE.Mesh(geoSmussata(0.95,2.15,0.05,0.012),mat);
+  a.position.set(0,1.075,0);a.castShadow=true;
+  if(ap){a.rotation.y=ap;a.position.x=-0.42*Math.sin(ap);}
+  g.add(a);
+  box(g,1.12,2.26,0.06,lam(0xc9c6be),0,1.13,-0.04,false);
+  box(g,0.16,0.04,0.05,lam(0xc9ccd0),0.32,1.05,0.05,false);
+  g.position.set(x,y,z);g.rotation.y=ry||0;(p||interni).add(g);return g;}
+function quadro(p,t,w,h,x,y,z,ry){
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),lam(0xffffff,{map:t,transparent:true}));
+  m.position.set(x,y,z);m.rotation.y=ry||0;(p||interni).add(m);return m;}
+function listello(p,len,x,y,z,ry){
+  const m=box(p,len,0.05,0.03,matLegno,x,y,z,false);m.rotation.y=ry||0;return m;}
+function antincendio(p,x,y,z,ry){
+  const g=new THREE.Group();
+  box(g,0.5,0.7,0.16,lam(0xa8241e),0,0,0,false);
+  box(g,0.34,0.4,0.02,lam(0xd8d8d4),0,0.05,0.09,false);
+  g.position.set(x,y,z);g.rotation.y=ry||0;(p||interni).add(g);}
+function estintore(p,x,y,z){
+  const c=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,0.5,10),lam(0xa8241e));
+  c.position.set(x,y,z);(p||interni).add(c);}
+function banco(p,x,z,ry,cTop,q){
+  const g=new THREE.Group();
+  const t=new THREE.Mesh(geoSmussata(1.3,0.05,0.6,0.015),cTop||lam(0xcfe0c8));
+  t.position.y=0.76;t.castShadow=true;g.add(t);
+  [[-.58,-.24],[.58,-.24],[-.58,.24],[.58,.24]].forEach(w=>{
+    const gm=new THREE.Mesh(new THREE.CylinderGeometry(0.024,0.02,0.74,8),matGambeBlu);
+    gm.position.set(w[0],0.37,w[1]);g.add(gm);});
+  g.position.set(x,q,z);g.rotation.y=ry||0;(p||interni).add(g);
+  contatto(p||interni,x,q+0.012,z,1.7,1.0,0.55);return g;}
+function sedia(p,x,z,ry,col,q){
+  const g=new THREE.Group();
+  const s=new THREE.Mesh(geoSmussata(0.42,0.04,0.42,0.03),col);
+  s.position.y=0.46;s.castShadow=true;g.add(s);
+  const sc=new THREE.Mesh(geoSmussata(0.42,0.4,0.035,0.03),col);
+  sc.position.set(0,0.72,-0.2);sc.rotation.x=-0.08;sc.castShadow=true;g.add(sc);
+  [[-.18,-.17],[.18,-.17],[-.18,.18],[.18,.18]].forEach(w=>{
+    const gm=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.015,0.46,6),lam(0x8a8f95));
+    gm.position.set(w[0],0.23,w[1]);g.add(gm);});
+  g.position.set(x,q,z);g.rotation.y=ry||0;(p||interni).add(g);
+  contatto(p||interni,x,q+0.01,z,0.7,0.7,0.45);return g;}
+const cGialla=lam(0xe8c020),cVerde=lam(0x3a8a3a),cBluS=lam(0x2b3a6e),
+      cLime=lam(0xb8c832),cLegno=lam(0xc9a06a);
+function tavolo(p,x,z,ry,w,d,mt,q,hh,gambeNere){
+  const g=new THREE.Group(),h=hh||0.76;
+  const t=new THREE.Mesh(geoSmussata(w,0.05,d,0.015),mt);
+  t.position.y=h;t.castShadow=true;g.add(t);
+  const mg=gambeNere?lam(0x26262a):lam(0x4a4a4c);
+  [[-w/2+0.12,-d/2+0.1],[w/2-0.12,-d/2+0.1],[-w/2+0.12,d/2-0.1],[w/2-0.12,d/2-0.1]].forEach(q2=>
+    box(g,0.055,h-0.03,0.055,mg,q2[0],(h-0.03)/2,q2[1],false));
+  g.position.set(x,q,z);g.rotation.y=ry||0;(p||interni).add(g);
+  contatto(p||interni,x,q+0.012,z,w+0.4,d+0.4,0.55);return g;}
+function ficus(p,x,z,q,s){
+  s=s||1;const g=new THREE.Group();
+  const v=new THREE.Mesh(new THREE.CylinderGeometry(0.4*s,0.3*s,0.55*s,12),lam(0xb85a3a));
+  v.position.y=0.27*s;g.add(v);
+  box(g,0.09*s,1.0*s,0.09*s,matTronco,0,1.0*s,0);
+  [[0,1.9,0,.85],[.5,1.6,.25,.6],[-.5,1.65,-.2,.6],[.1,2.4,.1,.6],[-.2,2.1,.5,.5]].forEach(w=>{
+    const c=new THREE.Mesh(new THREE.SphereGeometry(w[3]*s,9,7),mCh2);
+    c.position.set(w[0]*s,w[1]*s,w[2]*s);c.castShadow=true;g.add(c);});
+  g.position.set(x,q,z);(p||interni).add(g);
+  contatto(p||interni,x,q+0.012,z,1.9*s,1.9*s,0.55);}
+function ringhiera(p,len,x,y,z,ry,col){
+  const g=new THREE.Group(),m=lam(col||0x5a72a0);
+  box(g,len,0.05,0.05,m,0,1.02,0,false);
+  const n=Math.max(2,Math.round(len/0.14));
+  for(let i=0;i<=n;i++) box(g,0.02,1.0,0.02,m,-len/2+i*len/n,0.5,0,false);
+  g.position.set(x,y,z);g.rotation.y=ry||0;(p||interni).add(g);return g;}
+function gradinata(p,xc,est,z0,z1){
+  for(let i=0;i<4;i++){const dx=est?i*0.32:-i*0.32;
+    box(p,0.32,0.16*(i+1),z1-z0-0.3,matGrigioScuroMat,xc+dx,Q_BASSA+0.08*(i+1),(z0+z1)/2,false);}}
+function biliardino(p,x,z,ry,col,q){
+  const g=new THREE.Group();
+  const c=new THREE.Mesh(geoSmussata(1.5,0.42,0.9,0.03),col);
+  c.position.y=0.85;c.castShadow=true;g.add(c);
+  box(g,1.34,0.02,0.74,lam(0x4a8a4a),0,1.07,0,false);
+  [[-.62,-.34],[.62,-.34],[-.62,.34],[.62,.34]].forEach(w=>
+    box(g,0.09,0.66,0.09,lam(0x333a40),w[0],0.33,w[1],false));
+  for(let i=0;i<6;i++){
+    const a=new THREE.Mesh(new THREE.CylinderGeometry(0.016,0.016,1.4,6),lam(0xc9ccd0));
+    a.rotation.z=Math.PI/2;a.position.set(0,1.13,-0.3+i*0.12);g.add(a);
+    const mn=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.12,6),lam((i%2)?0xc23a34:0x2b5cae));
+    mn.rotation.z=Math.PI/2;mn.position.set((i%2)?0.76:-0.76,1.13,-0.3+i*0.12);g.add(mn);}
+  g.position.set(x,q,z);g.rotation.y=ry||0;(p||interni).add(g);
+  contatto(p||interni,x,q+0.012,z,1.9,1.3,0.6);return g;}
+
+/* texture di contenuto */
+function stemma(g,cx,cy,col,nome){
+  g.save();g.translate(cx,cy);
+  g.fillStyle=col;g.strokeStyle='#fff';g.lineWidth=5;
+  g.beginPath();g.moveTo(-34,-40);g.lineTo(34,-40);g.lineTo(34,8);
+  g.quadraticCurveTo(34,34,0,46);g.quadraticCurveTo(-34,34,-34,8);g.closePath();g.fill();g.stroke();
+  g.fillStyle='rgba(255,255,255,.85)';g.beginPath();g.arc(0,-2,16,0,Math.PI*2);g.fill();
+  g.fillStyle='#fff';g.font='bold 15px Lexend, sans-serif';g.textAlign='center';
+  g.fillText(nome,0,-52);g.restore();}
+/* pannello 4 Case: 2x2 dipinto sul muro (azzurro/verde/giallo pallido/rosso) */
+const texCase=(()=>{const c=mkCanvas(512,384),g=c.getContext('2d');
+  g.fillStyle='#8fbcd8';g.fillRect(0,0,256,192);
+  g.fillStyle='#7fae70';g.fillRect(256,0,256,192);
+  g.fillStyle='#efe6a8';g.fillRect(0,192,256,192);
+  g.fillStyle='#c8402e';g.fillRect(256,192,256,192);
+  stemma(g,128,100,'#274b9f','AQUILABLU');stemma(g,384,100,'#2e6b34','QUERCIAVERDE');
+  stemma(g,128,292,'#d8a02a','CEROGIALLO');stemma(g,384,292,'#a02420','TASSOROSSO');
+  return tex(c,false);})();
+const texStemmiMuro=(()=>{const c=mkCanvas(512,384),g=c.getContext('2d');
+  g.fillStyle='#f2efe8';g.fillRect(0,0,512,384);
+  stemma(g,120,110,'#274b9f','AQUILABLU');stemma(g,392,110,'#2e6b34','QUERCIAVERDE');
+  stemma(g,120,290,'#d8a02a','CEROGIALLO');stemma(g,392,290,'#a02420','TASSOROSSO');
+  g.fillStyle='#fff';g.fillRect(226,150,60,84);
+  g.strokeStyle='#c9b98a';g.lineWidth=3;g.strokeRect(226,150,60,84);
+  g.fillStyle='#8a6a1a';g.font='bold 10px Lexend';g.textAlign='center';
+  g.fillText('ALBO',256,168);g.fillText("D'ORO",256,180);
+  g.fillStyle='#555';for(let i=0;i<8;i++)g.fillRect(234,190+i*5,44,2);
+  return tex(c,false);})();
+function texScritta(righe,col,w,h,fp){
+  const c=mkCanvas(w,h),g=c.getContext('2d');
+  g.fillStyle=col;g.font='italic '+(fp||26)+'px Georgia, serif';g.textAlign='center';
+  righe.forEach((r,i)=>g.fillText(r,w/2,h/2+(i-(righe.length-1)/2)*(fp*1.35)));
+  return tex(c,false);}
+const texMorin=texScritta(['"È meglio una testa ben fatta','che una testa ben piena"','Edgar Morin'],'#4a3a10',512,160,24);
+const texCuore=texScritta(['"Non si vede bene che col cuore."'],'#4a453e',512,80,24);
+const texEducare=texScritta(['"Per poter educare, bisogna amare"'],'#5a4412',512,80,22);
+function texLavori(n,fondo){
+  const c=mkCanvas(512,256),g=c.getContext('2d'),rnd=seme(n);
+  g.fillStyle=fondo||'#efe9dd';g.fillRect(0,0,512,256);
+  for(let i=0;i<30;i++){g.save();
+    g.translate(20+rnd()*460,20+rnd()*200);g.rotate((rnd()-0.5)*0.2);
+    g.fillStyle=['#fff','#cfe3f5','#f5e3a8','#cde8c0','#f2c7b8','#e2d4f0'][(rnd()*6)|0];
+    g.fillRect(-20,-14,40,28);g.strokeStyle='rgba(0,0,0,.18)';g.strokeRect(-20,-14,40,28);
+    g.fillStyle='rgba(60,60,80,.55)';for(let r=0;r<3;r++)g.fillRect(-15,-8+r*7,30,2);
+    g.restore();}
+  return tex(c,false);}
+function texQuadro(n){
+  const c=mkCanvas(128,160),g=c.getContext('2d'),rnd=seme(n);
+  g.fillStyle=['#e8e0d0','#dfe4ea','#efe5c8'][(rnd()*3)|0];g.fillRect(0,0,128,160);
+  for(let i=0;i<9;i++){g.fillStyle=['#c05a3a','#274b9f','#d8a02a','#4a6a3a','#8a4a6a','#333'][(rnd()*6)|0];
+    g.globalAlpha=0.85;g.fillRect(rnd()*90,rnd()*120,20+rnd()*30,20+rnd()*32);}
+  g.globalAlpha=1;g.strokeStyle='#4a4238';g.lineWidth=6;g.strokeRect(0,0,128,160);
+  return tex(c,false);}
+const texMondrian=(()=>{const c=mkCanvas(512,512),g=c.getContext('2d'),rnd=seme(77);
+  const cols=['#d95b3a','#274b9f','#e8b73a','#c23a3a','#8fb56a','#e8e4da','#a9c3e8','#d97a2e','#1e2f6e'];
+  g.fillStyle='#e8e4da';g.fillRect(0,0,512,512);
+  let y=0;while(y<512){const h=60+rnd()*110;let x=0;
+    while(x<512){const w=70+rnd()*130;g.fillStyle=cols[(rnd()*cols.length)|0];
+      g.fillRect(x,y,w,h);x+=w;}y+=h;}
+  return tex(c,false);})();
+const texTabelline=(()=>{const c=mkCanvas(256,32),g=c.getContext('2d'),rnd=seme(131);
+  g.fillStyle='#efe9dd';g.fillRect(0,0,256,32);
+  for(let k=0;k<10;k++){
+    g.fillStyle=['#c23a34','#2255aa','#3a8a3a','#e8c020','#d87a2e','#7a4a9a'][(rnd()*6)|0];
+    g.fillRect(k*25+2,3,21,26);
+    g.fillStyle='#fff';g.font='bold 15px Lexend';g.textAlign='center';
+    g.fillText(String((k+1)*((rnd()*9|0)+1)),k*25+12.5,22);}
+  return tex(c,false);})();
+const texCartello=(()=>{const c=mkCanvas(256,144),g=c.getContext('2d');
+  [['Primaria','←'],['Direzione','→'],['Secondaria','→']].forEach((v,i)=>{
+    g.fillStyle='#1a4fae';g.fillRect(0,i*44+4,256,38);
+    g.fillStyle='#fff';g.font='bold 19px Lexend';g.textAlign='left';g.fillText(v[0],14,i*44+30);
+    g.font='bold 24px Lexend';g.textAlign='right';g.fillText(v[1],244,i*44+31);});
+  return tex(c,false);})();
+const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
+  g.fillStyle='#e8e4da';g.fillRect(0,0,256,128);
+  ['#c23a34','#e8b73a','#3a8a3a','#2255aa'].forEach((k,i)=>{g.fillStyle=k;g.fillRect(0,i*32,10,32);});
+  g.fillStyle='#123E90';g.fillRect(24,30,208,68);
+  g.fillStyle='#fff';g.font='bold 21px Lexend';g.textAlign='center';
+  g.fillText('Sala',128,58);g.fillText('insegnanti',128,84);
+  return tex(c,false);})();
+
+/* ============ ATRIO a doppia altezza + MEZZANINO (dal video) ============= */
+(function atrio(){
+  const g=new THREE.Group();interni.add(g);
+  const x0=-35.8,x1=-24.2,z0=-19.8,z1=-6.35;
+  const vx0=-33.8,vx1=-26.2,vz0=-15.5,vz1=-10.5,hT=7.0;
+  const pt=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matPav(palAtrio,101,12,14,6));
+  pt.rotation.x=-Math.PI/2;pt.position.set((x0+x1)/2,0.12,(z0+z1)/2);pt.receiveShadow=true;g.add(pt);
+  box(g,x1-x0,0.24,z1-z0,lam(0xcfcbc2),(x0+x1)/2,0.0,(z0+z1)/2,false);
+  box(g,x1-x0,hT,0.18,matBiancoInt,(x0+x1)/2,hT/2,z0,false);
+  box(g,2.4,2.5,0.1,lam(0xcfd8cf),(x0+x1)/2,1.35,z0+0.15,false);
+  [[0x2e7d43,-.9],[0xe8e6e0,-.5],[0xc23a34,-.1],[0x2255aa,.4]].forEach((b,i)=>{
+    const a=box(g,0.03,2.2,0.03,lam(0x8a8f95),(x0+x1)/2-1.6+i*0.5,2.4,z0+0.4,false);a.rotation.z=0.3;
+    box(g,0.35,0.55,0.02,lam(b[0]),(x0+x1)/2-1.75+i*0.5,3.1,z0+0.5,false);});
+  /* il corridoio del primo piano attraversa l'atrio: i muri laterali
+     esistono solo fino a z=-12, poi c'e' il varco */
+  const mo=box(g,7.8,hT,0.18,matBiancoInt,x0,hT/2,-15.9,false);mo.rotation.y=Math.PI/2;
+  const md=new THREE.Mesh(new THREE.PlaneGeometry(6.4,5.6),lam(0xffffff,{map:texMondrian}));
+  md.rotation.y=Math.PI/2;md.position.set(x0+0.12,3.4,-15.4);g.add(md);
+  const me=box(g,7.8,hT,0.18,matBiancoInt,x1,hT/2,-15.9,false);me.rotation.y=Math.PI/2;
+  const vc=new THREE.Mesh(new THREE.PlaneGeometry(3.4,2.4),matVetroC(5,4));
+  vc.rotation.y=-Math.PI/2;vc.position.set(x1-0.1,5.4,-14);g.add(vc);
+  /* soffitto a FASCE ARANCIO e CELESTE (dal video) */
+  box(g,x1-x0,0.14,z1-z0,matBiancoInt,(x0+x1)/2,hT,(z0+z1)/2,false);
+  box(g,x1-x0,0.03,1.5,lam(0xE8722A),(x0+x1)/2,hT-0.09,-9.2,false);
+  box(g,x1-x0,0.03,1.2,lam(0x8fc4dc),(x0+x1)/2,hT-0.09,-15.4,false);
+  box(g,x1-x0,0.03,1.0,lam(0xE8722A),(x0+x1)/2,hT-0.09,-12.2,false);
+  /* mezzanino ad anello */
+  function lastra(a,b,c,d){
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(b-a,d-c),matPav(palAtrio,103,8,8,6));
+    m.rotation.x=-Math.PI/2;m.position.set((a+b)/2,Q_ALTA,(c+d)/2);m.receiveShadow=true;g.add(m);
+    box(g,b-a,0.28,d-c,matBiancoInt,(a+b)/2,Q_ALTA-0.15,(c+d)/2,false);}
+  lastra(x0,x1,z0,vz0);lastra(x0,x1,vz1,z1);lastra(x0,vx0,vz0,vz1);lastra(vx1,x1,vz0,vz1);
+  function parapetto(len,x,z,ry){
+    const p=box(g,len,0.5,0.1,matBiancoInt,x,Q_ALTA+0.25,z,false);p.rotation.y=ry||0;
+    ringhiera(g,len,x,Q_ALTA+0.42,z,ry,0x5a72a0);
+    const c=box(g,len,0.05,0.14,matLegnoScuro,x,Q_ALTA+1.46,z,false);c.rotation.y=ry||0;}
+  parapetto(vx1-vx0,(vx0+vx1)/2,vz0,0);parapetto(vx1-vx0,(vx0+vx1)/2,vz1,0);
+  parapetto(vz1-vz0,vx0,(vz0+vz1)/2,Math.PI/2);parapetto(vz1-vz0,vx1,(vz0+vz1)/2,Math.PI/2);
+  /* COLONNE TONDE D'ACCIAIO da pavimento a soffitto (dal video) */
+  [[vx0-0.5,vz0-0.6],[vx1+0.5,vz0-0.6],[vx0-0.5,vz1+0.6],[vx1+0.5,vz1+0.6],
+   [x0+1.4,-8.4],[x1-1.4,-8.4],[x0+1.4,-17.6],[x1-1.4,-17.6]].forEach(q=>{
+    const c=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.075,hT-0.12,12),
+      new THREE.MeshPhongMaterial({color:0xc4c8cc,shininess:90,specular:0xffffff}));
+    c.position.set(q[0],hT/2,q[1]);c.castShadow=true;g.add(c);});
+  /* NICCHIE rettangolari passanti nei muri bianchi (dal video) */
+  [[-13.4],[-15.6],[-17.8]].forEach(q=>{
+    box(g,0.1,0.55,1.5,lam(0xdedad0),x1-0.12,Q_ALTA+1.5,q[0],false);
+    box(g,0.1,0.55,1.5,lam(0xdedad0),x0+0.12,Q_ALTA+1.5,q[0],false);});
+  /* scala travertino dal PT al mezzanino */
+  (function scalaTrav(){
+    const n=14,al=(Q_ALTA-0.12)/n,pd=0.3;
+    for(let i=0;i<n;i++) box(g,2.0,al,pd,lam(0xd9cbb4),vx1+1.1,0.12+al*(i+0.5),vz1-0.4-i*pd,true);
+    box(g,0.14,2.4,n*pd+1,lam(0xa8c4d4),vx1+0.05,1.6,vz1-0.4-(n*pd)/2,false);
+    const c=box(g,0.04,0.04,n*pd,lam(0xc9ccd0),vx1+2.12,2.4,vz1-0.4-(n*pd)/2,false);
+    c.rotation.x=Math.atan2(Q_ALTA-0.12,n*pd);})();
+  /* SCALA DELLE TABELLINE: alzate coi quadretti numerati (dal video) */
+  (function tabelline(){
+    const n=10;
+    for(let i=0;i<n;i++){
+      box(g,1.9,0.17,0.29,matCrema,x0+2.6,Q_ALTA+0.17*(i+0.5),z0+1.3+0.29*i,true);
+      const a=new THREE.Mesh(new THREE.PlaneGeometry(1.9,0.17),lam(0xffffff,{map:texTabelline}));
+      a.position.set(x0+2.6,Q_ALTA+0.17*i+0.085,z0+1.15+0.29*i);a.rotation.y=Math.PI;g.add(a);}
+    box(g,0.06,1.0,n*0.29,lam(0x8a8f95),x0+3.6,Q_ALTA+1.4,z0+1.3+n*0.145,false);})();
+  /* arredo del mezzanino: divano grigio, panchina a listelli, ficus, tavolo rustico */
+  (function arredo(){
+    const s=new THREE.Group();
+    const sd=new THREE.Mesh(geoSmussata(1.75,0.42,0.72,0.06),lam(0x86868c));
+    sd.position.set(0,0.42,0);sd.castShadow=true;s.add(sd);
+    const sc=new THREE.Mesh(geoSmussata(1.75,0.52,0.16,0.06),lam(0x7e7e85));
+    sc.position.set(0,0.88,-0.29);s.add(sc);
+    [-0.87,0.87].forEach(q=>{const br=new THREE.Mesh(geoSmussata(0.14,0.56,0.72,0.05),lam(0x7e7e85));
+      br.position.set(q,0.6,0);s.add(br);});
+    box(s,1.75,0.05,0.05,lam(0xe4e4e6),0,0.03,0.3,false);
+    s.position.set(-34.2,Q_ALTA,-7.6);g.add(s);
+    contatto(g,-34.2,Q_ALTA+0.012,-7.6,2.4,1.3,0.6);
+    /* panchina a listelli di legno */
+    const pb=new THREE.Group();
+    for(let i=0;i<5;i++) box(pb,1.25,0.05,0.09,matLegnoScuro,0,0.42,-0.24+i*0.12,false);
+    [[-.55,-.26],[.55,-.26],[-.55,.26],[.55,.26]].forEach(q=>
+      box(pb,0.07,0.42,0.07,matLegnoScuro,q[0],0.21,q[1],false));
+    pb.position.set(-32.1,Q_ALTA,-7.7);g.add(pb);
+    contatto(g,-32.1,Q_ALTA+0.012,-7.7,1.7,1.0,0.55);
+    ficus(g,-35.0,-9.6,Q_ALTA,1.15);
+    tavolo(g,-27.5,-7.9,0,2.3,0.85,matLegnoScuro,Q_ALTA,0.78);
+    sedia(g,-26.9,-8.7,Math.PI,cLegno,Q_ALTA);sedia(g,-28.3,-8.7,Math.PI,cBluS,Q_ALTA);
+    [[0xc23a34],[0x123E90],[0xd8b23a]].forEach((c,i)=>
+      box(g,0.3,0.22,0.03,lam(c[0]),vx0+1+i*1.2,Q_ALTA+1.1,vz1+0.02,false));
+    box(g,0.6,0.8,0.25,matBiancoInt,-29,5.4,z0+0.18,false);
+    const mdn=new THREE.Mesh(new THREE.ConeGeometry(0.14,0.55,8),lam(0x7a9ac8));
+    mdn.position.set(-29,5.45,z0+0.3);g.add(mdn);
+    quadro(g,texCartello,1.5,0.85,x1-0.12,Q_ALTA+1.95,-8.6,-Math.PI/2);})();
+})();
+
+/* ============ UFFICI: corridoi + gradinate + angolo scala =============== */
+(function uffici(){
+  const g=new THREE.Group();interni.add(g);
+  const z0=-11.55,z1=-6.4;
+  function guscio(x0,x1,q,rip){
+    const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matGres(rip,4));
+    p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,q,(z0+z1)/2);p.receiveShadow=true;g.add(p);
+    box(g,x1-x0,0.3,z1-z0,lam(0xbdbab2),(x0+x1)/2,q-0.16,(z0+z1)/2,false);
+    const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matSoffitto(rip,4));
+    s.rotation.x=Math.PI/2;s.position.set((x0+x1)/2,SOFF,(z0+z1)/2);g.add(s);
+    box(g,x1-x0,SOFF-q,0.16,matBiancoInt,(x0+x1)/2,(SOFF+q)/2,z0,false);}
+  /* corridoio ovest (quota alta) */
+  guscio(-64,-35.8,Q_ALTA,17);
+  for(let i=0;i<5;i++) porta(g,matPortaChiara,-61+i*5.8,Q_ALTA,z0+0.1,0,(i===2)?0.7:0);
+  listello(g,26,-50,Q_ALTA+1.3,z0+0.09,0); listello(g,26,-50,Q_ALTA+1.9,z0+0.09,0);
+  quadro(g,texQuadro(141),0.8,1.0,-56,Q_ALTA+1.6,z0+0.1,0);
+  quadro(g,texQuadro(143),0.8,1.0,-45,Q_ALTA+1.6,z0+0.1,0);
+  antincendio(g,-51,Q_ALTA+1.5,z0+0.1,0);
+  (function panca(x,z){
+    const c=new THREE.Mesh(geoSmussata(1.7,0.5,0.5,0.03),matLegno);
+    c.position.set(x,Q_ALTA+0.27,z);c.castShadow=true;g.add(c);
+    contatto(g,x,Q_ALTA+0.012,z,2.1,0.9,0.6);})(-46,-7.4);
+  banco(g,-56,-7.4,0,lam(0xcfe0c8),Q_ALTA);sedia(g,-56.5,-8.1,Math.PI,cLegno,Q_ALTA);
+  box(g,1.2,0.9,0.45,matPortaChiara,-59,Q_ALTA+0.45,-7.2,true);
+  /* corridoio est (quota bassa) con le due gradinate */
+  guscio(-24.2,-6,Q_BASSA,11);
+  /* alzata di raccordo con il pavimento alto dell'atrio */
+  box(g,0.3,0.64,z1-z0,matGrigioScuroMat,-24.05,Q_BASSA+0.32,(z0+z1)/2,false);
+  for(let i=0;i<3;i++) porta(g,matPortaChiara,-20.5+i*5.6,Q_BASSA,z0+0.1,0,0);
+  listello(g,15,-15,Q_BASSA+1.3,z0+0.09,0); listello(g,15,-15,Q_BASSA+1.9,z0+0.09,0);
+  quadro(g,texQuadro(145),0.8,1.0,-17.6,Q_BASSA+1.6,z0+0.1,0);
+  quadro(g,texQuadro(147),0.9,1.1,-11.8,Q_BASSA+1.6,z0+0.1,0);
+  banco(g,-16,-7.4,0,lam(0xd8cfc0),Q_BASSA);sedia(g,-16.5,-8.1,Math.PI,cLegno,Q_BASSA);
+  /* scaffale bianco 2x2 (Kallax) visto nel video */
+  (function kallax(x,z){
+    const m=lam(0xf4f2ee);
+    box(g,0.78,0.78,0.36,m,x,Q_BASSA+0.39,z,true);
+    box(g,0.72,0.03,0.34,lam(0xe4e2dc),x,Q_BASSA+0.39,z+0.01,false);
+    box(g,0.03,0.72,0.34,lam(0xe4e2dc),x,Q_BASSA+0.39,z+0.01,false);
+    box(g,0.34,0.12,0.24,matLegno,x,Q_BASSA+0.84,z,true);
+    contatto(g,x,Q_BASSA+0.012,z,1.2,0.8,0.6);})(-9.9,-7.2);
+  gradinata(g,-22.88,false,z0,z1);
+  gradinata(g,-8.42,true,z0,z1);
+  /* angolo scala a est, con stemmi delle 4 Case e ringhiera nera */
+  guscio(-6.2,13.55,Q_ALTA,12);
+  quadro(g,texStemmiMuro,3.0,2.2,11,Q_ALTA+1.7,z0+0.1,0);
+  quadro(g,texQuadro(151),0.9,1.1,3,Q_ALTA+1.7,z0+0.1,0);
+  estintore(g,-5.5,Q_ALTA+0.9,z0+0.2);
+  quadro(g,texSalaIns,0.62,0.31,-2.2,Q_ALTA+1.75,z0+0.1,0);
+  porta(g,matPortaChiara,-3.4,Q_ALTA,z0+0.1,0,0);
+  (function vanoScala(){
+    const sx0=-4.2,sx1=1.2,sz0=z0+0.4;
+    ringhiera(g,sx1-sx0,(sx0+sx1)/2,Q_ALTA,sz0+2.2,0,0x2a2a2e);
+    ringhiera(g,2.2,sx1,Q_ALTA,sz0+1.1,Math.PI/2,0x2a2a2e);
+    for(let i=0;i<8;i++)
+      box(g,sx1-sx0-0.2,0.18,0.3,lam(0xb5b3ae),(sx0+sx1)/2,Q_ALTA-0.09-i*0.18,sz0+0.3+i*0.26,false);})();
+  const te=box(g,z1-z0,SOFF-Q_ALTA,0.16,matBiancoInt,13.57,(SOFF+Q_ALTA)/2,(z0+z1)/2,false);
+  te.rotation.y=Math.PI/2;
+  const vcu=new THREE.Mesh(new THREE.PlaneGeometry(3,2.2),matVetroC(4,3));
+  vcu.rotation.y=-Math.PI/2;vcu.position.set(13.47,Q_ALTA+1.7,(z0+z1)/2);g.add(vcu);
+})();
+
+/* ============ BLOCCO CORRIDOIO interno + corridoio dei lavori =========== */
+(function bloccoInt(){
+  const g=new THREE.Group();interni.add(g);
+  const x0=-77.3,x1=-64,z0=-11.55,z1=-6.45;
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matGres(8,4));
+  p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,Q_ALTA,(z0+z1)/2);p.receiveShadow=true;g.add(p);
+  box(g,x1-x0,0.3,z1-z0,lam(0xbdbab2),(x0+x1)/2,Q_ALTA-0.16,(z0+z1)/2,false);
+  const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matSoffitto(8,4));
+  s.rotation.x=Math.PI/2;s.position.set((x0+x1)/2,SOFF,(z0+z1)/2);g.add(s);
+  box(g,x1-x0,SOFF-Q_ALTA,0.16,matBiancoInt,(x0+x1)/2,(SOFF+Q_ALTA)/2,z0,false);
+  listello(g,11,-70.6,Q_ALTA+1.3,z0+0.09,0);listello(g,11,-70.6,Q_ALTA+1.9,z0+0.09,0);
+  quadro(g,texQuadro(161),0.8,1.0,-73.9,Q_ALTA+1.6,z0+0.1,0);
+  quadro(g,texQuadro(163),0.8,1.0,-69.1,Q_ALTA+1.6,z0+0.1,0);
+  porta(g,matPortaChiara,-66.3,Q_ALTA,z0+0.1,0,0);
+  banco(g,-70,-8,0,lam(0xcfe0c8),Q_ALTA);
+  sedia(g,-70.6,-8.7,Math.PI,cLegno,Q_ALTA);sedia(g,-69.4,-8.7,Math.PI,cBluS,Q_ALTA);
+  /* corridoio dei lavori, soffitto terracotta */
+  const lx0=-76.4,lx1=-66.6,lz0=-6.45,lz1=-3.75;
+  const p2=new THREE.Mesh(new THREE.PlaneGeometry(lx1-lx0,lz1-lz0),matPav(palAtrio,105,9,2,6));
+  p2.rotation.x=-Math.PI/2;p2.position.set((lx0+lx1)/2,Q_ALTA,(lz0+lz1)/2);p2.receiveShadow=true;g.add(p2);
+  box(g,lx1-lx0,0.3,lz1-lz0,lam(0xbdbab2),(lx0+lx1)/2,Q_ALTA-0.16,(lz0+lz1)/2,false);
+  box(g,lx1-lx0,2.6,0.14,matCrema,(lx0+lx1)/2,Q_ALTA+1.3,lz1,false);
+  quadro(g,texLavori(151),4.2,1.4,(lx0+lx1)/2-2.2,Q_ALTA+1.55,lz1-0.09,Math.PI);
+  quadro(g,texLavori(153),3.8,1.3,(lx0+lx1)/2+2.4,Q_ALTA+1.5,lz1-0.09,Math.PI);
+  box(g,lx1-lx0,2.6,0.14,matGrigioScuroMat,(lx0+lx1)/2,Q_ALTA+1.3,lz0,false);
+  ringhiera(g,lx1-lx0-1,(lx0+lx1)/2,Q_ALTA,lz0+0.25,0,0x2a2a2e);
+  box(g,lx1-lx0,0.1,lz1-lz0,matTerracotta,(lx0+lx1)/2,Q_ALTA+2.62,(lz0+lz1)/2,false);
+  box(g,1.1,0.05,0.4,lam(0xe8e8e0),(lx0+lx1)/2,Q_ALTA+2.56,(lz0+lz1)/2,false);
+})();
+
+/* ============ PRIMARIA: salone GIALLO con fasce ARANCIO (dal video) ====== */
+let ancoraBiliardino=null, ancoraCase=null;
+(function primaria(){
+  const g=new THREE.Group();interni.add(g);
+  const x0=-76.85,x1=-67.15,z0=-3.7,z1=33.3;
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matPav(palPrimaria,107,5,19,8));
+  p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,Q_ALTA,(z0+z1)/2);p.receiveShadow=true;g.add(p);
+  box(g,x1-x0,0.55,z1-z0,lam(0xecdfc4),(x0+x1)/2,Q_ALTA-0.29,(z0+z1)/2,false);
+  const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matSoffitto(6,22));
+  s.rotation.x=Math.PI/2;s.position.set((x0+x1)/2,SOFF,(z0+z1)/2);g.add(s);
+  /* parete nord verso il corridoio dei lavori */
+  box(g,3.2,SOFF-Q_ALTA,0.16,matGialloPrim,x0+1.6,(SOFF+Q_ALTA)/2,z0,false);
+  box(g,3.2,SOFF-Q_ALTA,0.16,matGialloPrim,x1-1.6,(SOFF+Q_ALTA)/2,z0,false);
+  box(g,x1-x0,0.9,0.16,matGialloPrim,(x0+x1)/2,SOFF-0.45,z0,false);
+  /* parete OVEST: blocchi aula sporgenti, gialli con stipiti ARANCIO e porte bronzo */
+  const mw=box(g,z1-z0,SOFF-Q_ALTA,0.16,matGialloPrim,x0,(SOFF+Q_ALTA)/2,(z0+z1)/2,false);
+  mw.rotation.y=Math.PI/2;
+  [[-1,5],[8,14],[17,23],[26,32]].forEach((b,bi)=>{
+    const bz0=b[0],bz1=b[1],bc=(bz0+bz1)/2,bl=bz1-bz0;
+    box(g,1.7,SOFF-Q_ALTA-0.35,bl,matGialloPrim,x0+0.85,(SOFF+Q_ALTA)/2-0.15,bc,false);
+    /* stipiti arancio + porte marrone bronzo (dal video) */
+    [bz0-0.06,bz1+0.06].forEach((zp,k)=>{
+      box(g,1.55,2.4,0.24,matArancioPrim,x0+0.9,Q_ALTA+1.2,zp,false);
+      porta(g,matPortaBronzo,x0+1.68,Q_ALTA,zp,0,(bi===1&&k===0)?0.75:0);});
+    listello(g,bl-0.6,x0+1.78,Q_ALTA+1.12,bc,Math.PI/2);
+  });
+  /* pannello 4 CASE + DUE biliardini davanti (dal video) */
+  ancoraCase=quadro(g,texCase,3.4,2.55,x0+1.79,Q_ALTA+1.85,3.0,Math.PI/2);
+  ancoraBiliardino=biliardino(g,-72.6,3.2,0.06,lam(0xf0eee6),Q_ALTA);
+  biliardino(g,-74.3,5.4,0.14,lam(0xa8c49a),Q_ALTA);
+  quadro(g,texMorin,3.2,1.0,x0+1.79,Q_ALTA+2.45,16.5,Math.PI/2);
+  quadro(g,texEducare,2.4,0.37,x0+1.79,SOFF-0.75,11.0,Math.PI/2);
+  quadro(g,texLavori(171,'#f6f2e8'),3.4,1.15,x0+0.1,Q_ALTA+1.7,25.0,Math.PI/2);
+  /* parete EST: la vetrata e' esterna, qui davanzale e montanti */
+  const sl=box(g,z1-z0,0.95,0.16,matGialloPrim,x1,Q_ALTA+0.475,(z0+z1)/2,false);sl.rotation.y=Math.PI/2;
+  const fa=box(g,z1-z0,0.9,0.16,matGialloPrim,x1,SOFF-0.45,(z0+z1)/2,false);fa.rotation.y=Math.PI/2;
+  for(let i=0;i<=13;i++)
+    box(g,0.14,SOFF-Q_ALTA-1.4,0.16,matTelaioGrigio,x1-0.06,Q_ALTA+0.95+(SOFF-Q_ALTA-1.4)/2,z0+1+i*(z1-z0-2)/13,false);
+  /* parete sud crema */
+  box(g,x1-x0,SOFF-Q_ALTA,0.16,matCrema,(x0+x1)/2,(SOFF+Q_ALTA)/2,z1,false);
+  quadro(g,texCuore,2.6,0.42,(x0+x1)/2+1.4,Q_ALTA+2.0,z1-0.1,Math.PI);
+  antincendio(g,(x0+x1)/2-1.6,Q_ALTA+1.5,z1-0.12,Math.PI);
+  /* tavoli mensa: piano legno chiaro, GAMBE NERE, sedie gialle e verdi (video) */
+  for(let i=0;i<5;i++){
+    const z=9+i*4.6;
+    tavolo(g,-69.4,z,0,2.4,0.85,lam(0xd9c39a),Q_ALTA,0.76,true);
+    sedia(g,-70.0,z-0.72,0,(i%2)?cGialla:cVerde,Q_ALTA);
+    sedia(g,-68.7,z-0.72,0,(i%2)?cVerde:cGialla,Q_ALTA);
+    sedia(g,-70.0,z+0.72,Math.PI,cGialla,Q_ALTA);
+    sedia(g,-68.7,z+0.72,Math.PI,cVerde,Q_ALTA);}
+  [[0x8a8f95,-68.2,31.6],[0x3a8a3a,-69.0,31.6],[0xe8c020,-69.8,31.6]].forEach(b=>
+    box(g,0.45,0.6,0.45,lam(b[0]),b[1],Q_ALTA+0.3,b[2],true));
+  contatto(g,-69.0,Q_ALTA+0.012,31.6,2.6,1.0,0.55);
+})();
+
+/* ============ SECONDARIA: corridoio vetrato + 3 aule ==================== */
+(function secondaria(){
+  const g=new THREE.Group();interni.add(g);
+  const x0=8.55,x1=25.3,z0=-6.4,z1=16.5,xc=13.55;
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matGres(10,14));
+  p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,Q_ALTA,(z0+z1)/2);p.receiveShadow=true;g.add(p);
+  box(g,x1-x0,0.3,z1-z0,lam(0xbdbab2),(x0+x1)/2,Q_ALTA-0.16,(z0+z1)/2,false);
+  const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matSoffitto(10,14));
+  s.rotation.x=Math.PI/2;s.position.set((x0+x1)/2,SOFF,(z0+z1)/2);g.add(s);
+  box(g,x1-xc,SOFF-Q_ALTA,0.16,matBiancoInt,(xc+x1)/2,(SOFF+Q_ALTA)/2,z0,false);
+  const dv=box(g,z1-z0,SOFF-Q_ALTA,0.16,matBiancoInt,xc,(SOFF+Q_ALTA)/2,(z0+z1)/2,false);
+  dv.rotation.y=Math.PI/2;
+  [-2.5,5,12.5].forEach((zp,i)=>porta(g,matPortaChiara,xc-0.02,Q_ALTA,zp,Math.PI/2,(i===1)?0.8:0));
+  listello(g,5,xc-0.1,Q_ALTA+1.3,1.2,Math.PI/2);listello(g,5,xc-0.1,Q_ALTA+1.9,1.2,Math.PI/2);
+  listello(g,5,xc-0.1,Q_ALTA+1.3,8.8,Math.PI/2);listello(g,5,xc-0.1,Q_ALTA+1.9,8.8,Math.PI/2);
+  quadro(g,texQuadro(171),0.8,1.0,xc-0.1,Q_ALTA+1.6,3.4,-Math.PI/2);
+  quadro(g,texQuadro(173),0.8,1.0,xc-0.1,Q_ALTA+1.6,10.2,-Math.PI/2);
+  banco(g,10.4,2,Math.PI/2,lam(0xcfe0c8),Q_ALTA);sedia(g,9.7,2.6,0,cLegno,Q_ALTA);
+  banco(g,10.4,9.5,Math.PI/2,lam(0xd8cfc0),Q_ALTA);sedia(g,9.7,10.1,0,cLegno,Q_ALTA);
+  box(g,x1-x0,SOFF-Q_ALTA,0.16,matBiancoInt,(x0+x1)/2,(SOFF+Q_ALTA)/2,z1,false);
+  quadro(g,texQuadro(177),0.9,1.1,(x0+xc)/2,Q_ALTA+1.7,z1-0.1,Math.PI);
+  /* aule: crema sopra, FASCIA GRIGIO-VERDE sotto, infissi neri (dal video) */
+  [[-6.4,1.5],[1.5,9],[9,16.5]].forEach((a,ai)=>{
+    const az0=a[0],az1=a[1],ac=(az0+az1)/2;
+    const p2=new THREE.Mesh(new THREE.PlaneGeometry(x1-xc-0.1,az1-az0-0.1),
+      matPav(['#d8cec0','#d2c8ba','#ddd3c5'],180+ai,6,8,4));
+    p2.rotation.x=-Math.PI/2;p2.position.set((xc+x1)/2,Q_ALTA+0.005,ac);p2.receiveShadow=true;g.add(p2);
+    box(g,x1-xc-0.1,0.3,az1-az0-0.1,lam(0xbdbab2),(xc+x1)/2,Q_ALTA-0.16,ac,false);
+    if(ai>0){box(g,x1-xc,SOFF-Q_ALTA,0.12,matGialloAula,(xc+x1)/2,(SOFF+Q_ALTA)/2,az0,false);
+      box(g,x1-xc,1.05,0.13,matFasciaVerde,(xc+x1)/2,Q_ALTA+0.525,az0,false);}
+    const fs=box(g,az1-az0,1.05,0.05,matFasciaVerde,xc+0.11,Q_ALTA+0.525,ac,false);
+    fs.rotation.y=Math.PI/2;
+    const me=box(g,az1-az0,SOFF-Q_ALTA,0.12,matGialloAula,x1-0.05,(SOFF+Q_ALTA)/2,ac,false);
+    me.rotation.y=Math.PI/2;
+    const fe=box(g,az1-az0,1.05,0.05,matFasciaVerde,x1-0.12,Q_ALTA+0.525,ac,false);
+    fe.rotation.y=Math.PI/2;
+    for(let k=0;k<2;k++){const fz=ac-1.6+k*3.2;
+      box(g,0.07,1.7,2.3,matTelaioScuro,x1-0.13,Q_ALTA+2.05,fz,false);
+      const gl=new THREE.Mesh(new THREE.PlaneGeometry(2.1,1.5),
+        new THREE.MeshBasicMaterial({color:0xd8e8f2}));
+      gl.rotation.y=-Math.PI/2;gl.position.set(x1-0.16,Q_ALTA+2.05,fz);g.add(gl);}
+    box(g,0.05,1.1,2.0,lam(0xf8f8f6),xc+0.13,Q_ALTA+1.85,ac-1,false);
+    box(g,0.06,0.75,1.25,lam(0x1a1a1e),xc+0.13,Q_ALTA+2.05,ac+2.2,false);
+    for(let r=0;r<2;r++)for(let c=0;c<2;c++){
+      banco(g,16.4+c*2.6,az0+2.2+r*2.6,Math.PI/2,lam(0xeae5d8),Q_ALTA);
+      sedia(g,17.1+c*2.6,az0+2.2+r*2.6,Math.PI/2,[cBluS,cLime,cLime,cBluS][r*2+c],Q_ALTA);}
+  });
+})();
+
+/* luci interne */
+[[-30,5.6,-13],[-50,5.4,-9],[-15,5.2,-9],[4,5.4,-9],[11,5.4,5],
+ [-72,5.4,16],[-72,5.4,3],[-70,5.4,-9]].forEach(p=>{
+  const l=new THREE.PointLight(0xfff2dc,0.5,30,2);l.position.set(p[0],p[1],p[2]);scene.add(l);});
+
+/* ===================== CACCIA AL TESORO: le tappe ======================= */
+/* Meccanica unica: catena di indizi osservativi (modello EXIT).
+   La decisione centrale non e' "so la risposta?" ma "dove cerco?": l'indizio
+   non nomina mai il luogo, lo DESCRIVE. Nessun punteggio, nessun timer,
+   nessuna classifica: gli aiuti sono graduati, a costo dichiarato, e il
+   percorso si chiude con un debrief. */
+const TAPPE=[
+  { titolo:'L\'arco che tutti attraversano',
+    indizio:'Il muro più antico del campus non è intonacato: è fatto di sassi squadrati, uno accanto all\'altro. In mezzo si apre l\'unica curva di pietra chiara di tutta la scuola. Cercala dal lato della strada e del parcheggio, non dal cortile.',
+    pos:[-36.5,0.45,-25.6], da:[-36.5,3.2,-30.5], zona:'Sul lato nord, quello del parcheggio e della rotonda.',
+    cosa:'Una cassetta di legno appoggiata a terra, accanto allo stipite di pietra chiara.',
+    imparato:'Il corpo storico della scuola è in pietra a vista, con il portale ad arco al centro della facciata nord: è da lì che si entrava, ed è la parte più antica del campus. Tutto il resto — le vetrate, i corridoi luminosi — è stato aggiunto dopo, verso il cortile.' },
+
+  { titolo:'Il rettangolo con due mezzelune',
+    indizio:'Nel cortile chiuso a ferro di cavallo c\'è un campo rosso scuro con due mezzelune azzurre e un cerchio in mezzo. Sopra, da una parte all\'altra, corre un filo di bandierine bianche e blu. Non cercare la cassetta sul canestro col palo: cercala sotto quello appeso al muro.',
+    pos:[-14,0.42,-5.0], da:[-14,3.0,1.5], zona:'Nel cortile interno, contro la facciata bianca a nord.',
+    cosa:'Una cassetta di legno a terra, proprio sotto il tabellone fissato al muro.',
+    imparato:'Il cortile è il centro del ferro di cavallo: da qui vedi tutte e tre le ali insieme. Le facciate che danno sul cortile sono bianche, con vetrate lunghe e pannelli gialli — sono i corridoi del primo piano visti da fuori.' },
+
+  { titolo:'Quattro colori, quattro nomi',
+    indizio:'Sali al primo piano, nell\'ala dove le pareti sono gialle, gli stipiti arancioni e il pavimento è a scacchi caldi. Su un muro un quadrato è diviso in quattro: un\'aquila, una quercia, un cero, un tasso. Davanti al quadrato c\'è un tavolo dove si gioca girando delle aste.',
+    pos:[-72.6,4.19+1.12,3.2], da:[-70.3,6.1,6.8], zona:'Ala ovest, primo piano: il salone della Primaria.',
+    cosa:'Una cassetta di legno appoggiata sul biliardino chiaro.',
+    imparato:'Le quattro Case della Sacra Famiglia — Aquilablu, Querciaverde, Cerogiallo, Tassorosso — dividono gli studenti in squadre che restano le stesse negli anni. Servono a far conoscere ragazzi di classi diverse.' },
+
+  { titolo:'I gradini che fanno i conti',
+    indizio:'C\'è una scala che non serve solo a salire: su ogni alzata qualcuno ha incollato quadretti numerati colorati, e i numeri crescono di riga in riga. Sta al primo piano, vicino al vuoto alto due piani. La cassetta è a terra, appoggiata contro il primo gradino.',
+    pos:[-33.2,4.19,-19.0], da:[-35.1,5.3,-19.0], zona:'Nell\'atrio a doppia altezza, sul lato del mezzanino.',
+    cosa:'Una cassetta di legno a terra, ai piedi della scala coi quadretti numerati.',
+    imparato:'La scala delle tabelline trasforma un passaggio obbligato in un ripasso involontario: ogni volta che sali, i numeri ti passano davanti. È un\'idea semplice — mettere il contenuto dove il corpo passa comunque.' },
+
+  { titolo:'Il muro che sembra un quadro',
+    indizio:'Sempre al primo piano, un muro è coperto di rettangoli arancio, blu, rossi, verdi e crema, senza nessuna figura riconoscibile. Sotto ci sono un divano grigio, una panchina a listelli di legno e un albero in un vaso di terracotta.',
+    pos:[-32.1,4.19+0.5,-7.7], da:[-29.3,5.9,-9.6], zona:'Sul mezzanino dell\'atrio, parete ovest.',
+    cosa:'Una cassetta di legno sulla panchina a listelli.',
+    imparato:'Un muro fatto di soli rettangoli colorati richiama l\'astrattismo di Piet Mondrian: l\'arte non deve per forza rappresentare qualcosa. Qui serve anche a segnalare il punto di sosta della scuola — l\'unico posto del piano dove ci si siede senza un banco davanti.' },
+
+  { titolo:'Dove il pavimento cambia quota',
+    indizio:'Nel lungo corridoio del primo piano il pavimento grigio si interrompe: cinque gradini larghi quanto tutto il passaggio ti fanno salire di mezzo metro. Da lì in poi, sulle pareti bianche, corrono due listelli di legno che reggono i lavori appesi.',
+    pos:[-8.9,3.55+0.62,-9.0], da:[-13.4,5.2,-8.9], zona:'Nel corridoio degli uffici, verso est.',
+    cosa:'Una cassetta di legno sul gradino più alto.',
+    imparato:'Le ali della scuola sono state costruite in tempi diversi e hanno quote di pavimento leggermente diverse: invece di rifare tutto, le hanno raccordate con gradinate larghe quanto il corridoio. È una traccia visibile della storia dell\'edificio.' },
+
+  { titolo:'Il campo fra due filari',
+    indizio:'Esci dal ferro di cavallo e vai verso sud-ovest. Un grande rettangolo verde è chiuso a est e a ovest da due file di alberi alti, e tutt\'intorno da una rete che trattiene il pallone. Guarda dentro la porta più vicina alla scuola.',
+    pos:[-26.5,0.4,33.4], da:[-26.5,2.6,38.5], zona:'Il campo da calcio, a sud-ovest del cortile.',
+    cosa:'Una cassetta di legno dentro la porta, sulla linea.',
+    imparato:'Il campo grande è orientato nord-sud e protetto da due filari di alberi: fanno ombra al pomeriggio e fermano il vento. Il verde intorno alla scuola non è decorazione, è progetto.' },
+
+  { titolo:'L\'acqua oltre il confine',
+    indizio:'A nord-est, appena fuori dal recinto della scuola, ci sono vasche azzurre, due grandi coperture di vetro a falde e una torre con due scivoli dritti. Dalle finestre delle aule si vede tutto. La cassetta è a bordo della vasca lunga con le corsie.',
+    pos:[78,0.55,-42.2], da:[73.5,3.4,-37.5], zona:'Le piscine, a nord-est del campus.',
+    cosa:'Una cassetta di legno sul bordo piastrellato della vasca.',
+    imparato:'Le piscine confinano con il campus ma non sono della scuola. Il campus non finisce con un muro: finisce dove cambia chi si prende cura dello spazio.' },
+
+  { titolo:'Il cuore della scuola',
+    indizio:'Torna dove tutto si affaccia: un vuoto alto due piani, colonne d\'acciaio dal pavimento al soffitto, ringhiere blu intorno al vuoto e un soffitto a fasce arancio e celeste. Lì in mezzo, sul tavolo di legno scuro, c\'è quello che stavi cercando.',
+    pos:[-27.5,4.19+0.83,-7.9], da:[-25.4,6.1,-10.6], zona:'Il mezzanino dell\'atrio, sul tavolo grande.',
+    cosa:'Un piccolo forziere di legno con le borchie d\'ottone.',
+    imparato:'Non c\'era un oggetto prezioso da trovare: la chiave del campus è saperlo attraversare. Ora sai da dove si entra, dove cambia quota il pavimento, perché le pareti cambiano colore e dove finisce la scuola.' }
+];
+
+/* ---- la cassetta: oggetto fisico, non pannello (regola di progetto) ---- */
+const texCoperchio=(()=>{const c=mkCanvas(128,128),g=c.getContext('2d');
+  g.fillStyle='#a9793f';g.fillRect(0,0,128,128);
+  for(let i=0;i<5;i++){g.fillStyle=(i%2)?'#b5854a':'#9d6f38';g.fillRect(0,i*26,128,24);}
+  g.strokeStyle='#6d4a22';g.lineWidth=3;g.strokeRect(3,3,122,122);
+  g.fillStyle='#c9a227';g.beginPath();g.arc(64,64,21,0,Math.PI*2);g.fill();
+  g.fillStyle='#7a5a12';g.font='bold 25px Lexend';g.textAlign='center';
+  g.fillText('?',64,74);return tex(c,false);})();
+let cassetta=null, pulsa=0;
+function creaCassetta(pos,ultima){
+  if(cassetta){scene.remove(cassetta);cassetta=null;}
+  const g=new THREE.Group();
+  const s=ultima?1.35:1.0;
+  const corpo=new THREE.Mesh(geoSmussata(0.52*s,0.34*s,0.38*s,0.03),
+    lam(ultima?0x8a5a26:0xa9793f));
+  corpo.position.y=0.17*s;corpo.castShadow=true;g.add(corpo);
+  const cop=new THREE.Mesh(new THREE.BoxGeometry(0.54*s,0.06*s,0.4*s),
+    lam(0xffffff,{map:texCoperchio}));
+  cop.position.y=0.37*s;cop.castShadow=true;g.add(cop);
+  [[-0.26*s,0],[0.26*s,0]].forEach(q=>
+    box(g,0.03*s,0.36*s,0.4*s,lam(0xc9a227),q[0],0.18*s,0,false));
+  box(g,0.1*s,0.13*s,0.03*s,lam(0xc9a227),0,0.3*s,0.2*s,false);
+  g.position.set(pos[0],pos[1],pos[2]);
+  g.userData.bersaglio=true;
+  scene.add(g);cassetta=g;
+  contatto(scene,pos[0],pos[1]+0.006,pos[2],1.1*s,1.0*s,0.55);
+  return g;}
+
+/* ---- stato del gioco (nessun punteggio, solo il cammino) ---- */
+const G={i:0, aiuti:0, fatte:[], usati:[]};
+try{const s=JSON.parse(localStorage.getItem('campus3d')||'null');
+  if(s&&typeof s.i==='number'&&s.i<TAPPE.length){G.i=s.i;G.aiuti=s.aiuti||0;
+    G.fatte=s.fatte||[];G.usati=s.usati||[];}}catch(e){}
+function salva(){try{localStorage.setItem('campus3d',JSON.stringify(G));}catch(e){}}
+
+const $=id=>document.getElementById(id);
+const velo=$('velo'), foglio=$('foglio');
+function apriFoglio(html){foglio.innerHTML=html;velo.style.display='flex';}
+function chiudiFoglio(){velo.style.display='none';}
+
+function perline(){
+  $('perline').innerHTML=TAPPE.map((t,k)=>
+    '<div class="perla '+(k<G.i?'fatta':(k===G.i?'ora':''))+'"></div>').join('');}
+function mostraTappa(){
+  const t=TAPPE[G.i];
+  $('cTappa').textContent='Tappa '+(G.i+1)+' di '+TAPPE.length;
+  $('cTitolo').textContent=t.titolo;
+  $('cTesto').textContent=t.indizio;
+  $('aiutoTesto').style.display='none';
+  $('aiutoTesto').textContent='';
+  creaCassetta(t.pos, G.i===TAPPE.length-1);
+  perline(); salva();}
+
+/* aiuti graduati, a costo dichiarato (modello EXIT) */
+let livAiuto=0;
+$('bAiuto').addEventListener('click',()=>{
+  const t=TAPPE[G.i], a=$('aiutoTesto');
+  livAiuto++; G.aiuti++;
+  if(!G.usati[G.i])G.usati[G.i]=0; G.usati[G.i]++;
+  if(livAiuto===1){ a.textContent='Dove guardare: '+t.zona; }
+  else if(livAiuto===2){ a.textContent='Dove guardare: '+t.zona+'\n\nChe cosa cercare: '+t.cosa; }
+  else { a.textContent='Ti porto sul posto. Guarda in basso: la cassetta è davanti a te.';
+    portamiA(t); }
+  a.style.display='block'; salva();});
+
+$('bRileggi').addEventListener('click',()=>{
+  const righe=G.fatte.length? G.fatte.map((k,n)=>
+      '<tr><td><strong>'+(n+1)+'</strong></td><td><strong>'+TAPPE[k].titolo+'</strong><br>'+TAPPE[k].imparato+'</td></tr>').join('')
+    : '<tr><td></td><td>Il diario è ancora vuoto: la prima cassetta ti aspetta.</td></tr>';
+  apriFoglio('<div class="occhiello">Diario di bordo</div><h1>Quello che hai trovato</h1>'
+    +'<table>'+righe+'</table>'
+    +'<div class="bottoni"><button onclick="chiudiFoglio()">Torna a cercare</button></div>');});
+
+$('bMappa').addEventListener('click',()=>{
+  apriFoglio('<div class="occhiello">Muoversi</div><h1>I luoghi del campus</h1>'
+    +'<p>Puoi volare dove vuoi. Questi sono i punti di partenza più comodi: '
+    +'servono a spostarti, non a risolvere gli indizi.</p>'
+    +LUOGHI.map((m,i)=>'<div class="bottoni" style="margin-top:7px"><button class="chiaro" onclick="vaiA('+i+');chiudiFoglio()">'+m[0]+'</button></div>').join('')
+    +'<div class="bottoni"><button onclick="chiudiFoglio()">Chiudi</button></div>');});
+
+$('bRicomincia').addEventListener('click',()=>{
+  apriFoglio('<div class="occhiello">Ricominciare</div><h1>Riparti dalla prima tappa?</h1>'
+    +'<p>Il diario si svuota e torni al portale di pietra. Il campus resta lo stesso: '
+    +'cambia solo il tuo percorso.</p>'
+    +'<div class="bottoni"><button onclick="azzera()">Sì, ricomincio</button>'
+    +'<button class="chiaro" onclick="chiudiFoglio()">No, continuo</button></div>');});
+window.azzera=function(){G.i=0;G.aiuti=0;G.fatte=[];G.usati=[];livAiuto=0;salva();
+  chiudiFoglio();mostraTappa();vaiA(0);};
+window.chiudiFoglio=chiudiFoglio;
+
+/* ---- trovata la cassetta ---- */
+function trovata(){
+  const t=TAPPE[G.i];
+  G.fatte.push(G.i);
+  if(cassetta){scene.remove(cassetta);cassetta=null;}
+  const ultima=(G.i===TAPPE.length-1);
+  if(ultima){ G.i++; salva(); debrief(); return; }
+  const pross=TAPPE[G.i+1];
+  apriFoglio('<div class="occhiello">Tappa '+(G.i+1)+' trovata</div>'
+    +'<h1>'+t.titolo+'</h1>'
+    +'<div class="imparato">'+t.imparato+'</div>'
+    +'<div class="prossimo"><strong>Il prossimo indizio</strong><br>'+pross.indizio+'</div>'
+    +'<div class="bottoni"><button onclick="avanti()">Vado a cercare</button></div>');
+  G.i++; salva();}
+window.avanti=function(){livAiuto=0;chiudiFoglio();mostraTappa();};
+
+function debrief(){
+  const senza=TAPPE.length-G.usati.filter(x=>x>0).length;
+  apriFoglio('<div class="occhiello">Percorso concluso</div>'
+    +'<h1>La chiave del Campus</h1>'
+    +'<p>Hai attraversato tutte e nove le tappe: il portale di pietra, il cortile, '
+    +'la Primaria, la scala delle tabelline, il muro dei colori, la gradinata, '
+    +'il campo fra i filari, le piscine e l\'atrio.</p>'
+    +'<div class="imparato">Hai risolto <strong>'+senza+' tappe su '+TAPPE.length
+    +'</strong> senza chiedere aiuto, e hai usato <strong>'+G.aiuti+' aiuti</strong> in tutto. '
+    +'Non è un voto: serve a te per sapere dove l\'indizio è stato più difficile da leggere.</div>'
+    +'<p><strong>Prima di chiudere, rispondi a te stesso:</strong> in quale tappa hai '
+    +'chiesto aiuto per prima cosa? Che cosa ti mancava — non sapevi <em>dove</em> guardare, '
+    +'oppure eri nel posto giusto e non hai riconosciuto l\'oggetto? Sono due difficoltà diverse: '
+    +'la prima riguarda la mappa che hai in testa, la seconda l\'attenzione ai dettagli.</p>'
+    +'<div class="azione"><h3>L\'idea diventa azione</h3>'
+    +'<p style="margin:0">Su un foglio, disegna a memoria la pianta del campus vista dall\'alto: '
+    +'il ferro di cavallo, il cortile, il campo grande, le piscine. Poi torna qui, sali a 120 metri '
+    +'con il tasto <span class="tasto">E</span> e confronta. Segna in rosso ciò che avevi messo '
+    +'nel posto sbagliato: è lì che la tua mappa mentale va corretta.</p></div>'
+    +'<div class="bottoni"><button onclick="azzera()">Rifai il percorso</button>'
+    +'<button class="chiaro" onclick="chiudiFoglio()">Resta a volare</button></div>');
+  $('carta').style.display='none'; perline();}
+
+/* ===================== navigazione in volo ===================== */
+let yaw=-2.2,pitch=-0.35;
+camera.position.set(30,46,64);
+const vel=new THREE.Vector3(); let velBase=14;
+const tasti={};
+window.addEventListener('keydown',e=>{tasti[e.code]=true;
+  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();});
+window.addEventListener('keyup',e=>{tasti[e.code]=false;});
+window.addEventListener('wheel',e=>{velBase=Math.max(3,Math.min(60,velBase*(e.deltaY>0?0.9:1.12)));},{passive:true});
+
+let trasc=false,px=0,py=0,mosso=0;
+canvas.addEventListener('mousedown',e=>{trasc=true;px=e.clientX;py=e.clientY;mosso=0;});
+window.addEventListener('mousemove',e=>{if(!trasc)return;
+  const dx=e.clientX-px,dy=e.clientY-py; mosso+=Math.abs(dx)+Math.abs(dy);
+  yaw-=dx*0.0032;pitch-=dy*0.0032;pitch=Math.max(-1.45,Math.min(1.45,pitch));
+  px=e.clientX;py=e.clientY;});
+window.addEventListener('mouseup',e=>{
+  if(trasc&&mosso<6) provaClic(e.clientX,e.clientY);
+  trasc=false;});
+
+const ray=new THREE.Raycaster();
+function provaClic(cx,cy){
+  if(!cassetta||velo.style.display==='flex')return;
+  const m={x:(cx/window.innerWidth)*2-1, y:-(cy/window.innerHeight)*2+1};
+  ray.setFromCamera(m,camera);
+  if(ray.intersectObject(cassetta,true).length) trovata();}
+
+function joystick(el,cb){
+  const pomo=el.querySelector('.pomo');let att=null,cx=0,cy=0;const R=42;
+  function agg(t){let dx=t.clientX-cx,dy=t.clientY-cy;const d=Math.hypot(dx,dy);
+    if(d>R){dx*=R/d;dy*=R/d;}
+    pomo.style.transform='translate(calc(-50% + '+dx+'px), calc(-50% + '+dy+'px))';cb(dx/R,dy/R);}
+  el.addEventListener('touchstart',e=>{const t=e.changedTouches[0];att=t.identifier;
+    const r=el.getBoundingClientRect();cx=r.left+r.width/2;cy=r.top+r.height/2;agg(t);e.preventDefault();},{passive:false});
+  el.addEventListener('touchmove',e=>{for(const t of e.changedTouches)if(t.identifier===att)agg(t);
+    e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',e=>{for(const t of e.changedTouches)if(t.identifier===att){att=null;
+    pomo.style.transform='translate(-50%,-50%)';cb(0,0);}},{passive:false});
+  el.addEventListener('touchcancel',()=>{att=null;pomo.style.transform='translate(-50%,-50%)';cb(0,0);});}
+let jM={x:0,y:0},jV={x:0,y:0},salgo=0;
+if(TOCCO){
+  joystick($('stickMov'),(x,y)=>{jM.x=x;jM.y=y;});
+  joystick($('stickVis'),(x,y)=>{jV.x=x;jV.y=y;});
+  $('su').addEventListener('touchstart',e=>{salgo=1;e.preventDefault();},{passive:false});
+  $('su').addEventListener('touchend',()=>{salgo=0;});
+  $('giu').addEventListener('touchstart',e=>{salgo=-1;e.preventDefault();},{passive:false});
+  $('giu').addEventListener('touchend',()=>{salgo=0;});
+  /* su iPad il tap sul canvas usa l'oggetto mirato */
+  canvas.addEventListener('touchend',e=>{const t=e.changedTouches[0];
+    if(t) provaClic(t.clientX,t.clientY);},{passive:true});}
+
+const LUOGHI=[
+  ['Vista dall\'alto',[30,46,64],[-25,0,0]],
+  ['Ingresso nord',[-36,4,-36],[-36,3,-24]],
+  ['Cortile',[-6,2.4,24],[-6,3.5,-6]],
+  ['Primaria (1° piano)',[-72,5.8,28],[-72,5.2,2]],
+  ['Atrio e mezzanino',[-26,5.9,-7.2],[-31,4.4,-15]],
+  ['Corridoio uffici',[-58,5.2,-9],[-30,4.6,-9.3]],
+  ['Secondaria (1° piano)',[11,5.7,13],[11.5,5.2,-4]],
+  ['Campo da calcio',[-26,3,80],[-26,3,40]],
+  ['Piscine',[80,16,-2],[55,2,-30]]
+];
+let voloDa=null,voloA=null,voloT=1,mira=new THREE.Vector3();
+window.vaiA=function(i){const m=LUOGHI[i];
+  voloDa=camera.position.clone();voloA=V(m[1][0],m[1][1],m[1][2]);
+  mira.set(m[2][0],m[2][1],m[2][2]);voloT=0;};
+function portamiA(t){
+  const d=t.da||[t.pos[0]+3.2,t.pos[1]+2.4,t.pos[2]+3.2];
+  voloDa=camera.position.clone();
+  voloA=V(d[0],d[1],d[2]);
+  mira.set(t.pos[0],t.pos[1],t.pos[2]);voloT=0;}
+function guardaVerso(t){const d=V(0,0,0).subVectors(t,camera.position);
+  yaw=Math.atan2(-d.x,-d.z);pitch=Math.atan2(d.y,Math.hypot(d.x,d.z));}
+
+/* ===================== musica di sottofondo (YouTube IFrame API) ========
+   Regole gia' imparate: sempre youtube.com/embed, mai nocookie; l'autoplay
+   parte solo dopo un gesto reale (il clic su "Comincia dal portale"); loop
+   rifatto a mano su ENDED; se l'embed e' vietato (errore 101/150) il brano
+   non parte in nessuna pagina, quindi si nasconde il comando invece di
+   lasciare un pulsante che non fa nulla. */
+const MUSICA_ID='1WRP1GzukN8';
+let ytPlayer=null, ytPronto=false, ytGuasto=false, musicaChiesta=false;
+let audioOn=true;
+try{ const v=localStorage.getItem('campus3d_audio'); if(v!==null) audioOn=(v==='1'); }catch(e){}
+
+function segnaAudio(){
+  const b=$('bAudio');
+  b.classList.toggle('spento',!audioOn);
+  $('onde').style.display=audioOn?'':'none';
+  $('crocetta').style.display=audioOn?'none':'';
+  $('etAudio').textContent=audioOn?'Musica':'Muta';
+}
+function nascondiAudio(){ const b=$('bAudio'); if(b){ b.style.display='none';
+  const s=b.previousElementSibling; if(s&&s.className==='sep') s.style.display='none'; } }
+
+window.onYouTubeIframeAPIReady=function(){
+  ytPlayer=new YT.Player('yt',{
+    videoId:MUSICA_ID, host:'https://www.youtube.com',
+    playerVars:{autoplay:0,controls:0,rel:0,playsinline:1,enablejsapi:1,
+      loop:1,playlist:MUSICA_ID,modestbranding:1,iv_load_policy:3},
+    events:{
+      onReady:()=>{ ytPronto=true; try{ytPlayer.setVolume(22);}catch(e){}
+        if(musicaChiesta&&audioOn) provaSuonare(); },
+      onStateChange:e=>{ if(e.data===YT.PlayerState.ENDED){ try{ytPlayer.seekTo(0);ytPlayer.playVideo();}catch(err){} } },
+      onError:e=>{ ytGuasto=true; nascondiAudio();
+        console.warn('[Campus3D] musica non disponibile (codice '+e.data+
+          '): il video non \u00e8 incorporabile o non esiste. Serve un altro brano.'); }
+    }});
+};
+function provaSuonare(){
+  if(!ytPronto||ytGuasto||!audioOn) return;
+  try{ ytPlayer.setVolume(22); ytPlayer.playVideo(); }catch(e){}
+}
+function avviaMusica(){ musicaChiesta=true; provaSuonare(); }
+/* Rete di sicurezza. Serve in due casi: quando l'autoplay viene bloccato, e
+   quando la partita riprende da un salvataggio — li' la schermata iniziale non
+   compare, quindi non c'e' nessun clic su "Comincia" a sbloccare l'audio.
+   Questi listener scattano solo su un gesto reale, percio' bastano da soli. */
+['pointerdown','keydown','touchend'].forEach(ev=>window.addEventListener(ev,()=>{
+  if(ytGuasto||!audioOn) return;
+  musicaChiesta=true;
+  try{ if(ytPronto&&ytPlayer.getPlayerState&&ytPlayer.getPlayerState()!==1) ytPlayer.playVideo(); }catch(e){}
+},{passive:true}));
+
+$('bAudio').addEventListener('click',()=>{
+  audioOn=!audioOn; segnaAudio();
+  try{ localStorage.setItem('campus3d_audio',audioOn?'1':'0'); }catch(e){}
+  if(!ytPronto||ytGuasto) return;
+  try{ audioOn?ytPlayer.playVideo():ytPlayer.pauseVideo(); }catch(e){}
+});
+segnaAudio();
+(function caricaYT(){
+  const t=document.createElement('script');
+  t.src='https://www.youtube.com/iframe_api';
+  t.onerror=()=>{ ytGuasto=true; nascondiAudio();
+    console.warn('[Campus3D] IFrame API non raggiungibile: musica disattivata.'); };
+  document.head.appendChild(t);
+  /* se in 8 s l'API non ha risposto, togli il comando invece di lasciarlo muto */
+  setTimeout(()=>{ if(!ytPronto&&!ytGuasto){ ytGuasto=true; nascondiAudio();
+    console.warn('[Campus3D] la musica non si \u00e8 avviata entro 8 s.'); } },8000);
+})();
+
+/* ===================== tutorial in quattro momenti ===================== */
+function apriIntro(){
+  apriFoglio('<div class="occhiello">Caccia al tesoro</div>'
+    +'<h1>La chiave del Campus</h1>'
+    +'<p>Da qualche parte nella scuola c\'è un piccolo forziere. Per arrivarci devi '
+    +'attraversare <strong>nove tappe</strong>: ognuna nasconde una cassetta di legno, '
+    +'e dentro c\'è l\'indizio della tappa successiva.</p>'
+    +'<p>Gli indizi <strong>non ti dicono mai il nome del posto</strong>: te lo descrivono. '
+    +'Tocca a te riconoscerlo e andarci volando.</p>'
+    +'<table>'
+    +(TOCCO
+      ? '<tr><td colspan="2"><strong>Comandi</strong></td></tr>'
+        +'<tr><td></td><td>Levetta di sinistra: muoversi</td></tr>'
+        +'<tr><td></td><td>Levetta di destra: guardarsi intorno</td></tr>'
+        +'<tr><td></td><td>Tasti a destra: salire e scendere</td></tr>'
+        +'<tr><td></td><td>Tocca la cassetta per aprirla</td></tr>'
+      : '<tr><td colspan="2"><strong>Comandi</strong></td></tr>'
+        +'<tr><td></td><td>Trascina con il mouse: guardarsi intorno</td></tr>'
+        +'<tr><td></td><td><span class="tasto">W</span><span class="tasto">A</span><span class="tasto">S</span><span class="tasto">D</span> o frecce: muoversi</td></tr>'
+        +'<tr><td></td><td><span class="tasto">E</span> sali · <span class="tasto">Q</span> scendi · rotellina: velocità</td></tr>'
+        +'<tr><td></td><td>Clicca la cassetta per aprirla</td></tr>')
+    +'</table>'
+    +'<p style="font-size:14.5px;color:#5c6a7c">Se ti blocchi, <strong>Chiedi un aiuto</strong>: '
+    +'il primo ti dice la zona, il secondo che cosa cercare, il terzo ti porta sul posto. '
+    +'Nessuno tiene il punteggio — alla fine ti servirà solo per capire dove hai faticato.</p>'
+    +'<div class="bottoni"><button onclick="viaAlGioco()">Comincia dal portale</button></div>');}
+window.viaAlGioco=function(){chiudiFoglio();$('carta').style.display='block';
+  avviaMusica();               /* gesto utente reale: e' qui che l'autoplay e' concesso */
+  mostraTappa(); vaiA(1);};
+
+/* ===================== ciclo ===================== */
+const orologio=new THREE.Clock(), qv=$('qv'), vicino=$('vicino');
+function anima(){
+  requestAnimationFrame(anima);
+  const dt=Math.min(0.05,orologio.getDelta());
+  if(voloT<1){
+    voloT=Math.min(1,voloT+dt/1.6);
+    const k=voloT<0.5?2*voloT*voloT:1-Math.pow(-2*voloT+2,2)/2;
+    camera.position.lerpVectors(voloDa,voloA,k); guardaVerso(mira);
+  } else if(velo.style.display!=='flex'){
+    const av=(tasti['KeyW']||tasti['ArrowUp']?1:0)-(tasti['KeyS']||tasti['ArrowDown']?1:0);
+    const de=(tasti['KeyD']||tasti['ArrowRight']?1:0)-(tasti['KeyA']||tasti['ArrowLeft']?1:0);
+    const al=(tasti['KeyE']||tasti['Space']?1:0)-(tasti['KeyQ']||tasti['ShiftLeft']||tasti['ShiftRight']?1:0);
+    const vA=av-jM.y, vD=de+jM.x, vU=al+salgo;
+    yaw-=jV.x*1.9*dt; pitch-=jV.y*1.5*dt;
+    pitch=Math.max(-1.45,Math.min(1.45,pitch));
+    const dir=V(-Math.sin(yaw),0,-Math.cos(yaw)), lat=V(-dir.z,0,dir.x);
+    const ob=V(0,0,0).addScaledVector(dir,vA*velBase).addScaledVector(lat,vD*velBase)
+      .add(V(0,vU*velBase*0.7,0));
+    vel.lerp(ob,1-Math.pow(0.0001,dt));
+    camera.position.addScaledVector(vel,dt);
+    if(camera.position.y<0.6)camera.position.y=0.6;
+    if(camera.position.y>260)camera.position.y=260;
+  }
+  camera.rotation.order='YXZ';
+  camera.rotation.y=yaw;camera.rotation.x=pitch;camera.rotation.z=0;
+  /* la cassetta pulsa piano quando sei vicino: è un segnale di processo,
+     non una ricompensa — dice "stai cercando nel posto giusto" */
+  if(cassetta){
+    const d=camera.position.distanceTo(cassetta.position);
+    pulsa+=dt;
+    const vicinoOra=d<26;
+    cassetta.position.y=cassetta.userData.y0===undefined
+      ? (cassetta.userData.y0=cassetta.position.y)
+      : cassetta.userData.y0+(vicinoOra?Math.sin(pulsa*2.6)*0.045:0);
+    cassetta.rotation.y+=dt*(vicinoOra?0.55:0.18);
+    vicino.style.display=(d<9)?'block':'none';
+  } else vicino.style.display='none';
+  qv.textContent=camera.position.y.toFixed(0);
+  renderer.render(scene,camera);
+}
+guardaVerso(V(-25,0,0));
+anima();
+
+if(G.i>=TAPPE.length){ $('carta').style.display='none'; perline(); chiudiFoglio(); }
+else if(G.fatte.length>0){ $('carta').style.display='block'; mostraTappa(); vaiA(0); chiudiFoglio(); }
+else apriIntro();
+
+setTimeout(()=>{console.log('[Campus3D v3] triangoli:',renderer.info.render.triangles,
+  '| draw call:',renderer.info.render.calls,'| tappe:',TAPPE.length);},1500);
+
+window.addEventListener('resize',()=>{
+  camera.aspect=window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth,window.innerHeight);});
+</script>
+</body>
+</html>
