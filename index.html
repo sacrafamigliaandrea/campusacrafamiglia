@@ -2258,11 +2258,24 @@ let ancoraBiliardino=null, ancoraCase=null;
 (function secondaria(){
   const g=new THREE.Group();interni.add(g);
   const x0=8.55,x1=25.3,z0=-6.4,z1=16.5,xc=13.55;
-  const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),pav60(x1-x0,z1-z0));
-  p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,Q_ALTA,(z0+z1)/2);p.receiveShadow=true;g.add(p);
-  box(g,x1-x0,0.3,z1-z0,lam(0xbdbab2),(x0+x1)/2,Q_ALTA-0.16,(z0+z1)/2,false);
-  const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matSoffitto(10,14));
-  s.rotation.x=Math.PI/2;s.position.set((x0+x1)/2,SOFF,(z0+z1)/2);g.add(s);
+  /* La Secondaria e' a L: al corpo principale si aggiunge il BRACCIO D'ANGOLO
+     che gira verso il corridoio nord. Tutta la L e' 60x60 antracite: il cambio
+     di piastrella avviene sul confine con gli uffici, a x=8,55. */
+  const zA=-11.55;                       /* il braccio arriva al corridoio nord */
+  function lastraSec(ax0,ax1,az0,az1){
+    const w=ax1-ax0, d=az1-az0;
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),pav60(w,d));
+    m.rotation.x=-Math.PI/2;m.position.set((ax0+ax1)/2,Q_ALTA,(az0+az1)/2);
+    m.receiveShadow=true;g.add(m);
+    box(g,w,0.3,d,lam(0xbdbab2),(ax0+ax1)/2,Q_ALTA-0.16,(az0+az1)/2,false);
+    const c=new THREE.Mesh(new THREE.PlaneGeometry(w,d),matSoffitto(Math.round(w/1.2),Math.round(d/1.2)));
+    c.rotation.x=Math.PI/2;c.position.set((ax0+ax1)/2,SOFF,(az0+az1)/2);g.add(c);}
+  lastraSec(x0,x1,z0,z1);                /* corpo principale */
+  lastraSec(x0,xc,zA,z0);                /* braccio d'angolo verso il corridoio nord */
+  /* soglia di cambio piastrella sul confine con gli uffici */
+  box(g,0.16,0.04,z0-zA,lam(0xCFC6B0),x0,Q_ALTA+0.02,(zA+z0)/2,false);
+  /* muro esterno del braccio, verso nord */
+  box(g,xc-x0,SOFF-Q_ALTA,0.16,matBiancoInt,(x0+xc)/2,(SOFF+Q_ALTA)/2,zA,false);
   box(g,x1-xc,SOFF-Q_ALTA,0.16,matBiancoInt,(xc+x1)/2,(SOFF+Q_ALTA)/2,z0,false);
   const dv=box(g,z1-z0,SOFF-Q_ALTA,0.16,matBiancoInt,xc,(SOFF+Q_ALTA)/2,(z0+z1)/2,false);
   dv.rotation.y=Math.PI/2;
@@ -2630,10 +2643,18 @@ function creaCassetta(pos,ultima){
 
 /* ---- stato del gioco (nessun punteggio, solo il cammino) ---- */
 const G={i:0, aiuti:0, fatte:[], usati:[]};
-try{const s=JSON.parse(localStorage.getItem('campus3d')||'null');
-  if(s&&typeof s.i==='number'&&s.i<TAPPE.length){G.i=s.i;G.aiuti=s.aiuti||0;
-    G.fatte=s.fatte||[];G.usati=s.usati||[];}}catch(e){}
+/* nessun ripristino: ogni apertura e' una partita nuova */
+try{ localStorage.removeItem('campus3d'); }catch(e){}
 function salva(){try{localStorage.setItem('campus3d',JSON.stringify(G));}catch(e){}}
+/* Alla chiusura della pagina NON deve restare traccia della partita: chi
+   riapre riparte dalla prima tappa. Si cancella su pagehide (che scatta anche
+   su iOS, dove beforeunload non e' affidabile) e su beforeunload. */
+function svuotaCache(){
+  try{ localStorage.removeItem('campus3d');
+       localStorage.removeItem('campus3d_audio'); }catch(e){}
+}
+window.addEventListener('pagehide',svuotaCache);
+window.addEventListener('beforeunload',svuotaCache);
 
 const $=id=>document.getElementById(id);
 const velo=$('velo'), foglio=$('foglio');
@@ -3061,9 +3082,7 @@ console.log('[Campus3D] ostacoli:',SOLIDI.length,'| varchi:',VARCHI.length);
 guardaVerso(V(-25,0,0));
 anima();
 
-if(G.i>=TAPPE.length){ $('carta').style.display='none'; perline(); chiudiFoglio(); }
-else if(G.fatte.length>0){ $('carta').style.display='block'; mostraTappa(); vaiA(0); chiudiFoglio(); }
-else apriIntro();
+apriIntro();          /* si parte sempre dalla card: nessuna tappa salvata */
 
 setTimeout(()=>{console.log('[Campus3D v3] triangoli:',renderer.info.render.triangles,
   '| draw call:',renderer.info.render.calls,'| tappe:',TAPPE.length);},1500);
