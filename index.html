@@ -274,6 +274,7 @@
 <div id="barra">
   <div id="perline"></div>
   <div class="sep"></div>
+  <button id="bStoria">La Fondatrice</button>
   <button id="bMappa">Luoghi</button>
   <button id="bRicomincia">Ricomincia</button>
   <div class="sep"></div>
@@ -547,6 +548,68 @@ function tetto(p,cx,cz,Lx,Lz,y0,alt,o){
   proxy.position.set(cx,y0+alt/2,cz); (p||scene).add(proxy); solido(proxy);
   return g;
 }
+
+/* ===== PANNELLI SOLARI SULLE FALDE (tetti.png) =========================
+   Sulle falde rivolte al cortile ci sono grandi campi di pannelli, in file
+   regolari. Sono l'elemento piu' vistoso della copertura vista dall'alto e
+   mancavano del tutto. I pannelli seguono l'inclinazione della falda: si
+   ruotano dello stesso angolo, e si posano poco sopra il manto. ==== */
+const texPannello=(()=>{const c=mkCanvas(128,128),g=c.getContext('2d');
+  g.fillStyle='#1E3050';g.fillRect(0,0,128,128);
+  for(let r=0;r<4;r++)for(let k=0;k<4;k++){
+    const gr=g.createLinearGradient(k*32,r*32,k*32+32,r*32+32);
+    gr.addColorStop(0,'#2C4670');gr.addColorStop(0.5,'#1B2B49');gr.addColorStop(1,'#33507E');
+    g.fillStyle=gr;g.fillRect(k*32+2,r*32+2,28,28);}
+  g.strokeStyle='#8C99AC';g.lineWidth=2;g.strokeRect(0,0,128,128);
+  return tex(c,true);})();
+function matPannelli(nx,ny){const t=texPannello.clone();t.needsUpdate=true;
+  t.repeat.set(nx,ny);
+  return new THREE.MeshPhongMaterial({map:t,shininess:95,specular:0x9FB4CC});}
+/* cx,cz centro dell'ala · lungo = sviluppo del colmo · semiProf = mezza
+   larghezza della falda · y0 quota gronda · alt dislivello gronda-colmo
+   verso = +1 se la falda guarda verso +Z (o +X se asseZ), -1 se il contrario */
+function pannelliSolari(cx,cz,lungo,semiProf,y0,alt,verso,asseZ,nCampi){
+  const ang=Math.atan2(alt,semiProf);
+  const nR=3, nC=nCampi||6;
+  const passoR=semiProf*0.80/nR;
+  for(let r=0;r<nR;r++){
+    const t=0.10+ (r+0.5)/nR*0.80;               /* dalla gronda verso il colmo */
+    const off=semiProf*(1-t), yy=y0+alt*t+0.10;
+    for(let c=0;c<nC;c++){
+      const along=-lungo/2+lungo*(c+0.5)/nC;
+      const w=lungo/nC-0.45, d=passoR-0.22;
+      const m=new THREE.Mesh(new THREE.BoxGeometry(asseZ?d:w,0.07,asseZ?w:d),
+        matPannelli(Math.max(1,Math.round((asseZ?d:w)/1.05)),
+                    Math.max(1,Math.round((asseZ?w:d)/1.05))));
+      if(asseZ){ m.position.set(cx+verso*off,yy,cz+along); m.rotation.z=-verso*ang; }
+      else     { m.position.set(cx+along,yy,cz+verso*off); m.rotation.x= verso*ang; }
+      m.castShadow=true; mondo.add(m);
+      /* telaio d'alluminio sul bordo basso */
+      const f=new THREE.Mesh(new THREE.BoxGeometry(asseZ?d+0.05:w+0.05,0.05,asseZ?w+0.05:d+0.05),
+        lam(0x9AA3AE));
+      f.position.copy(m.position); f.position.y-=0.05; f.rotation.copy(m.rotation);
+      mondo.add(f);
+    }}
+}
+
+/* abbaino a nastro sulla falda: cassonetto con la finestra inclinata, come
+   nei rilievi di tetti.png. cx,cz = posizione sulla falda; verso e asseZ come
+   in pannelliSolari. */
+function abbaino(cx,cz,lungo,y0,alt,semiProf,verso,asseZ){
+  const ang=Math.atan2(alt,semiProf);
+  const t=0.55, off=semiProf*(1-t), yy=y0+alt*t;
+  const px=asseZ?cx+verso*off:cx, pz=asseZ?cz:cz+verso*off;
+  const w=asseZ?1.5:lungo, d=asseZ?lungo:1.5;
+  box(mondo,w,0.95,d,lam(0xE0DAC8),px,yy+0.55,pz,true);
+  const v=new THREE.Mesh(new THREE.BoxGeometry(w-0.2,0.08,d-0.2),
+    new THREE.MeshPhongMaterial({color:0xBCD6E4,transparent:true,opacity:0.55,
+      shininess:150,specular:0xffffff}));
+  v.position.set(px,yy+1.05,pz);
+  if(asseZ) v.rotation.z=-verso*ang*0.6; else v.rotation.x=verso*ang*0.6;
+  mondo.add(v);
+  box(mondo,w+0.12,0.10,d+0.12,lam(0x8F8A80),px,yy+1.12,pz,false);
+}
+
 /* tetto piano con parapetto (ali moderne sul cortile) */
 function tettoPiano(p,cx,cz,Lx,Lz,y,colPar){
   const g=new THREE.Group(); (p||scene).add(g); solido(g);
@@ -934,6 +997,9 @@ function vetrataCorridoio(p,x0,x1,z,ry,y0){
   /* il tetto sconfina di 6 m su entrambi i lati: le ali confinanti sono piu'
      alte e lo coprono, ma cosi' negli angoli non resta piu' nessuna fessura */
   tetto(mondo,cx,cz,w+1.2,12,hM,alt,{pluviali:0,comignoli:[[-30,0,1.6],[-8,0,1.5],[8,0,1.5]]});
+  /* tetti.png: grande campo di pannelli sulla falda verso il cortile */
+  pannelliSolari(cx,cz,w-6,6.6,hM,alt,1,false,7);
+  [-46,-14,4].forEach(xx=>abbaino(xx,cz,2.6,hM,alt,6.6,-1,false));  /* falda nord */
   /* sotto il muro c'e' la ghiaia; di verde solo pochi cespugli tondi in gruppo */
   [[-30,1.0],[-26.6,0.85],[-23.4,1.05],[-19.8,0.8],[-6.5,0.95]].forEach(q=>{
     const r=q[1];
@@ -964,8 +1030,23 @@ const H_MOD=7.6;
     [1.2,3.5,5.8].forEach(h=>box(g,vw-0.3,0.13,0.18,matTelaioGrigio,0,h,0,false));
     box(g,vw,0.6,0.3,matIntonaco,0,vh+0.3,0,false);
     g.position.set(-30,0,z);mondo.add(g);})();
+  /* 4863/4864: frangisole a lamelle grigie orizzontali sulle finestre alte */
+  for(let i=0;i<10;i++){
+    const px=x0+5+i*8;
+    for(let k=0;k<5;k++)
+      box(mondo,2.5,0.06,0.16,lam(0xB4B8BC),px,4.35+k*0.30,-5.62,false);
+    box(mondo,0.07,1.55,0.18,lam(0x9AA0A6),px-1.28,4.95,-5.62,false);
+    box(mondo,0.07,1.55,0.18,lam(0x9AA0A6),px+1.28,4.95,-5.62,false);}
   tettoPiano(mondo,(x0+x1)/2,-9,w,6.2,H_MOD);
   box(mondo,w,0.55,0.07,lam(0x2e5f9e),(x0+x1)/2,0.3,-5.83,false);   /* zoccolo blu */
+  /* 4872/4873/4878: fra le campate del piano terra corrono CROCI DI
+     SANT'ANDREA in acciaio chiaro, molto evidenti sul fronte del cortile */
+  for(let i=0;i<9;i++){
+    const px=x0+5+i*8.5;
+    [1,-1].forEach(v=>{
+      const c=box(mondo,0.14,4.6,0.14,lam(0xDCD8D0),px,1.75,-5.72,false);
+      c.rotation.z=v*Math.PI/4.4;});
+    box(mondo,0.20,0.20,0.20,lam(0xB8B4AC),px,1.75,-5.70,false);}
   [-52,-38,-16,2].forEach(x=>box(mondo,0.13,H_MOD-0.4,0.13,lam(0x3a3f45),x,H_MOD/2,-5.78,false));
   [-14,0].forEach(x=>{
     const cg=new THREE.Group();cg.position.set(x,0,-5.85);cg.rotation.y=Math.PI;mondo.add(cg);
@@ -986,6 +1067,8 @@ const H_MOD=7.6;
   muroPietra(null,12,hM,[{fx:0.3,fy:7.4,fw:1.2,fh:1.6},{fx:0.7,fy:7.4,fw:1.2,fh:1.6},{fx:0.5,fy:3.6,fw:1.3,fh:1.8}],cx,0,z0,Math.PI);
   muroPietra(null,12,hM,[{fx:0.5,fy:7.6,fw:1.3,fh:1.6}],cx,0,z1,0);
   tetto(mondo,cx,cz,12,d+1.2,hM,3.0,{pluviali:0,comignoli:[[0,-12,1.5],[0,10,1.5]]});
+  pannelliSolari(cx,cz,d-6,6.6,hM,3.0,-1,true,5);
+  [-14,4].forEach(zz=>abbaino(cx,zz,2.6,hM,3.0,6.6,1,true));        /* falda est */
   contatto(mondo,cx,0.025,cz,17,d+4,0.5);
   /* fascia moderna bianca sul cortile */
   const mx=8,mz0=-6,mz1=18,md=mz1-mz0,mcz=(mz0+mz1)/2;
@@ -1097,6 +1180,7 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
   vetrataCorridoio(null,z0,z1,x1,Math.PI/2,3.5);
   muroFin(null,x1-x0,hM,0xecdfc4,[{fx:0.5,fy:2.0,fw:1.4,fh:2.4},{fx:0.5,fy:6.9,fw:1.4,fh:1.6}],cx,0,z1,0);
   tetto(mondo,cx,cz,x1-x0,d,hM,3.0,{pluviali:0,comignoli:[[0,-10,1.4],[0,12,1.4]]});
+  pannelliSolari(cx,cz,d-8,6.6,hM,3.0,1,true,5);
   contatto(mondo,cx,0.025,cz,17,d+4,0.5);
 })();
 
@@ -1754,6 +1838,10 @@ function ringhiera(p,len,x,y,z,ry,col){
   const n=Math.max(2,Math.round(len/0.14));
   for(let i=0;i<=n;i++) box(g,0.02,1.0,0.02,m,-len/2+i*len/n,0.5,0,false);
   g.position.set(x,y,z);g.rotation.y=ry||0;(p||interni).add(g);return g;}
+/* confine fra UFFICI e SECONDARIA lungo il corridoio del primo piano.
+   Ricavato da map.jpeg: il braccio orizzontale della Secondaria copre circa il
+   40% del corridoio a partire dall'angolo est. */
+const X_CONFINE=-22.5;
 function gradinata(p,xc,est,z0,z1){
   for(let i=0;i<4;i++){const dx=est?i*0.32:-i*0.32;
     box(p,0.32,0.16*(i+1),z1-z0-0.3,matGrigioScuroMat,xc+dx,Q_BASSA+0.08*(i+1),(z0+z1)/2,false);}}
@@ -1970,7 +2058,7 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
        SECONDO PIANO, che non e' mappato: la rampa attraversa il soffitto e si
        perde in un vano scuro. Prima l'avevo messa trasversale e tronca. */
     const n=14, alz=0.19, ped=0.30;
-    const xIn=x0+1.1, zC=z0+1.65, PAROLE=['Buona Scuola','Gestione delle emergenze',
+    const xIn=x0+1.0, zC=-16.2, PAROLE=['Buona Scuola','Gestione delle emergenze',
       'Creatività','Accoglienza','Responsabilità','Rispetto','Ascolto',
       'Collaborazione','Impegno','Gentilezza','Fiducia','Cura','Coraggio','Speranza'];
     for(let i=0;i<n;i++){
@@ -2074,7 +2162,9 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
   for(let i=0;i<4;i++) pannelloSenape(g,-58+i*7.2,-6.52,2.5,Math.PI/2);
   box(g,1.2,0.9,0.45,matPortaChiara,-59,Q_ALTA+0.45,-7.2,true);
   /* corridoio est (quota bassa) con le due gradinate */
-  guscio(-24.2,-6,Q_ALTA,11);
+  /* map.jpeg: da X_CONFINE in avanti il corridoio appartiene gia' alla
+     SECONDARIA, che lo pavimenta col 60x60. Qui resta solo il tratto uffici. */
+  guscio(-24.2,X_CONFINE,Q_ALTA,4);
   for(let i=0;i<3;i++) porta(g,matPortaChiara,-20.5+i*5.6,Q_ALTA,z0+0.1,0,0);
   listello(g,15,-15,Q_ALTA+1.3,z0+0.09,0); listello(g,15,-15,Q_ALTA+1.9,z0+0.09,0);
   quadro(g,texQuadro(145),0.8,1.0,-17.6,Q_ALTA+1.6,z0+0.1,0);
@@ -2092,10 +2182,75 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
   /* il pavimento 30x30 degli uffici si ferma dove comincia la Secondaria:
      da li' in poi e' 60x60 antracite. Prima i due gusci si sovrapponevano e
      il cambio di piastrella non si leggeva. */
-  guscio(-6.2,8.55,Q_ALTA,12);
+  /* 4886: DISIMPEGNO AMMINISTRATIVO — piccolo ambiente di servizio dietro il
+     corridoio, con tre porte grigio-tortora, il tastierino dell'allarme, i
+     cartelli del primo soccorso e una porta a vetri verso un ufficio. Il
+     pavimento qui e' in gres MARRONE, diverso dal corridoio. */
+  (function disimpegno(){
+    const dx0=-34.0,dx1=-29.0,dz0=-16.4,dz1=-12.2;
+    const p=new THREE.Mesh(new THREE.PlaneGeometry(dx1-dx0,dz1-dz0),
+      lam(0xffffff,{map:(()=>{const t=tex(texPunti('#7A6A5A',
+        ['#726454','#84745F','#6C5E50'],317),true);t.repeat.set(7,6);return t;})()}));
+    p.rotation.x=-Math.PI/2;p.position.set((dx0+dx1)/2,Q_ALTA+0.002,(dz0+dz1)/2);
+    p.receiveShadow=true;g.add(p);
+    box(g,dx1-dx0,SOFF-Q_ALTA,0.14,matCrema,(dx0+dx1)/2,(SOFF+Q_ALTA)/2,dz0,false);
+    box(g,0.14,SOFF-Q_ALTA,dz1-dz0,matCrema,dx0,(SOFF+Q_ALTA)/2,(dz0+dz1)/2,false);
+    [dx0+1.3,dx0+3.0].forEach(px=>porta(g,matPortaChiara,px,Q_ALTA,dz0+0.1,0,0));
+    porta(g,matPortaChiara,dx0+0.12,Q_ALTA,dz0+2.6,Math.PI/2,0);
+    box(g,0.16,0.22,0.05,lam(0xE8E6E0),dx0+0.30,Q_ALTA+1.45,dz0+0.09,false);  /* allarme */
+    [[-0.5],[0.5]].forEach(q=>
+      box(g,0.22,0.16,0.02,lam(0x2E8B57),dx0+2.1+q[0],Q_ALTA+1.85,dz0+0.08,false));
+    contatto(g,(dx0+dx1)/2,Q_ALTA+0.01,(dz0+dz1)/2,6,5,0.35);})();
+  /* il tratto da X_CONFINE in avanti e' gia' pavimentato dalla Secondaria:
+     qui restano solo gli arredi e le pareti, non un altro guscio. */
   /* soglia di cambio pavimento, in pietra chiara */
   box(g,0.16,0.04,z1-z0,lam(0xCFC6B0),8.55,Q_ALTA+0.02,(z0+z1)/2,false);
-  quadro(g,texStemmiMuro,3.0,2.2,11,Q_ALTA+1.7,z0+0.1,0);
+  /* 4869: non un pannello unico ma QUATTRO SCUDI separati su distanziatori,
+     con al centro l'A4 plastificato dell'Albo d'Oro. */
+  (function scudiCase(bx,by,bz){
+    const S=[[-1.35,0.62,0x274B9F,'AQUILABLU'],[1.35,0.62,0x2E6B34,'QUERCIAVERDE'],
+             [-1.35,-0.62,0xD8A02A,'CEROGIALLO'],[1.35,-0.62,0xA02420,'TASSOROSSO']];
+    S.forEach(q=>{
+      const c=mkCanvas(200,240),x=c.getContext('2d');
+      x.clearRect(0,0,200,240);
+      x.fillStyle='#f4f2ec';
+      x.beginPath();x.moveTo(14,10);x.lineTo(186,10);x.lineTo(186,140);
+      x.quadraticCurveTo(186,205,100,232);x.quadraticCurveTo(14,205,14,140);
+      x.closePath();x.fill();
+      x.fillStyle='#'+q[2].toString(16).padStart(6,'0');
+      x.beginPath();x.moveTo(26,22);x.lineTo(174,22);x.lineTo(174,138);
+      x.quadraticCurveTo(174,196,100,219);x.quadraticCurveTo(26,196,26,138);
+      x.closePath();x.fill();
+      x.fillStyle='rgba(255,255,255,.88)';x.beginPath();x.arc(100,120,38,0,Math.PI*2);x.fill();
+      x.fillStyle='#fff';x.font='bold 19px Lexend, sans-serif';x.textAlign='center';
+      x.fillText(q[3],100,54);
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(0.86,1.03),
+        lam(0xffffff,{map:tex(c,false),transparent:true}));
+      m.position.set(bx+q[0],by+q[1],bz+0.05);g.add(m);
+      box(g,0.06,0.06,0.05,lam(0xB8B4AC),bx+q[0],by+q[1]+0.44,bz+0.02,false);
+      box(g,0.06,0.06,0.05,lam(0xB8B4AC),bx+q[0],by+q[1]-0.44,bz+0.02,false);});
+    /* Albo d'Oro al centro */
+    const a=mkCanvas(180,250),y=a.getContext('2d');
+    y.fillStyle='#fff';y.fillRect(0,0,180,250);
+    y.strokeStyle='#C9B98A';y.lineWidth=3;y.strokeRect(3,3,174,244);
+    y.fillStyle='#8A6A1A';y.font='bold 17px Lexend';y.textAlign='center';
+    y.fillText("ALBO D'ORO",90,28);
+    const anni=['2015-16','2016-17','2017-18','2018-19','2019-20','2020-21',
+                '2021-22','2022-23','2023-24','2024-25','2025-26'];
+    const vinc=[['QUERCIA VERDE','#2E6B34'],['CERO GIALLO','#B8860B'],
+                ['AQUILA BLU','#274B9F'],['TASSO ROSSO','#A02420'],
+                ['AQUILA BLU','#274B9F'],['CERO GIALLO','#B8860B'],
+                ['AQUILA BLU','#274B9F'],['CERO GIALLO','#B8860B'],
+                ['TASSO ROSSO','#A02420'],['QUERCIA VERDE','#2E6B34'],
+                ['TASSO ROSSO','#A02420']];
+    anni.forEach((an,i)=>{
+      y.font='bold 10px Lexend';y.textAlign='left';y.fillStyle='#444';
+      y.fillText(an,10,52+i*17);
+      y.fillStyle=vinc[i][1];y.fillText(vinc[i][0],66,52+i*17);});
+    const ma=new THREE.Mesh(new THREE.PlaneGeometry(0.46,0.64),
+      lam(0xffffff,{map:tex(a,false)}));
+    ma.position.set(bx,by,bz+0.05);g.add(ma);
+  })(11,Q_ALTA+1.75,z0+0.09);
   quadro(g,texQuadro(151),0.9,1.1,3,Q_ALTA+1.7,z0+0.1,0);
   estintore(g,-5.5,Q_ALTA+0.9,z0+0.2);
   quadro(g,texSalaIns,0.62,0.31,-2.2,Q_ALTA+1.75,z0+0.1,0);
@@ -2178,6 +2333,19 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
     box(g,w,0.10,0.16,lam(0x4A4640),(q[0]+q[1])/2,Q_ALTA+0.12,lz0+0.09,false);});
   quadro(g,texLavori(151),2.4,1.3,-75.2,Q_ALTA+1.55,lz1-0.09,Math.PI);
   quadro(g,texLavori(153),2.4,1.3,-68.4,Q_ALTA+1.5,lz1-0.09,Math.PI);
+  /* GIUNTO: il corridoio dei lavori (x -76,4..-66,6) e la Primaria
+     (x -76,85..-67,15) non coincidono in larghezza, e fra loro restava una
+     striscia scoperta verso est: da li' si vedeva il prato sotto. La chiudo
+     estendendo il pavimento fino al filo del blocco. */
+  (function giunto(){
+    const gx0=-77.0, gx1=-64.2, gz0=-6.9, gz1=-3.5;
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(gx1-gx0,gz1-gz0),
+      pav30(gx1-gx0,gz1-gz0,109));
+    m.rotation.x=-Math.PI/2;m.position.set((gx0+gx1)/2,Q_ALTA-0.004,(gz0+gz1)/2);
+    m.receiveShadow=true;g.add(m);
+    box(g,gx1-gx0,0.30,gz1-gz0,lam(0xbdbab2),(gx0+gx1)/2,Q_ALTA-0.17,(gz0+gz1)/2,false);
+    /* e il parapetto verso il cortile, che mancava del tutto */
+    box(g,gx1-gx0,1.05,0.18,matCrema,(gx0+gx1)/2,Q_ALTA+0.52,gz1,false);})();
   box(g,lx1-lx0,0.1,lz1-lz0,matTerracotta,(lx0+lx1)/2,Q_ALTA+2.62,(lz0+lz1)/2,false);
   box(g,1.1,0.05,0.4,lam(0xe8e8e0),(lx0+lx1)/2,Q_ALTA+2.56,(lz0+lz1)/2,false);
 })();
@@ -2261,7 +2429,7 @@ let ancoraBiliardino=null, ancoraCase=null;
   /* La Secondaria e' a L: al corpo principale si aggiunge il BRACCIO D'ANGOLO
      che gira verso il corridoio nord. Tutta la L e' 60x60 antracite: il cambio
      di piastrella avviene sul confine con gli uffici, a x=8,55. */
-  const zA=-11.55;                       /* il braccio arriva al corridoio nord */
+  const zA=-11.55, xB=X_CONFINE;         /* il braccio arriva fino al confine */
   function lastraSec(ax0,ax1,az0,az1){
     const w=ax1-ax0, d=az1-az0;
     const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),pav60(w,d));
@@ -2270,11 +2438,13 @@ let ancoraBiliardino=null, ancoraCase=null;
     box(g,w,0.3,d,lam(0xbdbab2),(ax0+ax1)/2,Q_ALTA-0.16,(az0+az1)/2,false);
     const c=new THREE.Mesh(new THREE.PlaneGeometry(w,d),matSoffitto(Math.round(w/1.2),Math.round(d/1.2)));
     c.rotation.x=Math.PI/2;c.position.set((ax0+ax1)/2,SOFF,(az0+az1)/2);g.add(c);}
-  lastraSec(x0,x1,z0,z1);                /* corpo principale */
-  lastraSec(x0,xc,zA,z0);                /* braccio d'angolo verso il corridoio nord */
-  /* soglia di cambio piastrella sul confine con gli uffici */
-  box(g,0.16,0.04,z0-zA,lam(0xCFC6B0),x0,Q_ALTA+0.02,(zA+z0)/2,false);
+  lastraSec(x0,x1,z0,z1);                /* corpo principale, l'ala verso le piscine */
+  lastraSec(xB,x0,zA,z0);                /* BRACCIO lungo il corridoio, fino al confine */
+  lastraSec(x0,xc,zA,z0);                /* raccordo d'angolo */
+  /* soglia di cambio piastrella: e' QUI che il 60x60 diventa 30x30 */
+  box(g,0.18,0.05,z0-zA,lam(0xCFC6B0),xB,Q_ALTA+0.025,(zA+z0)/2,false);
   /* muro esterno del braccio, verso nord */
+  box(g,x0-xB,SOFF-Q_ALTA,0.16,matBiancoInt,(xB+x0)/2,(SOFF+Q_ALTA)/2,zA,false);
   box(g,xc-x0,SOFF-Q_ALTA,0.16,matBiancoInt,(x0+xc)/2,(SOFF+Q_ALTA)/2,zA,false);
   box(g,x1-xc,SOFF-Q_ALTA,0.16,matBiancoInt,(xc+x1)/2,(SOFF+Q_ALTA)/2,z0,false);
   const dv=box(g,z1-z0,SOFF-Q_ALTA,0.16,matBiancoInt,xc,(SOFF+Q_ALTA)/2,(z0+z1)/2,false);
@@ -2299,8 +2469,11 @@ let ancoraBiliardino=null, ancoraCase=null;
     box(g,x1-xc-0.1,0.3,az1-az0-0.1,lam(0xbdbab2),(xc+x1)/2,Q_ALTA-0.16,ac,false);
     if(ai>0){box(g,x1-xc,SOFF-Q_ALTA,0.12,matGialloAula,(xc+x1)/2,(SOFF+Q_ALTA)/2,az0,false);
       box(g,x1-xc,1.05,0.13,matFasciaVerde,(xc+x1)/2,Q_ALTA+0.525,az0,false);}
+    /* 4890/4892: la fascia grigio-verde NON gira su tutte le pareti: manca
+       su quella della lavagna e della TV. Sta sulle due laterali e sul fondo. */
     const fs=box(g,az1-az0,1.05,0.05,matFasciaVerde,xc+0.11,Q_ALTA+0.525,ac,false);
-    fs.rotation.y=Math.PI/2;
+    fs.rotation.y=Math.PI/2; fs.visible=false;
+    box(g,az1-az0,0.05,0.06,lam(0xBFC4B8),xc+0.12,Q_ALTA+1.05,ac,false).rotation.y=Math.PI/2;
     const me=box(g,az1-az0,SOFF-Q_ALTA,0.12,matGialloAula,x1-0.05,(SOFF+Q_ALTA)/2,ac,false);
     me.rotation.y=Math.PI/2;
     const fe=box(g,az1-az0,1.05,0.05,matFasciaVerde,x1-0.12,Q_ALTA+0.525,ac,false);
@@ -2367,6 +2540,78 @@ let ancoraBiliardino=null, ancoraCase=null;
    l'unica opzione plausibile.
    "sug" e' il suggerimento del religioso: orienta senza dare la risposta.
    ====================================================================== */
+const STORIA=[
+ {t:'Una bambina nata nella nebbia',
+  p:['Il 28 gennaio 1816, in un giorno di freddo e di nebbia, nell\'antico paese di '+
+     '<strong>Soncino</strong> nasce una bambina. I genitori sono il conte Francesco '+
+     'Domenico Cerioli e la contessa Francesca Corniani. Al battesimo le danno due nomi: '+
+     '<strong>Costanza Onorata</strong>. È la <strong>sedicesima e ultima figlia</strong> '+
+     'di una famiglia nobile e numerosa.',
+     'A insegnarle ad amare Gesù e i poveri è soprattutto <strong>la madre</strong>, che '+
+     'la porta con sé a portare cibo, vestiti e attenzione a chi non ha nulla. Davanti a '+
+     'tanta miseria la bambina si commuove e si fa una domanda che si porterà dentro per '+
+     'tutta la vita: perché nel mondo c\'è tanta ingiustizia?']},
+ {t:'Gli anni del Collegio',
+  p:['A <strong>dieci anni</strong> entra con la sorella Cecilia nel Collegio delle '+
+     '<strong>Suore Visitandine</strong> di Alzano Maggiore, in provincia di Bergamo. '+
+     'Studia religione e lingua francese, e soprattutto le materie che ama: '+
+     '<strong>disegno a matita, acquerello e pianoforte</strong>. Canta volentieri.',
+     'Le compagne cercano la sua amicizia per confidarsi, le maestre la apprezzano. A '+
+     'quindici anni torna a Soncino, e in casa comincia a leggere <strong>la Bibbia</strong>: '+
+     'sono quelle storie, dirà, a riscaldarle il cuore.']},
+ {t:'Il segreto raccontato a Nicodemo',
+  p:['Fra le pagine del Vangelo ce n\'è una che porterà sempre con sé. Una notte '+
+     '<strong>Nicodemo</strong>, uno dei capi di Gerusalemme, va da Gesù per conoscerlo '+
+     'meglio. Gesù lo accoglie con una frase che lo lascia confuso: per incontrare Dio '+
+     '<strong>devi rinascere dall\'alto</strong>.',
+     'Come è possibile nascere una seconda volta? Gesù spiega che la seconda nascita non '+
+     'è come la prima: avviene quando accogliamo in noi il respiro di Dio, e continua per '+
+     'tutta la vita. È l\'immagine con cui Paola leggerà la propria storia.']},
+ {t:'Comonte, e il dolore',
+  p:['A <strong>diciannove anni</strong> i genitori la propongono in sposa a un uomo molto '+
+     'più anziano di lei, il <strong>conte Gaetano Busecchi Tassis</strong>. Si trasferisce '+
+     'a <strong>Comonte</strong>, vicino a Bergamo: casa nuova, famiglia nuova, persone nuove.',
+     'Diventa madre di <strong>quattro figli</strong>. Tre muoiono piccolissimi. Solo uno, '+
+     '<strong>Carlo</strong>, arriva a sedici anni — e muore il <strong>16 gennaio 1854</strong>. '+
+     'Pochi mesi dopo muore anche il marito. È il momento più duro della sua vita: le sembra '+
+     'che tutto abbia perso bellezza.']},
+ {t:'La seconda creazione',
+  p:['Ma proprio lì, a <strong>quarant\'anni</strong>, accade qualcosa. Apre gli occhi e si '+
+     'accorge che nelle campagne attorno al suo palazzo ci sono <strong>bambini senza '+
+     'famiglia e senza istruzione</strong>. Capisce di essere rinata un\'altra volta, e questa '+
+     'volta per diventare <strong>madre degli orfani</strong>.',
+     'Accoglie in casa i bambini e le bambine orfani dei contadini. Per le ragazze che non '+
+     'possono andare a scuola apre nella propria casa una <strong>scuola di carità</strong>. '+
+     'Altri uomini e donne si uniscono a lei. Scopre così che <strong>educare è collaborare '+
+     'con Dio a una seconda creazione</strong>: accompagnare qualcuno verso una seconda '+
+     'nascita. È esattamente ciò che Gesù aveva detto a Nicodemo.']},
+ {t:'Quello che è rimasto',
+  p:['Da lei nascono gli <strong>Istituti femminile e maschile della Sacra Famiglia</strong>, '+
+     'che ancora oggi portano avanti quella missione in diverse parti del mondo — in Italia '+
+     'come in <strong>Brasile</strong>.',
+     'La sua festa si celebra il <strong>23 gennaio</strong>. Nel 2026 ricorrono '+
+     '<strong>210 anni</strong> dalla sua nascita, e <strong>100 anni</strong> del Centro di '+
+     'Orzinuovi: questo campus.',
+     'La sua storia si riassume in un\'immagine che le era cara: la vita è come un '+
+     '<strong>fiore che deve sbocciare per donare profumo</strong>. Se resta chiuso per paura, '+
+     'non vive e non dona nulla.']}
+];
+function apriStoria(){
+  apriFoglio('<div class="occhiello">Per rispondere alle domande</div>'
+    +'<h1>La storia della Fondatrice</h1>'
+    +'<p style="font-size:15px;color:#5c6a7c">Santa Paola Elisabetta Cerioli, '
+    +'1816–1865. Qui dentro ci sono tutte le risposte: leggi con calma.</p>'
+    + STORIA.map(function(s2){ return '<h3 style="font-family:Lexend,sans-serif;'
+        +'font-size:16.5px;color:#123E90;margin:16px 0 5px">'+s2.t+'</h3>'
+        + s2.p.map(function(q){return '<p>'+q+'</p>';}).join(''); }).join('')
+    +'<div class="bottoni"><button onclick="chiudiStoria()">Torna al gioco</button></div>');
+}
+window.apriStoria=apriStoria;
+window.chiudiStoria=function(){
+  chiudiFoglio();
+  if(quesito) mostraDomanda();      /* se ero su una domanda, ci torno */
+};
+
 const DOMANDE=[
  {d:'In quale città è nata Santa Paola Elisabetta Cerioli?', r:'Soncino',
   x:['Orzinuovi','Martinengo','Alzano Maggiore'],
@@ -2416,7 +2661,7 @@ const DOMANDE=[
      'Perché crea cittadini nuovi per la società',
      'Perché insegna a leggere e scrivere da capo'],
   sug:'Il verbo che conta è «collaborare»: non si crea da soli.'},
- {d:'Quale opera architettonica moderna viene citata nella lettera?',
+ {d:'Quale opera architettonica moderna viene citata nel racconto?',
   r:'La Sagrada Familia di Gaudì',
   x:['La basilica di San Pietro','Il Duomo di Milano','La Sacra di San Michele'],
   sug:'È a Barcellona, ed è ancora incompiuta dopo più di un secolo.'},
@@ -2434,7 +2679,7 @@ const DOMANDE=[
   x:['Le figlie delle famiglie nobili','I ragazzi del seminario',
      'I bambini del paese senza distinzione'],
   sug:'Erano bambine, e venivano dalle famiglie che nessuno cercava.'},
- {d:'A cosa è paragonata la vita nella lettera?',
+ {d:'A cosa è paragonata la vita nel racconto della Fondatrice?',
   r:'A un fiore che deve sbocciare per donare profumo',
   x:['A un seme che marcisce per dare frutto','A un cammino in salita verso la vetta',
      'A una casa costruita sulla roccia'],
@@ -2698,6 +2943,7 @@ $('bRileggi').addEventListener('click',()=>{
     +'<table>'+righe+'</table>'
     +'<div class="bottoni"><button onclick="chiudiFoglio()">Torna a cercare</button></div>');});
 
+$('bStoria').addEventListener('click',()=>apriStoria());
 $('bMappa').addEventListener('click',()=>{
   apriFoglio('<div class="occhiello">Muoversi</div><h1>I luoghi del campus</h1>'
     +'<p>Puoi volare dove vuoi. Questi sono i punti di partenza più comodi: '
@@ -2756,6 +3002,8 @@ function mostraDomanda(){
     +'<div class="aiuti" id="aiuti">'
     +'<button id="a50" onclick="aiuto50()">Togli due risposte</button>'
     +'<button id="ars" onclick="aiutoReligioso()">Chiedi al religioso</button>'
+    +'<button onclick="apriStoria()" style="color:#123E90;background:#eef3fc;'
+    +'border-color:#c9d6ef">Leggi la storia</button>'
     +'</div><div id="suggerimento"></div>');
 }
 window.aiuto50=function(){
