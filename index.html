@@ -2507,24 +2507,36 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
   /* gli unici gradini del piano: nell'angolo fra corridoio nord e corridoio
      est della Scuola Secondaria */
   (function gradiniAngolo(){
-    /* IMG_4879: quattro alzate basse, pedate profonde, gres grigio come il
-       pavimento e una fascia chiara sul naso del gradino. Il lato verso il
-       muro e' scalato: ogni gradino arretra rispetto a quello sottostante. */
-    /* CORREZIONE DAL VIDEO (indicazione di Andrea): la scaletta e' messa
-       proprio OBLIQUA nell'angolo fra i due corridoi, a taglio di 45 gradi,
-       non ortogonale a uno dei due. E' il motivo per cui, girando l'angolo,
-       la si prende sempre di sbieco. */
-    const grigio=lam(0x8f8d87), naso=lam(0xbfbdb6);   /* gres come il pavimento */
-    const alz=0.17, ped=0.44, w=5.2;
-    const s=new THREE.Group();
-    s.position.set(10.9,Q_ALTA,-8.6); s.rotation.y=-Math.PI/4; g.add(s);
-    for(let i=0;i<3;i++){                    /* 4880/4881: sono TRE, non quattro */
-      const z=-ped+i*ped, h=alz*(3-i);
-      box(s,w,h,ped,grigio,0,h/2,z,true);
-      box(s,w,0.035,0.08,naso,0,h+0.006,z-ped/2+0.04,false);}
-    box(s,0.06,alz*3,ped*3,grigio,-w/2-0.03,alz*1.5,-ped*0.5,false);
-    box(s,0.06,alz*3,ped*3,grigio, w/2+0.03,alz*1.5,-ped*0.5,false);
-    contatto(g,10.9,Q_ALTA+0.012,-8.6,6.4,6.4,0.4);})();
+    /* IMG_4879 — RILETTA. Non e' un blocco di gradini ruotato: e' una
+       GRADINATA CHE GIRA L'ANGOLO. Ogni gradino e' una L in pianta — un tratto
+       lungo davanti e un tratto che svolta verso il corridoio laterale — e i
+       due tratti si incontrano con un taglio a 45 gradi. E' quel taglio a
+       farla sembrare messa "di sbieco": la si prende sempre d'angolo.
+       Materiale: gres GRIGIO come il pavimento, con una fascia chiara sottile
+       sul naso di ogni pedata. La guancia laterale scala col gradino. */
+    const grigio=lam(0x8f8d87), naso=lam(0xc4c2bb);
+    const alz=0.17, ped=0.46, N=3;
+    const xK=8.9, zK=-7.6;            /* spigolo interno attorno a cui gira    */
+    const xFin=13.45, zFin=-11.4;     /* estremita' dei due bracci             */
+    for(let i=0;i<N;i++){
+      const h=alz*(i+1), D=ped*(N-i), y=Q_ALTA+h/2;
+      /* braccio lungo il corridoio est: pedata parallela a X */
+      const zA=zK+D-ped/2, xA0=xK-D, wA=xFin-xA0;
+      box(g,wA,h,ped,grigio,(xA0+xFin)/2,y,zA,true);
+      box(g,wA,0.03,0.09,naso,(xA0+xFin)/2,Q_ALTA+h+0.004,zA-ped/2+0.045,false);
+      /* braccio che svolta verso il corridoio nord: pedata parallela a Z */
+      const xB=xK-D+ped/2, zB1=zK+D, dB=zB1-zFin;
+      box(g,ped,h,dB,grigio,xB,y,(zFin+zB1)/2,true);
+      box(g,0.09,0.03,dB,naso,xB-ped/2+0.045,Q_ALTA+h+0.004,(zFin+zB1)/2,false);
+      /* il taglio a 45 gradi nello spigolo fra i due bracci */
+      const sm=box(g,ped*1.42,h,ped*1.42,grigio,xK-D+ped/2,y,zK+D-ped/2,false);
+      sm.rotation.y=Math.PI/4;}
+    /* guance laterali, che scalano insieme ai gradini */
+    for(let i=0;i<N;i++){
+      const h=alz*(i+1), D=ped*(N-i);
+      box(g,0.07,h,ped,grigio,xFin+0.04,Q_ALTA+h/2,zK+D-ped/2,false);
+      box(g,ped,h,0.07,grigio,xK-D+ped/2,Q_ALTA+h/2,zFin-0.04,false);}
+    contatto(g,10.6,Q_ALTA+0.012,-8.4,7.5,6.5,0.4);})();
   const te=box(g,z1-z0,SOFF-Q_ALTA,0.16,matBiancoInt,13.57,(SOFF+Q_ALTA)/2,(z0+z1)/2,false);
   te.rotation.y=Math.PI/2;
   const vcu=new THREE.Mesh(new THREE.PlaneGeometry(3,2.2),matVetroC(4,3));
@@ -2665,42 +2677,47 @@ let ancoraBiliardino=null, ancoraCase=null;
      dell'ala, e buca il soffitto verso il secondo piano che non e' mappato.
      ==================================================================== */
   (function tabelline(){
-    const n=14, alz=0.19, ped=0.30, xC=-71.8, W=2.0;
-    const zIn=6.0, PAROLE=['Buona Scuola','Gestione delle emergenze',
+    /* IMG_4901 + indicazione di Andrea: la scala e' APPOGGIATA ALLA PARETE SUD
+       del corridoio, PROPRIO PRIMA DELL'ANGOLO in cui il corridoio gira nella
+       Primaria. Sale verso ovest, cioe' verso la zona arancione: le alzate coi
+       quadretti numerati guardano a est e le vedi arrivando dal corridoio.
+       Sul fianco libero corrono il muretto e il corrimano inox, come in foto.
+       (Prima l'avevo messa in fondo al salone: era ancora l'asse sbagliato.) */
+    const n=14, alz=0.19, ped=0.30, zC=-7.35, W=2.0, xIn=-60.4;
+    const PAROLE=['Buona Scuola','Gestione delle emergenze',
       'Creativita','Accoglienza','Responsabilita','Rispetto','Ascolto',
       'Collaborazione','Impegno','Gentilezza','Fiducia','Cura','Coraggio','Speranza'];
     for(let i=0;i<n;i++){
-      const zz=zIn+ped*i, yy=Q_ALTA+alz*i;
-      box(g,W,alz,ped,matCrema,xC,yy+alz/2,zz+ped/2,true);
-      /* alzata: la riga della tabellina, rivolta verso chi sale */
+      const xx=xIn-ped*i, yy=Q_ALTA+alz*i;
+      box(g,ped,alz,W,matCrema,xx-ped/2,yy+alz/2,zC,true);
+      /* alzata rivolta a EST: e' la faccia che vedi venendo dal corridoio */
       const a2=new THREE.Mesh(new THREE.PlaneGeometry(W,alz),
         lam(0xffffff,{map:texAlzataTab((i%10)+1)}));
-      a2.rotation.y=Math.PI; a2.position.set(xC,yy+alz/2,zz-0.003);g.add(a2);
-      /* pedata: la parola applicata, che si legge attraversando il gradino */
-      const p=new THREE.Mesh(new THREE.PlaneGeometry(W,ped*0.92),
+      a2.rotation.y=Math.PI/2; a2.position.set(xx+0.003,yy+alz/2,zC);g.add(a2);
+      /* pedata: la parola, che si legge camminando lungo il gradino */
+      const p=new THREE.Mesh(new THREE.PlaneGeometry(ped*0.92,W),
         lam(0xffffff,{map:texPedata(PAROLE[i])}));
-      /* la parola si legge salendo: senza il giro di 180 gradi il testo
-         risulta capovolto rispetto a chi sale */
-      p.rotation.x=-Math.PI/2; p.rotation.z=Math.PI;
-      p.position.set(xC,yy+alz+0.004,zz+ped/2);g.add(p);}
-    const zFin=zIn+ped*n, yFin=Q_ALTA+alz*n, ang=Math.atan2(alz,ped);
-    /* muretto laterale verso il salone, con il corrimano inox sopra */
-    const mur=box(g,0.16,1.05,ped*n,matCrema,xC-W/2-0.08,(Q_ALTA+yFin)/2+0.52,(zIn+zFin)/2,false);
-    mur.rotation.x=-ang;
+      p.rotation.x=-Math.PI/2; p.rotation.z=Math.PI/2;
+      p.position.set(xx-ped/2,yy+alz+0.004,zC);g.add(p);}
+    const xFin=xIn-ped*n, yFin=Q_ALTA+alz*n, ang=Math.atan2(alz,ped);
+    /* muretto e corrimano sul fianco libero, verso il corridoio */
+    const zL=zC-W/2-0.08;
+    const mur=box(g,ped*n,1.05,0.16,matCrema,(xIn+xFin)/2,(Q_ALTA+yFin)/2+0.52,zL,false);
+    mur.rotation.z=-ang;
     const inoxT=new THREE.MeshPhongMaterial({color:0xc6cad0,shininess:110,specular:0xffffff});
     const cor=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,ped*n+0.5,10),inoxT);
-    cor.rotation.x=Math.PI/2-ang;
-    cor.position.set(xC-W/2-0.08,(Q_ALTA+yFin)/2+1.05,(zIn+zFin)/2);g.add(cor);
+    cor.rotation.z=Math.PI/2+ang;
+    cor.position.set((xIn+xFin)/2,(Q_ALTA+yFin)/2+1.05,zL);g.add(cor);
     for(let i=0;i<=4;i++){const t=i/4;
-      box(g,0.05,0.95,0.05,lam(0xb8bcc0),xC-W/2-0.08,Q_ALTA+t*alz*n+0.55,zIn+t*ped*n,false);}
-    /* il soffitto e' forato dove passa la rampa: sopra si intravede il buio
-       del secondo piano, che non e' modellato */
-    box(g,W+0.6,0.16,ped*n+0.6,matBiancoInt,xC,SOFF+0.9,(zIn+zFin)/2,false);
-    const vano=new THREE.Mesh(new THREE.BoxGeometry(W+0.4,1.8,ped*n+0.4),
+      box(g,0.05,0.95,0.05,lam(0xb8bcc0),xIn-t*ped*n,Q_ALTA+t*alz*n+0.55,zL,false);}
+    /* il soffitto e' forato dove passa la rampa: sopra c'e' il secondo piano,
+       che non e' modellato */
+    box(g,ped*n+0.6,0.16,W+0.6,matBiancoInt,(xIn+xFin)/2,SOFF+0.9,zC,false);
+    const vano=new THREE.Mesh(new THREE.BoxGeometry(ped*n+0.4,1.8,W+0.4),
       new THREE.MeshBasicMaterial({color:0x1c1a18,side:THREE.BackSide}));
-    vano.position.set(xC,SOFF+0.02,(zIn+zFin)/2);g.add(vano);
-    box(g,W+0.4,1.9,0.18,matBiancoInt,xC,SOFF+0.05,zIn-0.2,false);
-    contatto(g,xC,Q_ALTA+0.012,(zIn+zFin)/2,W+1.6,ped*n+1,0.4);
+    vano.position.set((xIn+xFin)/2,SOFF+0.02,zC);g.add(vano);
+    box(g,0.18,1.9,W+0.4,matBiancoInt,xIn+0.2,SOFF+0.05,zC,false);
+    contatto(g,(xIn+xFin)/2,Q_ALTA+0.012,zC,ped*n+1,W+1.6,0.4);
   })();
 })();
 
@@ -3091,7 +3108,7 @@ const TAPPE=[
 
   { titolo:'I gradini che fanno i conti',
     indizio:'C\'è una scala che non serve solo a salire: su ogni alzata qualcuno ha incollato quadretti numerati colorati, e i numeri crescono di riga in riga; sulle pedate, invece, sono scritte delle parole. Sta in fondo al salone dove le pareti sono gialle e il pavimento a scacchi caldi. La cassetta è a terra, appoggiata contro il primo gradino.',
-    pos:[-71.8,4.39,5.4], da:[-69.2,5.4,4.2], zona:'Scuola Primaria, primo piano: la grande scala in fondo al salone.',
+    pos:[-59.9,4.39,-7.3], da:[-56.8,5.4,-8.4], zona:'Il corridoio del primo piano, contro la parete sud, appena prima dell\'angolo con la Scuola Primaria.',
     cosa:'Una cassetta di legno a terra, ai piedi della scala coi quadretti numerati.',
     imparato:'La scala delle tabelline trasforma un passaggio obbligato in un ripasso involontario: ogni volta che sali, i numeri ti passano davanti. È un\'idea semplice — mettere il contenuto dove il corpo passa comunque.' },
 
