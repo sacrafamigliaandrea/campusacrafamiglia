@@ -199,8 +199,10 @@
   - Mezzanino: colonne tonde d'acciaio, nicchie rettangolari nei muri,
     soffitto a fasce arancio/celeste, scacchi piccoli, ficus, Mondrian con
     divano grigio e panchina a listelli, scala delle tabelline.
-  - Corridoi: DUE listelli portalavori, tavoli gambe blu/piano verde,
-    gradinata di 5 gradini a tutta larghezza, ringhiera nera al vano scala.
+  - Corridoi: DUE listelli portalavori, tavoli gambe blu/piano verde con sedie
+    in legno chiaro, gradinata di QUATTRO alzate in CEMENTO A VISTA a tutta
+    larghezza, ringhiera nera al vano scala, cubiere bianche 2x2, mobile basso
+    grigio con testata tonda, controsoffitto bianco con plafoniere lineari.
   - Aule: crema sopra + fascia GRIGIO-VERDE sotto, infissi NERI,
     sedie lime e blu.
 
@@ -1857,7 +1859,8 @@ function texScacchi(pal,n,celle){
 /* DUE SOLI TIPI DI PIASTRELLA IN TUTTA LA SCUOLA (indicazione di Andrea):
    1) Primaria, uffici e atrio: 30x30 a TRE COLORI — sabbia, antracite, rosa,
       posati a scacchiera irregolare (gli stessi del laboratorio di informatica);
-   2) Secondaria: 60x60 ANTRACITE uniforme.
+   2) Secondaria: 60x60 effetto cemento GRIGIO MEDIO CALDO (non antracite:
+      corretto sul video della passeggiata al primo piano).
    Le ripetizioni si calcolano dalle dimensioni reali del vano, cosi' la
    piastrella misura davvero 30 cm o 60 cm e non "quello che viene". */
 const PAL3=['#DCCFB2','#6E6B67','#C9A79E','#DCCFB2','#6E6B67','#C9A79E',
@@ -1865,16 +1868,21 @@ const PAL3=['#DCCFB2','#6E6B67','#C9A79E','#DCCFB2','#6E6B67','#C9A79E',
 function pav30(w,d,seed){            /* 30 cm: texture da 4x4 celle = 1,20 m */
   return matPav(PAL3, seed||107, Math.max(1,Math.round(w/1.2)),
                 Math.max(1,Math.round(d/1.2)), 4);}
+/* CORREZIONE DAL VIDEO (§18): il 60x60 della Secondaria NON e' antracite.
+   Nella passeggiata del primo piano e' un gres effetto cemento GRIGIO MEDIO
+   CALDO, piuttosto chiaro, con nuvolature evidenti e fuga sottile appena piu'
+   scura. Con l'antracite il corridoio veniva quasi nero e la gradinata in
+   cemento non staccava; nel filmato e' l'opposto, l'ambiente e' luminoso. */
 const texAntracite60=(()=>{const c=mkCanvas(256,256),g=c.getContext('2d'),rnd=seme(613);
-  g.fillStyle='#4E4C4A';g.fillRect(0,0,256,256);
+  g.fillStyle='#918F89';g.fillRect(0,0,256,256);
   for(let i=0;i<160;i++){                       /* venature e nuvolature */
-    const v=70+rnd()*34|0;
-    g.fillStyle='rgba('+v+','+(v-2)+','+(v-4)+','+(0.06+rnd()*0.14).toFixed(2)+')';
+    const v=132+rnd()*40|0;
+    g.fillStyle='rgba('+v+','+(v-2)+','+(v-6)+','+(0.07+rnd()*0.15).toFixed(2)+')';
     g.beginPath();g.ellipse(rnd()*256,rnd()*256,10+rnd()*44,8+rnd()*30,rnd()*3,0,Math.PI*2);g.fill();}
   for(let i=0;i<120;i++){
-    g.fillStyle='rgba(150,146,140,'+(0.05+rnd()*0.13).toFixed(2)+')';
+    g.fillStyle='rgba(96,94,90,'+(0.05+rnd()*0.12).toFixed(2)+')';
     g.fillRect(rnd()*256,rnd()*256,2,2);}
-  g.strokeStyle='#333130';g.lineWidth=3;g.strokeRect(0,0,256,256);
+  g.strokeStyle='#787671';g.lineWidth=3;g.strokeRect(0,0,256,256);
   return tex(c,true);})();
 function pav60(w,d){                 /* 60 cm: una piastrella per ripetizione */
   const t=texAntracite60.clone();t.needsUpdate=true;
@@ -2092,9 +2100,21 @@ function ringhiera(p,len,x,y,z,ry,col){
    Ricavato da map.jpeg: il braccio orizzontale della Secondaria copre circa il
    40% del corridoio a partire dall'angolo est. */
 const X_CONFINE=-22.5;
+/* GRADINATA fra le due quote del corridoio — riletta sul video (§18).
+   Sono QUATTRO alzate in CEMENTO A VISTA chiaro, non nel grigio scuro del
+   pavimento: nel filmato lo stacco fra il cemento delle pedate e le piastrelle
+   del corridoio e' l'elemento che si vede da lontano. Larghezza: tutto il
+   passaggio, con la guancia laterale piena. */
+const matGradino=lam(0xb9b7b0);
 function gradinata(p,xc,est,z0,z1){
   for(let i=0;i<4;i++){const dx=est?i*0.32:-i*0.32;
-    box(p,0.32,0.16*(i+1),z1-z0-0.3,matGrigioScuroMat,xc+dx,Q_BASSA+0.08*(i+1),(z0+z1)/2,false);}}
+    box(p,0.32,0.16*(i+1),z1-z0-0.3,matGradino,xc+dx,Q_BASSA+0.08*(i+1),(z0+z1)/2,false);
+    /* naso del gradino, un filo piu' scuro: nel video si legge bene */
+    box(p,0.34,0.02,z1-z0-0.3,lam(0x8f8d87),xc+dx,Q_BASSA+0.16*(i+1),(z0+z1)/2,false);}
+  /* guancia laterale piena, in cemento come le alzate */
+  const gx=est?xc+0.64:xc-0.64;
+  box(p,1.35,0.66,0.16,matGradino,gx,Q_BASSA+0.33,z0+0.14,false);
+  box(p,1.35,0.66,0.16,matGradino,gx,Q_BASSA+0.33,z1-0.14,false);}
 function biliardino(p,x,z,ry,col,q){
   const g=new THREE.Group();
   const c=new THREE.Mesh(geoSmussata(1.5,0.42,0.9,0.03),col);
@@ -2302,46 +2322,10 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
     box(g,0.14,2.4,n*pd+1,lam(0xa8c4d4),vx1+0.05,1.6,vz1-0.4-(n*pd)/2,false);
     const c=box(g,0.04,0.04,n*pd,lam(0xc9ccd0),vx1+2.12,2.4,vz1-0.4-(n*pd)/2,false);
     c.rotation.x=Math.atan2(Q_ALTA-0.12,n*pd);})();
-  /* SCALA DELLE TABELLINE: alzate coi quadretti numerati (dal video) */
-  (function tabelline(){
-    /* 4902: la scala corre PARALLELA al corridoio principale (asse X) e SALE AL
-       SECONDO PIANO, che non e' mappato: la rampa attraversa il soffitto e si
-       perde in un vano scuro. Prima l'avevo messa trasversale e tronca. */
-    const n=14, alz=0.19, ped=0.30;
-    const xIn=x0+1.0, zC=-16.2, PAROLE=['Buona Scuola','Gestione delle emergenze',
-      'Creatività','Accoglienza','Responsabilità','Rispetto','Ascolto',
-      'Collaborazione','Impegno','Gentilezza','Fiducia','Cura','Coraggio','Speranza'];
-    for(let i=0;i<n;i++){
-      const xx=xIn+ped*i, yy=Q_ALTA+alz*i;
-      box(g,ped,alz,2.0,matCrema,xx+ped/2,yy+alz/2,zC,true);
-      /* alzata rivolta verso il corridoio: porta la riga della tabellina */
-      const a2=new THREE.Mesh(new THREE.PlaneGeometry(2.0,alz),
-        lam(0xffffff,{map:texAlzataTab((i%10)+1)}));
-      a2.rotation.y=-Math.PI/2; a2.position.set(xx+0.002,yy+alz/2,zC);g.add(a2);
-      /* pedata: la parola applicata in nero */
-      const p=new THREE.Mesh(new THREE.PlaneGeometry(ped*0.92,2.0),
-        lam(0xffffff,{map:texPedata(PAROLE[i])}));
-      p.rotation.x=-Math.PI/2; p.rotation.z=-Math.PI/2;
-      p.position.set(xx+ped/2,yy+alz+0.004,zC);g.add(p);}
-    /* muretto laterale verso il vuoto, con corrimano inox */
-    const xFin=xIn+ped*n, yFin=Q_ALTA+alz*n;
-    const mur=box(g,ped*n,1.05,0.16,matCrema,(xIn+xFin)/2,0,zC-1.08,false);
-    mur.geometry.translate(0,0,0);
-    mur.position.y=(Q_ALTA+yFin)/2+0.52; mur.rotation.z=Math.atan2(alz,ped);
-    const inoxT=new THREE.MeshPhongMaterial({color:0xc6cad0,shininess:110,specular:0xffffff});
-    const cor=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,ped*n+0.5,10),inoxT);
-    cor.rotation.z=Math.PI/2-Math.atan2(alz,ped);
-    cor.position.set((xIn+xFin)/2,(Q_ALTA+yFin)/2+1.05,zC-1.08);g.add(cor);
-    for(let i=0;i<=4;i++){const t=i/4;
-      box(g,0.05,0.95,0.05,lam(0xb8bcc0),xIn+t*ped*n,Q_ALTA+t*alz*n+0.55,zC-1.08,false);}
-    /* il soffitto e' forato dove passa la rampa: sopra si intravede il buio
-       del secondo piano, che non e' modellato */
-    box(g,ped*n+0.6,0.16,2.4,matBiancoInt,(xIn+xFin)/2,hT+0.9,zC,false);
-    const vano=new THREE.Mesh(new THREE.BoxGeometry(ped*n+0.4,1.8,2.2),
-      new THREE.MeshBasicMaterial({color:0x1c1a18,side:THREE.BackSide}));
-    vano.position.set((xIn+xFin)/2,hT+0.02,zC);g.add(vano);
-    box(g,0.18,1.9,2.4,matBiancoInt,xIn-0.2,hT+0.05,zC,false);
-  })();
+  /* La SCALA DELLE TABELLINE non sta qui: sta alla SCUOLA PRIMARIA
+     (indicazione di Andrea). Spostata nella sezione "primaria", dove la rampa
+     sale lungo Z, che e' il verso dell'ala. Nell'atrio era orientata lungo X:
+     non era un problema di coordinate, era l'asse sbagliato. */
 
   /* arredo del mezzanino: divano grigio, panchina a listelli, ficus, tavolo rustico */
   (function arredo(){
@@ -2526,17 +2510,21 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
     /* IMG_4879: quattro alzate basse, pedate profonde, gres grigio come il
        pavimento e una fascia chiara sul naso del gradino. Il lato verso il
        muro e' scalato: ogni gradino arretra rispetto a quello sottostante. */
+    /* CORREZIONE DAL VIDEO (indicazione di Andrea): la scaletta e' messa
+       proprio OBLIQUA nell'angolo fra i due corridoi, a taglio di 45 gradi,
+       non ortogonale a uno dei due. E' il motivo per cui, girando l'angolo,
+       la si prende sempre di sbieco. */
     const grigio=lam(0x8f8d87), naso=lam(0xbfbdb6);   /* gres come il pavimento */
-    const alz=0.17, ped=0.44, xDx=13.4;
+    const alz=0.17, ped=0.44, w=5.2;
+    const s=new THREE.Group();
+    s.position.set(10.9,Q_ALTA,-8.6); s.rotation.y=-Math.PI/4; g.add(s);
     for(let i=0;i<3;i++){                    /* 4880/4881: sono TRE, non quattro */
-      const xSx=7.4+i*0.95;                 /* l'estremita' verso il muro si accorcia */
-      const w=xDx-xSx, xc=(xSx+xDx)/2;
-      const z=-7.15+i*ped;
-      box(g,w,alz*(3-i),ped,grigio,xc,Q_ALTA+alz*(3-i)/2,z,true);
-      box(g,w,0.035,0.08,naso,xc,Q_ALTA+alz*(3-i)+0.006,z-ped/2+0.04,false);
-      box(g,0.05,alz*(3-i),ped,grigio,xSx-0.02,Q_ALTA+alz*(3-i)/2,z,false);
-    }
-    contatto(g,10.4,Q_ALTA+0.012,-6.2,7,2.4,0.4);})();
+      const z=-ped+i*ped, h=alz*(3-i);
+      box(s,w,h,ped,grigio,0,h/2,z,true);
+      box(s,w,0.035,0.08,naso,0,h+0.006,z-ped/2+0.04,false);}
+    box(s,0.06,alz*3,ped*3,grigio,-w/2-0.03,alz*1.5,-ped*0.5,false);
+    box(s,0.06,alz*3,ped*3,grigio, w/2+0.03,alz*1.5,-ped*0.5,false);
+    contatto(g,10.9,Q_ALTA+0.012,-8.6,6.4,6.4,0.4);})();
   const te=box(g,z1-z0,SOFF-Q_ALTA,0.16,matBiancoInt,13.57,(SOFF+Q_ALTA)/2,(z0+z1)/2,false);
   te.rotation.y=Math.PI/2;
   const vcu=new THREE.Mesh(new THREE.PlaneGeometry(3,2.2),matVetroC(4,3));
@@ -2670,6 +2658,50 @@ let ancoraBiliardino=null, ancoraCase=null;
   [[0x8a8f95,-68.2,31.6],[0x3a8a3a,-69.0,31.6],[0xe8c020,-69.8,31.6]].forEach(b=>
     box(g,0.45,0.6,0.45,lam(b[0]),b[1],Q_ALTA+0.3,b[2],true));
   contatto(g,-69.0,Q_ALTA+0.012,31.6,2.6,1.0,0.55);
+  /* ===== SCALA DELLE TABELLINE (dal video, §18) ==========================
+     E' la grande scala della PRIMARIA: ogni alzata porta una riga di
+     tabellina in quadretti numerati colorati, i numeri crescono salendo, e
+     sulle pedate sono applicate le parole. Sale lungo Z, cioe' nel verso
+     dell'ala, e buca il soffitto verso il secondo piano che non e' mappato.
+     ==================================================================== */
+  (function tabelline(){
+    const n=14, alz=0.19, ped=0.30, xC=-71.8, W=2.0;
+    const zIn=6.0, PAROLE=['Buona Scuola','Gestione delle emergenze',
+      'Creativita','Accoglienza','Responsabilita','Rispetto','Ascolto',
+      'Collaborazione','Impegno','Gentilezza','Fiducia','Cura','Coraggio','Speranza'];
+    for(let i=0;i<n;i++){
+      const zz=zIn+ped*i, yy=Q_ALTA+alz*i;
+      box(g,W,alz,ped,matCrema,xC,yy+alz/2,zz+ped/2,true);
+      /* alzata: la riga della tabellina, rivolta verso chi sale */
+      const a2=new THREE.Mesh(new THREE.PlaneGeometry(W,alz),
+        lam(0xffffff,{map:texAlzataTab((i%10)+1)}));
+      a2.rotation.y=Math.PI; a2.position.set(xC,yy+alz/2,zz-0.003);g.add(a2);
+      /* pedata: la parola applicata, che si legge attraversando il gradino */
+      const p=new THREE.Mesh(new THREE.PlaneGeometry(W,ped*0.92),
+        lam(0xffffff,{map:texPedata(PAROLE[i])}));
+      /* la parola si legge salendo: senza il giro di 180 gradi il testo
+         risulta capovolto rispetto a chi sale */
+      p.rotation.x=-Math.PI/2; p.rotation.z=Math.PI;
+      p.position.set(xC,yy+alz+0.004,zz+ped/2);g.add(p);}
+    const zFin=zIn+ped*n, yFin=Q_ALTA+alz*n, ang=Math.atan2(alz,ped);
+    /* muretto laterale verso il salone, con il corrimano inox sopra */
+    const mur=box(g,0.16,1.05,ped*n,matCrema,xC-W/2-0.08,(Q_ALTA+yFin)/2+0.52,(zIn+zFin)/2,false);
+    mur.rotation.x=-ang;
+    const inoxT=new THREE.MeshPhongMaterial({color:0xc6cad0,shininess:110,specular:0xffffff});
+    const cor=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,ped*n+0.5,10),inoxT);
+    cor.rotation.x=Math.PI/2-ang;
+    cor.position.set(xC-W/2-0.08,(Q_ALTA+yFin)/2+1.05,(zIn+zFin)/2);g.add(cor);
+    for(let i=0;i<=4;i++){const t=i/4;
+      box(g,0.05,0.95,0.05,lam(0xb8bcc0),xC-W/2-0.08,Q_ALTA+t*alz*n+0.55,zIn+t*ped*n,false);}
+    /* il soffitto e' forato dove passa la rampa: sopra si intravede il buio
+       del secondo piano, che non e' modellato */
+    box(g,W+0.6,0.16,ped*n+0.6,matBiancoInt,xC,SOFF+0.9,(zIn+zFin)/2,false);
+    const vano=new THREE.Mesh(new THREE.BoxGeometry(W+0.4,1.8,ped*n+0.4),
+      new THREE.MeshBasicMaterial({color:0x1c1a18,side:THREE.BackSide}));
+    vano.position.set(xC,SOFF+0.02,(zIn+zFin)/2);g.add(vano);
+    box(g,W+0.4,1.9,0.18,matBiancoInt,xC,SOFF+0.05,zIn-0.2,false);
+    contatto(g,xC,Q_ALTA+0.012,(zIn+zFin)/2,W+1.6,ped*n+1,0.4);
+  })();
 })();
 
 /* ============ SECONDARIA: corridoio vetrato + 3 aule ==================== */
@@ -2774,6 +2806,79 @@ let ancoraBiliardino=null, ancoraCase=null;
 [[-30,5.6,-13],[-50,5.4,-9],[-15,5.2,-9],[4,5.4,-9],[11,5.4,5],
  [-72,5.4,16],[-72,5.4,3],[-70,5.4,-9]].forEach(p=>{
   const l=new THREE.PointLight(0xfff2dc,0.5,30,2);l.position.set(p[0],p[1],p[2]);scene.add(l);});
+
+/* ====== ARREDI E VANI LETTI SUL VIDEO scuola_primo_piano.MOV (§18) ========
+   Tre cose che il filmato mostra e il modello non aveva: il mobile basso
+   grigio con la testata tonda lungo le vetrate, le cassette idrante rosse in
+   piu' punti del percorso, e i BAGNI con la fascia azzurra in fondo al
+   corridoio della Secondaria.
+   ======================================================================= */
+(function arrediDaVideo(){
+  const g=new THREE.Group();interni.add(g);
+  /* mobile basso, grigio caldo, con la TESTATA TONDA: nel video sta lungo le
+     vetrate, appena staccato dal parapetto */
+  function mobileTondo(x,z,len,ry,q){
+    const m=new THREE.Group(); m.position.set(x,q,z); if(ry)m.rotation.y=ry;
+    const cor=lam(0x8E8B86), top=lam(0xD8D5CE);
+    box(m,len,0.86,0.52,cor,0,0.43,0,true);
+    box(m,len+0.06,0.05,0.56,top,0,0.885,0,false);
+    const t=new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.26,0.86,16,1,false,-Math.PI/2,Math.PI),cor);
+    t.position.set(len/2,0.43,0);m.add(t);
+    const tt=new THREE.Mesh(new THREE.CylinderGeometry(0.29,0.29,0.05,16,1,false,-Math.PI/2,Math.PI),top);
+    tt.position.set(len/2,0.885,0);m.add(tt);
+    for(let i=0;i<Math.max(2,Math.round(len/0.9));i++)
+      box(m,0.05,0.03,0.03,lam(0xE6E3DC),-len/2+0.45+i*0.9,0.62,0.27,false);
+    g.add(m); contatto(g,x,q+0.012,z,len+1.2,1.0,0.55);}
+  mobileTondo(-53.5,-7.0,2.6,0,Q_ALTA);        /* corridoio uffici ovest      */
+  mobileTondo(-13.0,-7.0,2.2,0,Q_ALTA);        /* corridoio uffici est        */
+  mobileTondo(9.5,6.5,2.4,Math.PI/2,Q_ALTA);   /* corridoio Secondaria        */
+  /* cassette idrante rosse: nel filmato ce n'e' una per tratto */
+  antincendio(g,-38.2,Q_ALTA+1.5,-11.45,Math.PI);
+  antincendio(g,-21.0,Q_ALTA+1.5,-11.45,Math.PI);
+  antincendio(g,13.45,Q_ALTA+1.5,14.2,-Math.PI/2);
+  /* ---------------- BAGNI in fondo al corridoio della Secondaria ---------
+     Piastrelle bianche con FASCIA AZZURRA continua, lavabo a canale con due
+     rubinetti, asciugamani elettrico, due divisori di cabina, pavimento a
+     piastrelle piccole bianche. */
+  (function bagni(){
+    const bx0=8.7,bx1=13.4,bz0=13.4,bz1=16.35,q=Q_ALTA,H=2.5;
+    const cx=(bx0+bx1)/2, cz=(bz0+bz1)/2, w=bx1-bx0, d=bz1-bz0;
+    const piast=lam(0xF4F2ED), azz=lam(0x9EC4DC);
+    /* pavimento a piastrelle piccole */
+    const pv=new THREE.Mesh(new THREE.PlaneGeometry(w,d),
+      matPav(['#EFEDE8','#E4E2DC','#F4F2ED','#E9E7E1'],37,Math.round(w/0.6),Math.round(d/0.6),4));
+    pv.rotation.x=-Math.PI/2;pv.position.set(cx,q+0.008,cz);pv.receiveShadow=true;g.add(pv);
+    /* pareti piastrellate con la fascia azzurra a ~1,15 m */
+    function parete(px,pz,lung,ry){
+      const p=new THREE.Group();p.position.set(px,q,pz);if(ry)p.rotation.y=ry;
+      box(p,lung,H,0.10,piast,0,H/2,0,false);
+      /* la fascia attraversa il muro: cosi' si vede da dentro il bagno e non
+         solo dal lato in cui e' stata disegnata */
+      box(p,lung,0.34,0.14,azz,0,1.15,0,false);
+      g.add(p);}
+    parete(cx,bz1-0.05,w,0); parete(bx0+0.05,cz,d,Math.PI/2);
+    parete(bx1-0.05,cz,d,Math.PI/2);
+    box(g,w,0.16,d,lam(0xF6F5F1),cx,q+H+0.08,cz,false);   /* controsoffitto  */
+    /* lavabo a canale sotto la fascia, con due rubinetti e il dosatore */
+    box(g,2.2,0.22,0.5,lam(0xFAFAF7),cx-0.5,q+0.86,bz1-0.32,true);
+    box(g,2.0,0.10,0.40,lam(0xE8E8E4),cx-0.5,q+0.93,bz1-0.32,false);
+    [-0.6,0.6].forEach(o=>{
+      const r=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.22,8),lam(0xC8CBCE));
+      r.rotation.x=Math.PI/2.4;r.position.set(cx-0.5+o,q+1.06,bz1-0.14);g.add(r);});
+    box(g,0.16,0.26,0.11,lam(0x3A3F45),cx-0.5,q+1.16,bz1-0.12,false);   /* dosatore */
+    const ad=new THREE.Mesh(geoSmussata(0.26,0.2,0.16,0.05),lam(0xC9CCD0));
+    ad.position.set(cx+1.35,q+1.5,bz1-0.14);g.add(ad);                   /* asciugamani */
+    /* due divisori di cabina e i vasi */
+    [0,1].forEach(i=>{
+      const px=bx0+0.9+i*1.35;
+      box(g,0.05,1.9,1.35,lam(0xE0DED8),px,q+1.05,bz0+0.75,false);
+      const v=new THREE.Mesh(geoSmussata(0.36,0.42,0.52,0.10),lam(0xFAFAF8));
+      v.position.set(px+0.62,q+0.24,bz0+0.62);g.add(v);
+      box(g,0.34,0.12,0.16,lam(0xF2F2EE),px+0.62,q+0.56,bz0+0.34,false);});
+    /* porta del bagno sul corridoio */
+    porta(g,matPortaChiara,bx1-0.02,q,bz0+0.5,Math.PI/2,0.75);
+    contatto(g,cx,q+0.012,cz,w,d,0.35);})();
+})();
 
 /* ===================== CACCIA AL TESORO: le tappe ======================= */
 /* Meccanica unica: catena di indizi osservativi (modello EXIT).
@@ -2985,8 +3090,8 @@ const TAPPE=[
     imparato:'Le quattro Case della Sacra Famiglia — Aquilablu, Querciaverde, Cerogiallo, Tassorosso — dividono gli studenti in squadre che restano le stesse negli anni. Servono a far conoscere ragazzi di classi diverse.' },
 
   { titolo:'I gradini che fanno i conti',
-    indizio:'C\'è una scala che non serve solo a salire: su ogni alzata qualcuno ha incollato quadretti numerati colorati, e i numeri crescono di riga in riga. Sta al primo piano, vicino al vuoto alto due piani. La cassetta è a terra, appoggiata contro il primo gradino.',
-    pos:[-33.2,4.19,-19.0], da:[-35.1,5.3,-19.0], zona:'L\'atrio dell\'Ingresso Scuola, sul lato del mezzanino.',
+    indizio:'C\'è una scala che non serve solo a salire: su ogni alzata qualcuno ha incollato quadretti numerati colorati, e i numeri crescono di riga in riga; sulle pedate, invece, sono scritte delle parole. Sta in fondo al salone dove le pareti sono gialle e il pavimento a scacchi caldi. La cassetta è a terra, appoggiata contro il primo gradino.',
+    pos:[-71.8,4.39,5.4], da:[-69.2,5.4,4.2], zona:'Scuola Primaria, primo piano: la grande scala in fondo al salone.',
     cosa:'Una cassetta di legno a terra, ai piedi della scala coi quadretti numerati.',
     imparato:'La scala delle tabelline trasforma un passaggio obbligato in un ripasso involontario: ogni volta che sali, i numeri ti passano davanti. È un\'idea semplice — mettere il contenuto dove il corpo passa comunque.' },
 
