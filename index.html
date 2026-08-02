@@ -1316,27 +1316,43 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
      SINTETICO, con una fascia di pavimento antitrauma verso l'edificio. */
   const matSint=lam(0xffffff,{map:(()=>{const t=tex(texPunti('#4f8f47',
     ['#478239','#5c9c54','#427a3c'],71),true);t.repeat.set(14,18);return t;})()});
-  const e=new THREE.Mesh(new THREE.PlaneGeometry(20,26),matSint);
-  e.rotation.x=-Math.PI/2;e.position.set(-56,0.035,7);e.receiveShadow=true;g.add(e);
-  const anti=new THREE.Mesh(new THREE.PlaneGeometry(5.4,24),matGomma);
-  anti.rotation.x=-Math.PI/2;anti.position.set(-48.2,0.045,7);anti.receiveShadow=true;g.add(anti);
-  const cam=new THREE.Mesh(new THREE.PlaneGeometry(2.2,26),matGhiaia);
-  cam.rotation.x=-Math.PI/2;cam.position.set(-64.6,0.045,7);g.add(cam);
-  siepe(-56,-5.4,15,0.9,0.7);
-  /* palazzina gialla dell'infanzia */
-  const px0=-56,px1=-44,pz0=8,pz1=20,ph=6.4,pcx=(px0+px1)/2,pcz=(pz0+pz1)/2;
-  muroFin(null,px1-px0,ph,0xe3bd62,
-    [{fx:0.2,fy:4.9,fw:1.6,fh:1.3},{fx:0.5,fy:4.9,fw:1.6,fh:1.3},{fx:0.8,fy:4.9,fw:1.6,fh:1.3},
-     {fx:0.3,fy:1.7,fw:1.7,fh:2.1},{fx:0.7,fy:1.7,fw:1.7,fh:2.1}],pcx,0,pz0,Math.PI);
-  muroFin(null,px1-px0,ph,0xe3bd62,[{fx:0.3,fy:4.9,fw:1.6,fh:1.3},{fx:0.7,fy:4.9,fw:1.6,fh:1.3}],pcx,0,pz1,0);
-  muroFin(null,pz1-pz0,ph,0xe3bd62,[{fx:0.5,fy:4.9,fw:1.5,fh:1.2}],px0,0,pcz,-Math.PI/2);
-  muroFin(null,pz1-pz0,ph,0xe3bd62,[{fx:0.35,fy:4.9,fw:1.5,fh:1.2},{fx:0.7,fy:1.7,fw:1.6,fh:2.1}],px1,0,pcz,Math.PI/2);
-  tetto(mondo,pcx,pcz,px1-px0,pz1-pz0,ph,2.6,{pluviali:0,comignoli:[[2,0,1.2]]});
-  /* balconcino con ringhiera (visto dal mezzanino nel video) */
-  box(g,4.4,0.13,1.2,lam(0xd8d0c0),pcx+1,3.5,pz1+0.6,true);
-  box(g,4.4,0.07,0.05,lam(0x8a9098),pcx+1,4.55,pz1+1.18,false);
-  for(let i=0;i<12;i++) box(g,0.03,1.05,0.03,lam(0x8a9098),pcx-1.1+i*0.38,4.03,pz1+1.18,false);
-  contatto(mondo,pcx,0.03,pcz,15,15,0.5);
+  /* La corte e' un ANELLO CHIUSO: fascia moderna a nord (z=-6), ala Primaria a
+     ovest (x=-66), tratto sud (z=19), passerella a est (x=-35). Il giardino
+     riempie tutto il vano, non solo una striscia: prima restava mezza corte di
+     terra battuta perche' il prato era tarato sulla palazzina che non c'e'. */
+  const e=new THREE.Mesh(new THREE.PlaneGeometry(28,23),matSint);
+  e.rotation.x=-Math.PI/2;e.position.set(-51.5,0.035,6.5);e.receiveShadow=true;g.add(e);
+  /* pavimento antitrauma sotto i giochi, lungo il fronte della passerella */
+  const anti=new THREE.Mesh(new THREE.PlaneGeometry(6.0,21),matGomma);
+  anti.rotation.x=-Math.PI/2;anti.position.set(-38.5,0.045,6.5);anti.receiveShadow=true;g.add(anti);
+  /* camminamento in ghiaia lungo il muro dell'ala Primaria */
+  const cam=new THREE.Mesh(new THREE.PlaneGeometry(2.2,25),matGhiaia);
+  cam.rotation.x=-Math.PI/2;cam.position.set(-64.6,0.045,6.5);g.add(cam);
+  siepe(-51.5,-4.9,26,0.9,0.7);
+  siepe(-51.5,17.9,26,0.9,0.7);
+  /* ===== La palazzina NON sta in mezzo alla corte (correzione di Andrea) ====
+     L'avevo messa isolata dentro il cortile, x[-56,-44] z[8,20]. Sulla
+     PLANIMETRIA QUOTATA e' un corpo che SPORGE DALLA FACCIATA SUD del blocco,
+     con la scalinata d'accesso sul lato esterno; e l'ortofoto conferma che la
+     corte, da questa parte, e' vuota — c'e' il giardino e una vela d'ombra.
+     Qui resta il giardino; la palazzina e' ricostruita a sud (vedi piu' sotto,
+     funzione corpoSud). */
+  (function velaOmbra(){
+    /* la vela: quattro pali bianchi e un telo teso, leggermente svergolato */
+    const pali=[[-50,2],[-42,4.5],[-51.5,11],[-43.5,12.5]];
+    const alt=[3.4,3.9,3.9,3.3];
+    pali.forEach((p,i)=>{
+      const c=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.11,alt[i],8),lam(0xd8d6ce));
+      c.position.set(p[0],alt[i]/2,p[1]);c.castShadow=true;g.add(c);
+      contatto(mondo,p[0],0.03,p[1],1.0,1.0,0.4);});
+    const geo=new THREE.BufferGeometry();
+    const v=[];pali.forEach((p,i)=>v.push(p[0],alt[i]-0.12,p[1]));
+    geo.setAttribute('position',new THREE.Float32BufferAttribute(v,3));
+    geo.setIndex([0,1,2, 1,3,2]); geo.computeVertexNormals();
+    const telo=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:0xF2F0E8,
+      side:THREE.DoubleSide}));
+    telo.castShadow=true;g.add(telo);
+    contatto(mondo,-46.7,0.02,7.5,11,11,0.35);})();
   /* blocco bianco moderno dietro */
   /* IMG_4898: non una scatola, ma un corpo a tre livelli con fasce di finestre
      continue a telaio scuro, balcone al primo piano e cornicione piatto. */
@@ -1350,7 +1366,11 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
      un volume isolato da 18 m: e' il tratto sud del complesso, e arriva fin
      sotto la passerella. E' l'edificio a cui la passerella si appoggia. */
   (function corpoGiallo(){
-    const cx=-46,cz=25,w=34,d=12,hM=8.6;
+    /* la plan va usata come PERIMETRO DEI MURI ESTERNI (indicazione di
+       Andrea): il blocco e' un ANELLO CHIUSO attorno alla corte. Il tratto sud
+       arriva quindi fino all'ala Primaria (x=-66), senza il varco di 3 m che
+       lasciava la corte aperta a sud-ovest. */
+    const cx=-47.5,cz=25,w=37,d=12,hM=8.6;
     const giallo=0xE8D89A, terra=lam(0xD1793A);
     solido(box(g,w,hM,d,lam(giallo),cx,hM/2,cz,true));
     /* fronte verso il cortile: due registri di finestre con tapparella grigia */
@@ -1369,10 +1389,32 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
       box(g,1.35,1.60*q,0.06,lam(0xB8B6AE),px,2.5+r*3.0+0.80-1.60*q/2,cz-d/2-0.20,false);}
     /* fascia TERRACOTTA al piano terra, sotto la pensilina */
     box(g,w,1.05,0.10,terra,cx,0.52,cz-d/2-0.16,false);
-    /* gronda scura marcata e sporgente + tetto a PADIGLIONE in coppi */
-    box(g,w+1.7,0.30,d+1.7,lam(0x4A423A),cx,hM+0.15,cz,false);
+    /* gronda scura marcata e sporgente + tetto a PADIGLIONE in coppi.
+       La fascia segue il filo della gronda: allargata com'era (w+1.7 su 34 m
+       di fronte) leggeva come una piattaforma grigia sospesa sopra la corte. */
+    box(g,w+0.9,0.30,d+0.9,lam(0x4A423A),cx,hM+0.15,cz,false);
     tetto(mondo,cx,cz,w,d,hM+0.30,2.6,{sporto:0.85,pluviali:0,comignoli:[[4,0,1.4]]});
     contatto(mondo,cx,0.03,cz,w+4,d+4,0.5);})();
+  /* ===== CORPO SPORGENTE A SUD (planimetria quotata) =======================
+     Sul disegno di rilievo la facciata sud del blocco non e' liscia: un corpo
+     piu' basso sporge verso il frutteto, con la SCALINATA d'accesso sul lato
+     esterno. E' la palazzina che avevo messo, sbagliando, in mezzo alla corte.
+     ====================================================================== */
+  (function corpoSud(){
+    const cx=-50,cz=37,w=12,d=12,h=6.4,giallo=0xe3bd62;
+    solido(box(g,w,h,d,lam(giallo),cx,h/2,cz,true));
+    muroFin(null,w,h,giallo,
+      [{fx:0.25,fy:4.9,fw:1.6,fh:1.3},{fx:0.75,fy:4.9,fw:1.6,fh:1.3},
+       {fx:0.5,fy:1.9,fw:1.7,fh:2.3}],cx,0,cz+d/2,0);
+    muroFin(null,d,h,giallo,[{fx:0.35,fy:4.9,fw:1.5,fh:1.2},{fx:0.7,fy:1.8,fw:1.6,fh:2.1}],
+      cx-w/2,0,cz,-Math.PI/2);
+    muroFin(null,d,h,giallo,[{fx:0.5,fy:4.9,fw:1.5,fh:1.2}],cx+w/2,0,cz,Math.PI/2);
+    tetto(mondo,cx,cz,w,d,h,2.6,{pluviali:0,comignoli:[[2,0,1.2]]});
+    /* scalinata d'accesso sul fronte esterno, quotata 1,50 m di pedata */
+    for(let i=0;i<4;i++)
+      box(g,4.6-i*0.3,0.17,1.5,lam(0xd8d2c4),cx,0.5-i*0.17,cz+d/2+0.9+i*1.5,true);
+    [-2.4,2.4].forEach(o=>box(g,0.1,1.05,0.1,lam(0x8a9098),cx+o,0.95,cz+d/2+1.0,false));
+    contatto(mondo,cx,0.03,cz+2,w+5,d+13,0.5);})();
   /* PERGOLA BIANCA lunga a listelli (vista dalle finestre del mezzanino) */
   (function pergolaLunga(){
     const p=new THREE.Group(),mL=lam(0xf2f0ea),L=17;
@@ -1642,12 +1684,13 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
     box(g,w+0.9,0.14,0.16,lam(0xdedbd2),cx,h+alt,cz,false);
     contatto(g,cx,0.03,cz,w+3,d+3,0.42);
   }
-  capannone(94,-22,26,14,4.6,1.5);
-  capannone(122,-22,24,14,4.6,1.5);
-  /* dentro ogni capannone c'e' la sua vasca coperta: senza acqua sarebbero
-     due scatole di vetro vuote */
-  vascaRett(94,-22,20,8,4,false,0);
-  vascaRett(122,-22,18,8,0,false,0);
+  /* Il "Padiglione Eventi 40,00 x 25,00" della planimetria NON e' un edificio
+     a se': e' la COPERTURA CHIUSA DELLA VASCA GRANDE (indicazione di Andrea).
+     Quindi qui va un capannone 40x25 sopra la vasca quotata, non un volume
+     staccato. Il secondo capannone, piu' piccolo, resta per la vasca coperta. */
+  capannone(98.5,-6.5,40,25,5.4,2.0);
+  capannone(124,-26,22,13,4.6,1.5);
+  vascaRett(124,-26,17,7,0,false,0);
 
   /* --- 1) VASCA GRANDE quotata: 25 x 15, piano vasca +0,50 --------------- */
   (function vascaGrande(){
