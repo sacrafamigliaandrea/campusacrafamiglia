@@ -217,11 +217,14 @@
   campo da calcio a SUD. L'aerea etichettata Campus_zone.png e' una ripresa
   obliqua DA NORD verso SUD: e' per questo che, letta di getto, sembra ribaltata.
 
-  --- il blocco scolastico: 156,22 x 50,00, ali larghe 12,00 -----------------
-  FRONTE (ala lunga, pietra)     x[-78,+78.22] z[-24,-12]   = 156.22 in tutto
-     · tratto scuola             x[-78,+14]    muri 9.6  colmo 12.6
-     · angolo con l'ala NE       x[+14,+26]
-     · tratto INGRESSO PISCINA   x[+26,+78.22] muri 8.6  (Bar, ingresso piscine)
+  --- il blocco scolastico: ~115 m di fronte, ali larghe 12,00 ---------------
+  ATTENZIONE ai 156,22 m del rilievo: NON sono un corpo di fabbrica continuo.
+  Sull'ortofoto il fronte della scuola finisce con l'ala nord-est e subito
+  dopo comincia il complesso delle piscine. I 156,22 sono lo sviluppo
+  COMPLESSIVO scuola + piscine. Avevo costruito 52 m di edificio in pietra per
+  far tornare la quota: non esiste, l'ho tolto. Una quota che non torna non si
+  fa tornare inventando volume.
+  FRONTE (ala lunga, pietra)     x[-78,+26]  z[-24,-12]   muri 9.6 colmo 12.6
   FASCIA MODERNA sul cortile     x[-64,+14]  z[-12,-6]   h 7.6, tetto piano
   BLOCCO CORRIDOIO (bianco 3p)   x[-78,-64]  z[-24,-6]   muri 10.2 colmo 12.4
   ALA NORD-EST (Secondaria)      x[+14,+26]  z[-24,+26]  = 50.00  muri 10.4
@@ -235,9 +238,10 @@
   va portata a OVEST perche' deve COLLEGARE GLI EDIFICI. Qui parte dalla
   fascia moderna del fronte, corre lungo il fianco della palazzina gialla
   dell'Infanzia e si innesta nel corpo giallo con un braccio trasversale.
-  PASSERELLA COPERTA             x[-34.8,-30.4] z[-6,+24]  lastra piana h 3.45
-     · braccio a L verso ovest x[-45,-34] z[+19,+23.4], innesto nel corpo giallo
-  CORTE DELL'INFANZIA (a ovest)  x[-66,-35]  z[-6,+26]   ~31 m
+  PASSERELLA COPERTA             x[-34.8,-30.4] z[-6,+19]  lastra piana h 3.45
+     DRITTA (non a L): unisce l'edificio a NORD (fascia moderna del fronte)
+     con quello a SUD (corpo giallo, ora esteso x[-63,-29] per accoglierla).
+  CORTE DELL'INFANZIA (a ovest)  x[-66,-35]  z[-6,+19]   ~31 m
      · giardino sintetico, palazzina gialla, giochi, fungo, pergola
   PIAZZALE DEI CAMPI (a est)     x[-29,+14]  z[-7,+19]   ~43 m, tutto pavimentato
      · basket 32x18 x[-21,+11] z[-4.5,+13.5]; volley 28x12 x[-19,+9] z[+17,+29]
@@ -1183,50 +1187,15 @@ const H_MOD=7.6;
   contatto(mondo,11,0.025,mcz,9,md+3,0.45);
 })();
 
-/* ========== FRONTE INGRESSO PISCINA + BAR (nuovo tratto, §16) ============
-   Il rilievo quotato da' 156,22 m di sviluppo al fronte: il modello si fermava
-   a 104. Il tratto mancante e' quello che nell'aerea etichettata porta le
-   scritte "Ingresso Piscina" e "Bar": stessa muratura in pietra a vista del
-   corpo storico, un po' piu' bassa, con le finestrelle quadrate sotto gronda,
-   una fila di finestre incorniciate al piano di mezzo e piccole aperture
-   quadrate a terra. Le due porte sono scure e incassate, affiancate da alberi
-   e da coni di bosso potato. Da qui in poi comincia il complesso piscine.
-   ======================================================================== */
-(function frontePiscina(){
-  const x0=26,x1=78.22,z0=-24,z1=-12,hM=8.6,w=x1-x0,cx=(x0+x1)/2,cz=(z0+z1)/2;
-  const nF=9;                                   /* passo delle campate ~5.8 m */
-  const fFronte=[];
-  for(let i=0;i<nF;i++){
-    const fx=0.055+i*(0.89/(nF-1));
-    fFronte.push({fx,fy:6.9,fw:0.85,fh:0.85});            /* quadrotti alti */
-    if(i!==2&&i!==6) fFronte.push({fx,fy:4.1,fw:1.2,fh:1.5});
-    if(i!==2&&i!==6) fFronte.push({fx,fy:1.55,fw:0.8,fh:0.8});
-  }
-  muroPietra(null,w,hM,fFronte,cx,0,z0,Math.PI);
-  /* le DUE porte: ingresso piscina e bar. Vanno sulle campate 2 e 6, lasciate
-     libere sopra. Nel muro speculare la frazione fx si legge da destra. */
-  [2,6].forEach(i=>{
-    const fx=0.055+i*(0.89/(nF-1));
-    const px=cx-(fx-0.5)*w;                     /* muro ruotato di PI: fx si specchia */
-    box(mondo,2.4,0.24,1.5,lam(0xcfc6b4),px,3.05,z0-0.75,false);   /* pensilina */
-    varco(box(mondo,2.0,2.55,0.12,lam(0x2f2a24),px,1.28,z0-0.19,false));
-    box(mondo,2.3,0.16,0.22,lam(0xd8cfc0),px,2.62,z0-0.2,false);
-    [-1.9,1.9].forEach(o=>{                      /* coni di bosso potato */
-      const c=new THREE.Mesh(new THREE.ConeGeometry(0.62,2.3,10),lam(0x3f6b34));
-      c.position.set(px+o,1.15,z0-1.6);c.castShadow=true;mondo.add(c);
-      contatto(mondo,px+o,0.03,z0-1.6,1.9,1.9,0.5);});
-  });
-  /* retro verso il piazzale delle piscine: muratura piena, poche aperture */
-  muroPietra(null,w,hM,(()=>{const f=[];for(let i=0;i<nF;i++)
-    f.push({fx:0.055+i*(0.89/(nF-1)),fy:6.2,fw:1.1,fh:1.4});return f;})(),cx,0,z1,0);
-  muroPietra(null,12,hM,[{fx:0.5,fy:6.2,fw:1.2,fh:1.5}],x1,0,cz,Math.PI/2);
-  tetto(mondo,cx,cz,w,12,hM,2.7,{pluviali:0,comignoli:[[-16,0,1.4],[6,0,1.4]]});
-  pannelliSolari(cx,cz,w-10,6.0,hM,2.7,1,false,6);
-  /* zoccolo di pietra piu' scura, come nella foto del fronte */
-  box(mondo,w,0.55,0.42,lam(0x8f8578),cx,0.27,z0-0.09,false);
-  contatto(mondo,cx,0.025,cz,w+3,17,0.5);
-  [30,44,70].forEach(xx=>albero(xx,-27.5,1.05));
-})();
+/* ===== NIENTE ALA FRA SCUOLA E PISCINE (correzione di Andrea) ============
+   Avevo costruito qui 52 m di edificio in pietra per far tornare i 156,22 m
+   del rilievo quotato. Sull'ORTOFOTO non c'e' NULLA del genere: il fronte
+   della scuola finisce con l'ala nord-est, e subito dopo comincia il
+   complesso delle piscine con i suoi capannoni chiari.
+   I 156,22 m del rilievo sono lo sviluppo COMPLESSIVO scuola + piscine, non
+   un corpo di fabbrica continuo. Il blocco scolastico da solo sta sui 115 m.
+   Lezione: una quota che non torna non si fa tornare inventando volume.
+   ======================================================================= */
 
 /* --- raccordi d'angolo fra i tetti delle ali (compluvi) --- */
 (function raccordiTetti(){
@@ -1325,6 +1294,15 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
     f.push({fx:0.08+i*0.17,fy:2.0,fw:2.4,fh:1.4});return f;})(),x1,0,cz,Math.PI/2);
   vetrataCorridoio(null,z0,z1,x1,Math.PI/2,3.5);
   muroFin(null,x1-x0,hM,0xecdfc4,[{fx:0.5,fy:2.0,fw:1.4,fh:2.4},{fx:0.5,fy:6.9,fw:1.4,fh:1.6}],cx,0,z1,0);
+  /* BUCO DA CHIUDERE (segnalato da Andrea): la testata NORD dell'ala non era
+     mai stata costruita, e dal cortile si vedeva dentro il salone giallo.
+     Qui la testata e il riempimento del risvolto d'angolo verso la fascia
+     moderna (x -66..-64), che lasciava una fessura di 2 m a tutta altezza. */
+  muroFin(null,x1-x0,hM,0xecdfc4,
+    [{fx:0.3,fy:6.9,fw:1.4,fh:1.6},{fx:0.7,fy:6.9,fw:1.4,fh:1.6},
+     {fx:0.5,fy:2.2,fw:1.6,fh:1.8}],cx,0,z0,Math.PI);
+  solido(box(mondo,2.2,H_MOD,6.2,matIntonaco,-65,H_MOD/2,-9,true));
+  tettoPiano(mondo,-65,-9,2.4,6.4,H_MOD);
   tetto(mondo,cx,cz,x1-x0,d,hM,3.0,{pluviali:0,comignoli:[[0,-10,1.4],[0,12,1.4]]});
   pannelliSolari(cx,cz,d-8,6.6,hM,3.0,1,true,5);
   contatto(mondo,cx,0.025,cz,17,d+4,0.5);
@@ -1368,14 +1346,17 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
      GRIGIE, piccole finestre quadrate sul fronte cieco e una fascia
      TERRACOTTA al piano terra. E' lo stesso edificio che avevo lasciato
      "bianco anonimo" sul lato sud-ovest: sono la stessa cosa. */
+  /* ORTOFOTO: la corte interna e' CHIUSA anche a sud. Il corpo giallo non e'
+     un volume isolato da 18 m: e' il tratto sud del complesso, e arriva fin
+     sotto la passerella. E' l'edificio a cui la passerella si appoggia. */
   (function corpoGiallo(){
-    const cx=-54,cz=25,w=18,d=12,hM=8.6;
+    const cx=-46,cz=25,w=34,d=12,hM=8.6;
     const giallo=0xE8D89A, terra=lam(0xD1793A);
     solido(box(g,w,hM,d,lam(giallo),cx,hM/2,cz,true));
     /* fronte verso il cortile: due registri di finestre con tapparella grigia */
     muroFin(null,w,hM,giallo,(()=>{const f=[];
-      for(let r=0;r<2;r++)for(let i=0;i<5;i++)
-        f.push({fx:0.10+i*0.20,fy:2.5+r*3.0,fw:1.35,fh:1.60});return f;})(),
+      for(let r=0;r<2;r++)for(let i=0;i<9;i++)
+        f.push({fx:0.055+i*0.111,fy:2.5+r*3.0,fw:1.35,fh:1.60});return f;})(),
       cx,0,cz-d/2,Math.PI);
     /* fronte cieco con le piccole finestre quadrate in alto */
     muroFin(null,d,hM,giallo,(()=>{const f=[];for(let i=0;i<3;i++)
@@ -1383,8 +1364,8 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
       cx-w/2,0,cz,-Math.PI/2);
     muroFin(null,d,hM,giallo,[{fx:0.5,fy:5.6,fw:1.3,fh:1.5}],cx+w/2,0,cz,Math.PI/2);
     /* tapparelle grigie parzialmente calate, a quote diverse */
-    for(let r=0;r<2;r++)for(let i=0;i<5;i++){
-      const px=cx-w/2+w*(0.10+i*0.20), q=0.32+((i*7+r*3)%4)*0.13;
+    for(let r=0;r<2;r++)for(let i=0;i<9;i++){
+      const px=cx-w/2+w*(0.055+i*0.111), q=0.32+((i*7+r*3)%4)*0.13;
       box(g,1.35,1.60*q,0.06,lam(0xB8B6AE),px,2.5+r*3.0+0.80-1.60*q/2,cz-d/2-0.20,false);}
     /* fascia TERRACOTTA al piano terra, sotto la pensilina */
     box(g,w,1.05,0.10,terra,cx,0.52,cz-d/2-0.16,false);
@@ -1420,19 +1401,18 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
      separa la corte del giardino dell'Infanzia dalla corte dei campi.
      CORREZIONE DI ANDREA: va spostata a OVEST, perche' deve COLLEGARE GLI
      EDIFICI, non fermarsi a mezza corte.
-     Posizione verificata sull'ORTOFOTO (Bing, via Milano 75): corre NORD-SUD
-     sul confine fra il cortile dell'Infanzia (~32 m, a ovest) e il piazzale
-     dei campi (~43 m, a est), partendo dalla fascia moderna del fronte.
-     Qui GIRA A L con un braccio trasversale che va a innestarsi nel CORPO
-     GIALLO: cosi' collega davvero due corpi e non resta sospesa.
+     SECONDA CORREZIONE DI ANDREA: **non gira a L, e' semplicemente DRITTA**.
+     Collega l'edificio a NORD con quello a SUD e taglia in due la corte
+     interna: a OVEST il giardino dell'Infanzia, a EST il campo da basket.
+     Confermato dall'ortofoto (Bing, via Milano 75).
      Resta il carattere letto in IMG_4898/4852: lastra piana e continua,
      pilastri bianchi a sezione quadrata sul filo verso i campi, parete di
      fondo con i grandi pannelli colorati verso il giardino dell'Infanzia,
      un tabellone da basket fissato a un pilastro.
      ===================================================================== */
   (function passerella(){
-    const p=new THREE.Group(); p.position.set(-34.4,0,9); mondo.add(p);
-    const L=30, prof=4.4, h=3.45, bianco=lam(0xf4f2ee);
+    const p=new THREE.Group(); p.position.set(-34.4,0,6.5); mondo.add(p);
+    const L=25, prof=4.4, h=3.45, bianco=lam(0xf4f2ee);
     /* lastra piana con fascia di bordo sottile */
     box(p,prof,0.16,L,lam(0xeceae4),prof/2-0.4,h,0,true);
     box(p,0.16,0.34,L,bianco,prof-0.48,h+0.05,0,false);      /* fascia sul fronte */
@@ -1459,23 +1439,10 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
     const zb=-L/2+0.9+2*(L-1.8)/(nP-1);
     box(p,0.10,0.10,0.55,bianco,prof-0.62,2.95,zb-0.35,false);
     tabelloneRete(p,2.9,0,0.86);
-    contatto(mondo,-34.4+prof/2-0.4,0.03,9,prof+1.2,L+1,0.45);
-    /* BRACCIO TRASVERSALE a L che innesta la passerella nel CORPO GIALLO
-       (x[-63,-45] z[19,31]): senza questo la copertura resterebbe sospesa in
-       mezzo alla corte, che e' esattamente l'errore segnalato da Andrea. */
-    const q=new THREE.Group(); q.position.set(-45,0,19.4); mondo.add(q);
-    const L2=11;
-    box(q,L2,0.16,prof,lam(0xeceae4),L2/2,h,prof/2-0.4,true);
-    box(q,L2,0.34,0.16,bianco,L2/2,h+0.05,prof-0.62,false);
-    for(let i=0;i<4;i++){
-      const px=0.9+i*((L2-1.8)/3);
-      box(q,0.26,h,0.26,bianco,px,h/2,prof-0.62,true);
-      box(q,0.40,0.10,0.40,lam(0xe2e0d8),px,0.05,prof-0.62,false);}
-    solido(box(q,L2,h-0.1,0.16,lam(0xf0eee6),L2/2,(h-0.1)/2,0.05,false));
-    [0xf5b300,0xd21f12,0x3fa02a].forEach((c,i)=>{
-      const w2=(L2-1.2)/3, px=0.6+(i+0.5)*w2;
-      box(q,w2-0.30,2.05,0.07,lam(c),px,1.15,-0.06,false);});
-    contatto(mondo,-45+L2/2,0.03,19.4+prof/2-0.4,L2+1,prof+1.2,0.45);
+    contatto(mondo,-34.4+prof/2-0.4,0.03,6.5,prof+1.2,L+1,0.45);
+    /* NIENTE braccio a L (correzione di Andrea): la passerella e' DRITTA e va
+       da un edificio all'altro. Il corpo a sud e' il corpo giallo, allungato
+       fin qui proprio perche' e' li' che la passerella si appoggia. */
   })();
   /* recinto giochi con steccato bianco */
   /* i giochi: fungo gigante, scivolo e casetta, dentro il cortile */
@@ -1623,7 +1590,11 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
      con tende a braccio e ombrelloni, torretta del bagnino.
    ====================================================================== */
 (function piscine(){
-  const g=new THREE.Group();mondo.add(g);
+  const g=new THREE.Group();
+  /* ORTOFOTO: le piscine cominciano SUBITO a est dell'ala nord-est.
+     Tutto il complesso e' costruito attorno all'origine locale e poi
+     traslato: cosi' si sposta in un punto solo. */
+  g.position.x=-40; mondo.add(g);
   const matPiastre=lam(0xffffff,{map:(()=>{const t=tex(texPunti('#e0c3a8',
     ['#d8bb9f','#e8cdb2','#d0b397'],23),true);t.repeat.set(46,40);return t;})()});
   const piastra=new THREE.Mesh(new THREE.PlaneGeometry(84,58),matPiastre);
@@ -1669,7 +1640,7 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
       f.position.set(cx,h+alt/2,cz+s*d/4);f.rotation.x=-s*Math.atan2(alt,d/2);
       f.castShadow=true;g.add(f);});
     box(g,w+0.9,0.14,0.16,lam(0xdedbd2),cx,h+alt,cz,false);
-    contatto(mondo,cx,0.03,cz,w+3,d+3,0.42);
+    contatto(g,cx,0.03,cz,w+3,d+3,0.42);
   }
   capannone(94,-22,26,14,4.6,1.5);
   capannone(122,-22,24,14,4.6,1.5);
@@ -1685,7 +1656,7 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
     for(let i=0;i<3;i++)                                  /* gradini al bordo */
       box(g,3.4,0.17,0.55,matBordo,cx-16.4,0.42-i*0.17,cz,false);
     vascaRett(cx,cz,25,15,6,true,0.5);
-    contatto(mondo,cx,0.03,cz,31,21,0.42);})();
+    contatto(g,cx,0.03,cz,31,21,0.42);})();
 
   /* --- 2) vasca a forma libera, con i gradini d'ingresso a raggiera ------- */
   (function libera(){
@@ -1698,7 +1669,7 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
     m.rotation.x=-Math.PI/2;m.position.set(130,0.34,-4);g.add(m);
     for(let i=0;i<3;i++)
       box(g,3.2-i*0.5,0.14,0.5,matBordo,122.5,0.30-i*0.09,-4,false);
-    contatto(mondo,130,0.04,-4,24,18,0.4);})();
+    contatto(g,130,0.04,-4,24,18,0.4);})();
 
   /* --- 3) TORRE degli SCIVOLI: terrazza a +6,50 con la VASCA PICCOLA -----
      §16: la vasca piccola (16 x 6) sta sei metri piu' in alto della grande.
@@ -1720,7 +1691,7 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
         opacity:0.35,side:THREE.DoubleSide,depthWrite:false}),tx+q[0],Y_TERR+0.65,tz+q[1],false);});
     /* la VASCA PICCOLA quotata 16 x 6 sul piano +6,50 */
     vascaRett(tx,tz-1.2,16,6,0,false,Y_TERR);
-    contatto(mondo,tx,0.03,tz,23,13,0.5);
+    contatto(g,tx,0.03,tz,23,13,0.5);
   })();
 
   /* --- 4) DUE SCIVOLI ELICOIDALI, ~35 m di sviluppo ciascuno -------------
@@ -1748,7 +1719,7 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
         if(p.y>1.3) box(g,0.11,p.y-0.6,0.11,lam(0x9aa0a5),p.x,(p.y-0.6)/2,p.z,false);}
       /* pilastro centrale dell'elica */
       box(g,0.24,yA,0.24,lam(0xb8bcc0),cxE,yA/2,cz,false);
-      contatto(mondo,cxE,0.03,cz,r*2.8,r*2.8,0.34);});
+      contatto(g,cxE,0.03,cz,r*2.8,r*2.8,0.34);});
     /* VASCA D'ARRIVO: una sola, larga, che raccoglie tutte e due le uscite */
     vascaRett(73,17,10,20,0,false,0);
   })();
@@ -1803,10 +1774,10 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
     const st=new THREE.Mesh(new THREE.PlaneGeometry(4.4,1.0),
       lam(0xffffff,{map:texLavori(120+i,'#f6f4f0')}));
     st.position.set(85+i*8,1.15,-31.6);g.add(st);}
-  reteAlta(67,-32,151,-32,2.4,0x6a7a8a,6);
-  reteAlta(151,-32,151,26,2.4,0x6a7a8a,6);
-  reteAlta(67,26,151,26,2.4,0x6a7a8a,6);
-  reteAlta(67,-32,67,26,2.4,0x6a7a8a,6);
+  reteAlta(27,-32,111,-32,2.4,0x6a7a8a,6);
+  reteAlta(111,-32,111,26,2.4,0x6a7a8a,6);
+  reteAlta(27,26,111,26,2.4,0x6a7a8a,6);
+  reteAlta(27,-32,27,26,2.4,0x6a7a8a,6);
   (function bagnino(){
     const bx=112,bz=-14;
     [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5]].forEach(q=>
@@ -1815,7 +1786,7 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
     const sd=new THREE.Mesh(geoSmussata(0.9,0.06,0.9,0.05),lam(0xd8d4cc));
     sd.position.set(bx,2.6,bz);g.add(sd);
     box(g,0.9,0.7,0.06,lam(0xd8d4cc),bx,2.95,bz-0.42,false);
-    contatto(mondo,bx,0.03,bz,2.4,2.4,0.5);})();
+    contatto(g,bx,0.03,bz,2.4,2.4,0.5);})();
   /* lettini e ombrelloni aperti sul prato a nord, come nell'aerea */
   (function solarium(){
     const rnd=seme(139);
@@ -2996,7 +2967,7 @@ const TAPPE=[
 
   { titolo:'L\'acqua oltre il confine',
     indizio:'Cammina lungo la facciata di pietra fino all\'ultima porta: da lì in poi non è più scuola. Ci sono due capannoni di vetro affiancati, una vasca lunga con le corsie e i blocchi di partenza, e in fondo una terrazza alta sei metri con una vasca piccola da cui partono due scivoli che scendono avvitandosi. La cassetta è sul bordo della vasca lunga, dal lato dei blocchi.',
-    pos:[84.7,0.95,-6.5], da:[80.5,3.9,-11.5], zona:'Piscine Andreana, subito oltre l\'estremità del fronte.',
+    pos:[44.7,0.95,-6.5], da:[40.5,3.9,-11.5], zona:'Piscine Andreana, subito oltre l\'estremità del fronte.',
     cosa:'Una cassetta di legno sul bordo piastrellato della vasca, accanto a un blocco di partenza.',
     imparato:'Le piscine non stanno lontane: toccano la scuola, separate solo dal piazzale. E non sono tutte alla stessa quota — la vasca piccola sta sei metri più in alto della grande, ed è da lì che partono gli scivoli. Il campus non finisce con un muro: finisce dove cambia chi si prende cura dello spazio.' },
 
@@ -3395,8 +3366,8 @@ const LUOGHI=[
   ['Corridoio del primo piano',[-58,5.2,-9],[-30,4.6,-9.3]],
   ['Scuola Secondaria',[11,5.7,13],[11.5,5.2,-4]],
   ['Campo Calcio',[-26,3,80],[-26,3,40]],
-  ['Piscine Andreana',[98,18,34],[100,2,-8]],
-  ['Passerella e le due corti',[-22.2,3.0,34],[-22.2,2.4,-4]]
+  ['Piscine Andreana',[58,18,34],[60,2,-8]],
+  ['Passerella e le due corti',[-32.2,3.0,32],[-32.2,2.4,-4]]
 ];
 let voloDa=null,voloA=null,voloT=1,mira=new THREE.Vector3();
 window.vaiA=function(i){const m=LUOGHI[i];
