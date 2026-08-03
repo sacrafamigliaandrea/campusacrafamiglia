@@ -1391,6 +1391,27 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
       box(g,1.35,1.60*q,0.06,lam(0xB8B6AE),px,2.5+r*3.0+0.80-1.60*q/2,cz-d/2-0.20,false);}
     /* fascia TERRACOTTA al piano terra, sotto la pensilina */
     box(g,w,1.05,0.10,terra,cx,0.52,cz-d/2-0.16,false);
+    /* IMG_4925/4929/4935: il corpo e' a DUE PIANI con LESENE ARANCIO sugli
+       spigoli e fra le campate, un marcapiano fra i due registri, una fila di
+       grigliette scure sotto gronda e un PORTICO al piano terra. */
+    (function lesene(){
+      const ar=lam(0xE8862A);
+      const nL=7, zf=cz-d/2-0.13;
+      for(let i=0;i<nL;i++){
+        const px=cx-w/2+w*i/(nL-1);
+        box(g,0.65,hM,0.14,ar,px,hM/2,zf,false);}
+      box(g,w,0.26,0.16,ar,cx,4.35,zf,false);            /* marcapiano      */
+      box(g,w,0.30,0.16,ar,cx,0.15,zf,false);            /* zoccolo         */
+      for(let i=0;i<10;i++)                               /* grigliette      */
+        box(g,0.62,0.20,0.06,lam(0x4A423A),cx-w/2+1.6+i*3.5,hM-0.55,zf-0.06,false);
+      /* portico del piano terra: pilastri e falda bassa in coppi */
+      for(let i=0;i<nL;i++){
+        const px=cx-w/2+w*i/(nL-1);
+        box(g,0.5,3.4,0.5,lam(0xE8D89A),px,1.7,cz-d/2-2.4,true);
+        box(g,0.62,0.26,0.62,ar,px,3.45,cz-d/2-2.4,false);}
+      box(g,w+0.5,0.3,2.9,lam(0xD9C9A0),cx,3.62,cz-d/2-1.35,true);
+      tetto(mondo,cx,cz-d/2-1.35,w,2.9,3.9,0.9,{sporto:0.5,pluviali:0,tipo:'capanna'});
+      contatto(mondo,cx,0.03,cz-d/2-1.35,w+2,4,0.45);})();
     /* gronda scura marcata e sporgente + tetto a PADIGLIONE in coppi.
        La fascia segue il filo della gronda: allargata com'era (w+1.7 su 34 m
        di fronte) leggeva come una piattaforma grigia sospesa sopra la corte. */
@@ -1470,7 +1491,13 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
       box(p,0.40,0.10,0.40,lam(0xe2e0d8),prof-0.62,0.05,z,false);}
     /* parete di fondo con i grandi pannelli colorati, verso il giardino
        dell'Infanzia: e' questa parete a chiudere la corte grande */
-    solido(box(p,0.16,h-0.1,L,lam(0xf0eee6),0.05,(h-0.1)/2,0,false));
+    /* IMG_4935: NON e' un muro a tutta altezza. Sotto la tettoia aperta
+       corre un PARAPETTO BASSO (~1,25 m) che porta i pannelli colorati: e'
+       lui a separare il campo dal giardino dell'Infanzia, lasciando passare
+       la luce e la vista sopra. */
+    const hPar=1.25;
+    solido(box(p,0.16,hPar,L,lam(0xf0eee6),0.05,hPar/2,0,false));
+    box(p,0.24,0.06,L,lam(0xdedbd2),0.05,hPar+0.03,0,false);   /* copertina */
     /* i pannelli stanno sulla faccia OVEST del setto: e' da dentro il giardino
        dell'Infanzia che si vedono, come in IMG_4898. Dal lato dei campi resta
        il colonnato bianco con il tabellone. */
@@ -1478,7 +1505,7 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
     [0xd21f12,0x3fa02a,0x1f8ede,0xf5b300,0xd21f12,0x3fa02a,0x1f8ede]
       .forEach((c,i)=>{
         const w=(L-1.2)/nPan, z=-L/2+0.6+(i+0.5)*w;
-        box(p,0.07,2.05,w-0.28,lam(c),-0.065,1.15,z,false);});
+        box(p,0.07,1.02,w-0.28,lam(c),-0.065,0.60,z,false);});
     /* tabellone da basket fissato al terzo pilastro, verso i campi */
     const zb=-L/2+0.9+2*(L-1.8)/(nP-1);
     box(p,0.10,0.10,0.55,bianco,prof-0.62,2.95,zb-0.35,false);
@@ -2265,14 +2292,18 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
   /* 4859/4860/4903: campiture LARGHE e PIENE fra le travi, non strisce.
      Salmone sopra il vuoto, azzurro polvere oltre, giallo ocra e crema ai lati. */
   box(g,x1-x0,0.14,z1-z0,matBiancoInt,(x0+x1)/2,hT,(z0+z1)/2,false);
-  [[-8.0,2.6,0xE8862A],[-11.6,4.2,0x9FC6DE],[-15.6,3.4,0xE8B41E],
-   [-18.8,2.4,0xEFE6D2]].forEach(q=>
+  /* zona_uffici.MOV: campiture TERRACOTTA sulla fascia vicina, GLICINE
+     (azzurro-lavanda) sopra il vuoto, poi CREMA. Non arancio/celeste. */
+  [[-8.0,2.6,0xD9764A],[-11.6,4.2,0xA9AEDA],[-15.6,3.4,0xEFE6D2],
+   [-18.8,2.4,0xE8DFC8]].forEach(q=>
     box(g,x1-x0,0.035,q[1],lam(q[2]),(x0+x1)/2,hT-0.09,q[0],false));
   for(let i=0;i<5;i++)                        /* travi ribassate fra le campiture */
     box(g,x1-x0,0.22,0.26,lam(0xEFE7D6),(x0+x1)/2,hT-0.13,-19.0+i*3.2,false);
   /* mezzanino ad anello */
   function lastra(a,b,c,d){
-    const m=new THREE.Mesh(new THREE.PlaneGeometry(b-a,d-c),pav30(b-a,d-c,103));
+    /* IMG_4932: il mezzanino e' pavimentato in GRIGIO 60x60; gli scacchi
+       stanno al piano terra, che si vede attraverso il vuoto. */
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(b-a,d-c),pav60(b-a,d-c));
     m.rotation.x=-Math.PI/2;m.position.set((a+b)/2,Q_ALTA,(c+d)/2);m.receiveShadow=true;g.add(m);
     box(g,b-a,0.28,d-c,matBiancoInt,(a+b)/2,Q_ALTA-0.15,(c+d)/2,false);}
   lastra(x0,x1,z0,vz0);lastra(x0,x1,vz1,z1);lastra(x0,vx0,vz0,vz1);lastra(vx1,x1,vz0,vz1);
@@ -2280,22 +2311,62 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
      poggiano le targhe, poi RINGHIERA BLU ad aste, poi CORRIMANO INOX tondo su
      montanti. Prima avevo muretto e ringhiera sovrapposti: era l'inverso. */
   const inoxM=new THREE.MeshPhongMaterial({color:0xc6cad0,shininess:110,specular:0xffffff});
+  /* PARAPETTO DEL MEZZANINO — rifatto su IMG_4932 e zona_uffici.MOV.
+     L'ordine giusto, dal basso: (1) RINGHIERA BLU ad aste verticali che parte
+     DAL PAVIMENTO — non c'e' nessun muretto pieno sotto; (2) sopra, una
+     MENSOLA PIATTA GRIGIA larga e continua; (3) sulla mensola poggiano le
+     TARGHE incorniciate; (4) dalla mensola salgono al soffitto le COLONNE
+     TONDE D'ACCIAIO, in asse con la ringhiera.
+     Prima avevo muretto pieno → mensola → ringhiera: era l'inverso. */
   function parapetto(len,x,z,ry){
-    const p=box(g,len,0.95,0.16,matCrema,x,Q_ALTA+0.475,z,false); p.rotation.y=ry||0;
-    const pi=box(g,len+0.10,0.06,0.30,lam(0xdcd6c6),x,Q_ALTA+0.98,z,false); pi.rotation.y=ry||0;
-    const r=ringhiera(g,len-0.2,x,Q_ALTA+1.01,z,ry,0x46608f); r.scale.y=0.52;
-    const c=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,len,10),inoxM);
-    c.rotation.z=Math.PI/2; c.position.set(x,Q_ALTA+1.56,z);
-    if(ry) c.rotation.y=ry; g.add(c);
-    const n=Math.max(2,Math.round(len/1.8));
+    const H=1.02;                        /* quota della mensola */
+    const r=ringhiera(g,len-0.16,x,Q_ALTA,z,ry,0x5B7FA8); r.scale.y=H/1.1;
+    /* zoccolino basso su cui appoggiano le aste */
+    const zo=box(g,len,0.10,0.14,lam(0xdedbd2),x,Q_ALTA+0.05,z,false);
+    zo.rotation.y=ry||0;
+    /* mensola piatta continua */
+    const me=box(g,len+0.12,0.07,0.42,lam(0xc9c6bf),x,Q_ALTA+H+0.035,z,false);
+    me.rotation.y=ry||0;
+    /* targhe e diplomi incorniciati appoggiati sulla mensola */
+    const cor=[0xB0202A,0x1C2E66,0xB08A20,0x1C2E66];
+    const nT=Math.max(1,Math.floor(len/3.2));
+    for(let i=0;i<nT;i++){
+      const t=-len/2+len*(i+0.5)/nT;
+      const px=ry?x:x+t, pz=ry?z+t:z;
+      const q=box(g,0.34,0.26,0.05,lam(cor[i%4]),px,Q_ALTA+H+0.20,pz,false);
+      q.rotation.y=(ry||0); q.rotation.x=-0.22;
+      const f=box(g,0.27,0.19,0.02,lam(0xF4F2EC),px,Q_ALTA+H+0.20,pz,false);
+      f.rotation.y=(ry||0); f.rotation.x=-0.22;
+      f.position.y+=0.004; }
+    /* colonne tonde d'acciaio dalla mensola al soffitto */
+    const inoxM=new THREE.MeshPhongMaterial({color:0xc6cad0,shininess:110,specular:0xffffff});
+    const n=Math.max(2,Math.round(len/3.4));
     for(let i=0;i<=n;i++){
       const t=-len/2+i*len/n;
-      const m=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.56,8),inoxM);
       const px=ry?x:x+t, pz=ry?z+t:z;
-      m.position.set(px,Q_ALTA+1.28,pz); g.add(m);}
+      const m=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,hT-Q_ALTA-H,10),inoxM);
+      m.position.set(px,Q_ALTA+H+(hT-Q_ALTA-H)/2,pz); g.add(m);}
   }
   parapetto(vx1-vx0,(vx0+vx1)/2,vz0,0);parapetto(vx1-vx0,(vx0+vx1)/2,vz1,0);
   parapetto(vz1-vz0,vx0,(vz0+vz1)/2,Math.PI/2);parapetto(vz1-vz0,vx1,(vz0+vz1)/2,Math.PI/2);
+  /* VETROCEMENTO: pannello a blocchi di vetro a tutta altezza accanto alla
+     porta a telaio bronzo del pianerottolo (zona_uffici.MOV). Era in lista
+     §10 come "mai modellato". */
+  (function vetrocemento(){
+    const px=x1-0.12, pz=-13.2, H=hT-Q_ALTA-0.3, W=3.2;
+    const vc=new THREE.Mesh(new THREE.PlaneGeometry(W,H),
+      new THREE.MeshPhongMaterial({color:0xE4EFF2,transparent:true,opacity:0.72,
+        shininess:70,specular:0xbfd8e0,side:THREE.DoubleSide}));
+    vc.rotation.y=-Math.PI/2; vc.position.set(px,Q_ALTA+H/2+0.15,pz); g.add(vc);
+    const mg=lam(0xD6E2E6);
+    for(let i=0;i<=Math.round(W/0.24);i++)
+      box(g,0.05,H,0.03,mg,px-0.01,Q_ALTA+H/2+0.15,pz-W/2+i*0.24,false);
+    for(let i=0;i<=Math.round(H/0.24);i++)
+      box(g,0.05,0.03,W,mg,px-0.01,Q_ALTA+0.15+i*0.24,pz,false);
+    /* porta a telaio BRONZO accanto al pannello */
+    box(g,0.10,2.35,1.15,lam(0x5A3E2A),px-0.02,Q_ALTA+1.32,pz+2.4,false);
+    box(g,0.06,2.05,0.92,lam(0x3E4A52),px-0.08,Q_ALTA+1.28,pz+2.4,false);
+    box(g,0.34,0.05,1.6,lam(0xE2DCCA),px-0.2,Q_ALTA+0.03,pz+2.4,false);})();
   /* COLONNE TONDE D'ACCIAIO da pavimento a soffitto (dal video) */
   /* 4870/4903: le colonne stanno in COPPIE RAVVICINATE ai quattro angoli del
      vuoto, non sparse per l'ambiente. */
@@ -2379,7 +2450,17 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
     box(g,x1-x0,0.3,z1-z0,lam(0xbdbab2),(x0+x1)/2,q-0.16,(z0+z1)/2,false);
     const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matSoffitto(rip,4));
     s.rotation.x=Math.PI/2;s.position.set((x0+x1)/2,SOFF,(z0+z1)/2);g.add(s);
-    box(g,x1-x0,SOFF-q,0.16,matBiancoInt,(x0+x1)/2,(SOFF+q)/2,z0,false);}
+    /* la parete verso nord NON e' continua: dove passa la scala delle
+       tabelline va lasciato il VANO, spezzandola in due tratti. Senza questo
+       la rampa resta murata e dal corridoio si vede solo il muro. */
+    const vx0=-63.85, vx1=-61.35;                 /* larghezza del vano  */
+    if(x0<vx0 && x1>vx1){
+      box(g,vx0-x0,SOFF-q,0.16,matBiancoInt,(x0+vx0)/2,(SOFF+q)/2,z0,false);
+      box(g,x1-vx1,SOFF-q,0.16,matBiancoInt,(vx1+x1)/2,(SOFF+q)/2,z0,false);
+      /* architrave sopra il vano */
+      box(g,vx1-vx0,0.55,0.16,matBiancoInt,(vx0+vx1)/2,SOFF-0.27,z0,false);
+    } else {
+      box(g,x1-x0,SOFF-q,0.16,matBiancoInt,(x0+x1)/2,(SOFF+q)/2,z0,false);}}
   /* corridoio ovest (quota alta) */
   guscio(-64,-35.8,Q_ALTA,17);
   for(let i=0;i<5;i++) porta(g,matPortaChiara,-61+i*5.8,Q_ALTA,z0+0.1,0,(i===2)?0.7:0);
@@ -2514,8 +2595,11 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
        farla sembrare messa "di sbieco": la si prende sempre d'angolo.
        Materiale: gres GRIGIO come il pavimento, con una fascia chiara sottile
        sul naso di ogni pedata. La guancia laterale scala col gradino. */
-    const grigio=lam(0x8f8d87), naso=lam(0xc4c2bb);
-    const alz=0.17, ped=0.46, N=3;
+    /* scala_secondaria.MOV: le alzate sono QUATTRO, non tre, e il gres e'
+       piu' SCURO del pavimento (grafite), con un naso CHIARO e netto su ogni
+       pedata. E' il naso chiaro a disegnare l'andamento a gradoni del fianco. */
+    const grigio=lam(0x67655F), naso=lam(0xE2E0D8);
+    const alz=0.17, ped=0.46, N=4;
     const xK=8.9, zK=-7.6;            /* spigolo interno attorno a cui gira    */
     const xFin=13.45, zFin=-11.4;     /* estremita' dei due bracci             */
     for(let i=0;i<N;i++){
@@ -2677,47 +2761,44 @@ let ancoraBiliardino=null, ancoraCase=null;
      dell'ala, e buca il soffitto verso il secondo piano che non e' mappato.
      ==================================================================== */
   (function tabelline(){
-    /* IMG_4901 + indicazione di Andrea: la scala e' APPOGGIATA ALLA PARETE SUD
-       del corridoio, PROPRIO PRIMA DELL'ANGOLO in cui il corridoio gira nella
-       Primaria. Sale verso ovest, cioe' verso la zona arancione: le alzate coi
-       quadretti numerati guardano a est e le vedi arrivando dal corridoio.
-       Sul fianco libero corrono il muretto e il corrimano inox, come in foto.
-       (Prima l'avevo messa in fondo al salone: era ancora l'asse sbagliato.) */
-    const n=14, alz=0.19, ped=0.30, zC=-7.35, W=2.0, xIn=-60.4;
-    const PAROLE=['Buona Scuola','Gestione delle emergenze',
-      'Creativita','Accoglienza','Responsabilita','Rispetto','Ascolto',
-      'Collaborazione','Impegno','Gentilezza','Fiducia','Cura','Coraggio','Speranza'];
+    /* scala_primaria.MOV — LETTURA DEFINITIVA.
+       Non e' una rampa che corre lungo il corridoio: e' un flight DRITTO
+       incassato in un VANO della parete opposta alle vetrate, appena prima
+       dell'angolo con la Primaria. Ci sali dando le spalle al corridoio.
+       - DIECI alzate, una per tabellina: 1..10, 2..20, fino a 10..100.
+       - Le pedate sono CHIARE e LISCE: le parole stanno sull'altra scala,
+         quella dell'atrio. Qui non ci sono.
+       - Il vano ha una spalletta SCURA profonda; in cima la parete e' GIALLA
+         e si passa nella Primaria.
+       - Corrimano inox a parete sul lato cieco e COLONNA TONDA d'acciaio sul
+         filo del vano. */
+    const n=10, alz=0.19, ped=0.30, W=2.3, xC=-62.6, zIn=-11.5;
+    const scuro=lam(0x4A3F36), giallo=lam(0xE8B41E);
+    /* spalletta scura del vano, che incornicia la rampa */
+    box(g,0.22,SOFF-Q_ALTA,3.6,scuro,xC-W/2-0.11,(SOFF+Q_ALTA)/2,zIn-1.8,false);
+    box(g,0.22,SOFF-Q_ALTA,3.6,scuro,xC+W/2+0.11,(SOFF+Q_ALTA)/2,zIn-1.8,false);
+    box(g,W+0.44,0.5,3.6,scuro,xC,SOFF-0.25,zIn-1.8,false);
     for(let i=0;i<n;i++){
-      const xx=xIn-ped*i, yy=Q_ALTA+alz*i;
-      box(g,ped,alz,W,matCrema,xx-ped/2,yy+alz/2,zC,true);
-      /* alzata rivolta a EST: e' la faccia che vedi venendo dal corridoio */
+      const zz=zIn-ped*i, yy=Q_ALTA+alz*i;
+      box(g,W,alz,ped,matCrema,xC,yy+alz/2,zz-ped/2,true);
+      /* alzata rivolta al corridoio: la riga della tabellina */
       const a2=new THREE.Mesh(new THREE.PlaneGeometry(W,alz),
-        lam(0xffffff,{map:texAlzataTab((i%10)+1)}));
-      a2.rotation.y=Math.PI/2; a2.position.set(xx+0.003,yy+alz/2,zC);g.add(a2);
-      /* pedata: la parola, che si legge camminando lungo il gradino */
-      const p=new THREE.Mesh(new THREE.PlaneGeometry(ped*0.92,W),
-        lam(0xffffff,{map:texPedata(PAROLE[i])}));
-      p.rotation.x=-Math.PI/2; p.rotation.z=Math.PI/2;
-      p.position.set(xx-ped/2,yy+alz+0.004,zC);g.add(p);}
-    const xFin=xIn-ped*n, yFin=Q_ALTA+alz*n, ang=Math.atan2(alz,ped);
-    /* muretto e corrimano sul fianco libero, verso il corridoio */
-    const zL=zC-W/2-0.08;
-    const mur=box(g,ped*n,1.05,0.16,matCrema,(xIn+xFin)/2,(Q_ALTA+yFin)/2+0.52,zL,false);
-    mur.rotation.z=-ang;
+        lam(0xffffff,{map:texAlzataTab(i+1)}));
+      a2.position.set(xC,yy+alz/2,zz+0.003);g.add(a2);}
+    const zFin=zIn-ped*n, yFin=Q_ALTA+alz*n, ang=Math.atan2(alz,ped);
+    /* in cima: parete gialla e il passaggio verso la Primaria */
+    box(g,W+0.4,SOFF-yFin,0.18,giallo,xC,(SOFF+yFin)/2,zFin-0.3,false);
+    /* corrimano inox a parete, sul fianco cieco */
     const inoxT=new THREE.MeshPhongMaterial({color:0xc6cad0,shininess:110,specular:0xffffff});
-    const cor=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,ped*n+0.5,10),inoxT);
-    cor.rotation.z=Math.PI/2+ang;
-    cor.position.set((xIn+xFin)/2,(Q_ALTA+yFin)/2+1.05,zL);g.add(cor);
-    for(let i=0;i<=4;i++){const t=i/4;
-      box(g,0.05,0.95,0.05,lam(0xb8bcc0),xIn-t*ped*n,Q_ALTA+t*alz*n+0.55,zL,false);}
-    /* il soffitto e' forato dove passa la rampa: sopra c'e' il secondo piano,
-       che non e' modellato */
-    box(g,ped*n+0.6,0.16,W+0.6,matBiancoInt,(xIn+xFin)/2,SOFF+0.9,zC,false);
-    const vano=new THREE.Mesh(new THREE.BoxGeometry(ped*n+0.4,1.8,W+0.4),
-      new THREE.MeshBasicMaterial({color:0x1c1a18,side:THREE.BackSide}));
-    vano.position.set((xIn+xFin)/2,SOFF+0.02,zC);g.add(vano);
-    box(g,0.18,1.9,W+0.4,matBiancoInt,xIn+0.2,SOFF+0.05,zC,false);
-    contatto(g,(xIn+xFin)/2,Q_ALTA+0.012,zC,ped*n+1,W+1.6,0.4);
+    const cor=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,ped*n+0.6,10),inoxT);
+    cor.rotation.x=Math.PI/2-ang;
+    cor.position.set(xC-W/2+0.09,(Q_ALTA+yFin)/2+0.95,(zIn+zFin)/2);g.add(cor);
+    for(let i=0;i<=3;i++){const t=i/3;
+      box(g,0.22,0.05,0.05,inoxT,xC-W/2+0.02,Q_ALTA+t*alz*n+0.95,zIn-t*ped*n,false);}
+    /* colonna tonda d'acciaio sul filo del vano */
+    const col=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,SOFF-Q_ALTA,12),inoxT);
+    col.position.set(xC+W/2-0.06,(SOFF+Q_ALTA)/2,zIn+0.12);g.add(col);
+    contatto(g,xC,Q_ALTA+0.012,(zIn+zFin)/2,W+1.2,ped*n+1,0.4);
   })();
 })();
 
@@ -3108,7 +3189,7 @@ const TAPPE=[
 
   { titolo:'I gradini che fanno i conti',
     indizio:'C\'è una scala che non serve solo a salire: su ogni alzata qualcuno ha incollato quadretti numerati colorati, e i numeri crescono di riga in riga; sulle pedate, invece, sono scritte delle parole. Sta in fondo al salone dove le pareti sono gialle e il pavimento a scacchi caldi. La cassetta è a terra, appoggiata contro il primo gradino.',
-    pos:[-59.9,4.39,-7.3], da:[-56.8,5.4,-8.4], zona:'Il corridoio del primo piano, contro la parete sud, appena prima dell\'angolo con la Scuola Primaria.',
+    pos:[-62.6,4.39,-10.9], da:[-62.6,5.4,-7.6], zona:'Il corridoio del primo piano, davanti al vano della scala, appena prima dell\'angolo con la Scuola Primaria.',
     cosa:'Una cassetta di legno a terra, ai piedi della scala coi quadretti numerati.',
     imparato:'La scala delle tabelline trasforma un passaggio obbligato in un ripasso involontario: ogni volta che sali, i numeri ti passano davanti. È un\'idea semplice — mettere il contenuto dove il corpo passa comunque.' },
 
