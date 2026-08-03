@@ -1092,8 +1092,19 @@ function vetrataCorridoio(p,x0,x1,z,ry,y0){
   for(let i=0;i<16;i++) if(i!==10) fN.push({fx:0.032+i*0.062,fy:3.1,fw:1.25,fh:1.9});
   muroPietra(null,w,hM,fN,cx,0,z0,Math.PI,{portale:0.647});
   /* la facciata sud e' interrotta dal vuoto dell'atrio (x -35.8 .. -24.2) */
-  muroPietra(null,28.2,hM,(()=>{const f=[];for(let i=0;i<5;i++)f.push({fx:0.09+i*0.2,fy:7.0,fw:1.2,fh:1.6});return f;})(),
-    -49.9,0,z1,0);
+  /* ATTENZIONE: questo muro passa DAVANTI al vano della scala delle tabelline
+     (x -63.85..-61.35). Aprire il vano nella parete del corridoio non basta: se
+     resta questo, la rampa e' murata lo stesso, un muro piu' in la'. Il tratto
+     parte quindi da x=-61.35, non da x=-64. */
+  muroPietra(null,25.55,hM,(()=>{const f=[];for(let i=0;i<5;i++)f.push({fx:0.09+i*0.2,fy:7.0,fw:1.2,fh:1.6});return f;})(),
+    -48.575,0,z1,0);
+  /* Il vano e' aperto SOLO nella fascia del primo piano (4.19 -> 6.4): sotto
+     resta la muratura del piano terra, sopra l'architrave. Prima avevo messo
+     un unico blocco da quota 2.6 in su, che tappava il vano invece di
+     incorniciarlo — ed e' per questo che la scala continuava a sembrare murata. */
+  box(mondo,2.5,4.19,0.34,matPietra(2,2),-62.6,4.19/2,z1,false);   /* sotto  */
+  box(mondo,2.5,hM-6.4,0.34,matPietra(2,1),-62.6,6.4+(hM-6.4)/2,z1,false); /* sopra */
+  box(mondo,2.7,0.16,0.40,lam(0xdcd4c4),-62.6,6.42,z1,false);      /* architrave */
   muroPietra(null,38.2,hM,(()=>{const f=[];for(let i=0;i<7;i++)f.push({fx:0.07+i*0.145,fy:7.0,fw:1.2,fh:1.6});return f;})(),
     -5.1,0,z1,0);
   muroPietra(null,12,hM,[{fx:0.5,fy:7.0,fw:1.2,fh:1.6}],x1,0,cz,Math.PI/2);
@@ -2598,8 +2609,15 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
     /* scala_secondaria.MOV: le alzate sono QUATTRO, non tre, e il gres e'
        piu' SCURO del pavimento (grafite), con un naso CHIARO e netto su ogni
        pedata. E' il naso chiaro a disegnare l'andamento a gradoni del fianco. */
-    const grigio=lam(0x67655F), naso=lam(0xE2E0D8);
-    const alz=0.17, ped=0.46, N=4;
+    /* IMG_4938/4939/4942: le pedate sono in gres TORTORA CALDO, piu' chiaro e
+       piu' caldo del pavimento grigio del corridoio, con una FUGA CHIARA
+       sottile sul naso — non la fascia bianca marcata che avevo messo, e non
+       il grafite scuro. */
+    const grigio=lam(0x9A9187), naso=lam(0xC9C4BB);
+    /* Contate a piena risoluzione (sec_42, 1500px): le alzate sono TRE.
+       Nei provini ridotti il naso chiaro del ripiano superiore sembrava un
+       quarto gradino. */
+    const alz=0.17, ped=0.46, N=3;
     const xK=8.9, zK=-7.6;            /* spigolo interno attorno a cui gira    */
     const xFin=13.45, zFin=-11.4;     /* estremita' dei due bracci             */
     for(let i=0;i<N;i++){
