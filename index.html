@@ -1501,7 +1501,9 @@ function faroLed(x,y,z,ry){
       f.push({fx:0.05+i*0.1125,fy:1.6+r*3.44,fw:1.7,fh:1.5});return f;})(),
     finN:griglia(2,2,1.6,3.44,1.6,1.5),
     finS:griglia(2,2,1.6,3.44,1.6,1.5)});
-  tetto(mondo,(x0+x1)/2,(z0+z1)/2,x1-x0,z1-z0,h,2.5,{pluviali:0,
+  /* la falda deve coprire ANCHE l'aggetto del primo piano: prima si
+     fermava al filo del corpo e sopra restava una fascia piatta. */
+  tetto(mondo,(x0+x1)/2-1.0,(z0+z1)/2,x1-x0+2.0,z1-z0,h,2.5,{pluviali:0,
     comignoli:[[0,-10,1.4],[0,12,1.4]]});
   /* il volume aggettante del primo piano, verso la corte */
   const ax=x0-spor;
@@ -2687,7 +2689,9 @@ function plafo(g,x,z,q,ry,tipo){
 (function primaria(){
   const g=new THREE.Group();interni.add(g);
   /* braccio OVEST del corridoio a U: x[-58.8,-52.6] fino a z=+24,5 */
-  const x0=-70.7,x1=-54.4,z0=-14.0,z1=24.5;
+  /* il braccio OVEST comincia dove finisce quello NORD (z=-0,9): prima si
+     sovrapponevano e i corridoi sembravano tre invece di uno a U. */
+  const x0=-70.7,x1=-54.4,z0=-0.9,z1=24.5;
   const sx0=-58.8,sx1=-52.6;                    /* il salone sul cortile    */
   vano(g,sx0,sx1,z0,z1,matPav(palPrimaria,3,(sx1-sx0)/1.2,(z1-z0)/1.2,4),Q_ALTA,20);
   /* parete est: la vetrata sul cortile */
@@ -2697,7 +2701,7 @@ function plafo(g,x,z,q,ry,tipo){
     box(g,0.14,SOFF-Q_ALTA-1.5,0.12,lam(0x3A3E44),sx1-0.06,
         Q_ALTA+0.95+(SOFF-Q_ALTA-1.5)/2,z0+1+i*(z1-z0-2)/13,false);
   /* le AULE, coi divisori della tavola */
-  const DZ=[-14.0,-5.5,2.0,11.2,17.1,24.5];
+  const DZ=[-0.9,4.8,10.4,16.0,21.0,24.5];
   for(let i=0;i<DZ.length-1;i++){
     const az0=DZ[i],az1=DZ[i+1];
     vano(g,x0,sx0,az0,az1,matPav(palPrimaria,3,(sx0-x0)/1.2,(az1-az0)/1.2,4),Q_ALTA,6);
@@ -2734,8 +2738,8 @@ function plafo(g,x,z,q,ry,tipo){
      cima la parete arancio con la scritta "Solo chi sogna puo' volare". */
   (function tabelline(){
     const nNum=10,nTot=16,alz=0.19,ped=0.30,W=2.4;
-    const xC=-57.0, zIn=-9.0, trav=lam(0xE8E2D4);
-    box(g,0.18,SOFF-Q_ALTA,7.2,lam(0x4E5155),xC-W/2-0.12,(SOFF+Q_ALTA)/2,zIn-2.6,false);
+    const xC=-57.0, zIn=3.4, trav=lam(0xE8E2D4);
+    box(g,0.18,SOFF-Q_ALTA,7.2,lam(0x4E5155),xC-W/2-0.12,(SOFF+Q_ALTA)/2,zIn+2.6,false);
     box(g,W+0.9,0.16,1.5,trav,xC,Q_ALTA+0.08,zIn+0.55,true);
     for(let i=0;i<nTot;i++){
       const zz=zIn-ped*i, yy=Q_ALTA+0.16+alz*i;
@@ -2862,7 +2866,7 @@ function plafo(g,x,z,q,ry,tipo){
   const g=new THREE.Group();interni.add(g);
   /* il pavimento lo posa ormai il corridoio lungo: qui restano il soffitto
      terracotta e la schermatura a listelli, che sono di questo tratto. */
-  const x0=-54.4,x1=-36.7,z0=-6.31,z1=-2.56;
+  const x0=-54.4,x1=-36.7,z0=-5.40,z1=-0.90;   /* stesse quote del braccio nord */
   /* il soffitto TERRACOTTA, ribassato */
   box(g,x1-x0,0.12,z1-z0,matTerracotta,(x0+x1)/2,SOFF-0.30,(z0+z1)/2,false);
   plafo(g,(x0+x1)/2,(z0+z1)/2,SOFF-0.30,0,'app');
