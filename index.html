@@ -1102,7 +1102,12 @@ function muroFin(p,w,h,col,fin,x,y,z,ry){
   const m=solido(box(g,w,h,0.24,lam(col),0,h/2,0,true)); m.receiveShadow=false;
   fin.forEach(f=>{
     const px=(f.fx-0.5)*w, tel=f.scuro?matTelaioScuro:matTelaio;
-    varco(box(g,f.fw,f.fh,0.08,tel,px,f.fy,0.14,false));
+    /* UNA FINESTRA NON E' UNA PORTA. Marcandola varco, e visto che il varco
+       viene poi gonfiato di 95 cm per non restare incastrati nelle soglie,
+       le finestre ravvicinate si saldavano fra loro e la parete diventava un
+       colabrodo: si usciva dall'edificio attraversando il muro. Si entra
+       dalle vetrate a tutta altezza e dal portale, che varco lo sono davvero. */
+    box(g,f.fw,f.fh,0.08,tel,px,f.fy,0.14,false);
     const v=new THREE.Mesh(new THREE.PlaneGeometry(f.fw-0.14,f.fh-0.14),
       new THREE.MeshPhongMaterial({color:0x6f8ba0,shininess:130,specular:0x9fc4d8}));
     v.position.set(px,f.fy,0.185);g.add(v);
@@ -1316,7 +1321,13 @@ const H_PT=3.44, H_P1=6.88, H_P2=10.32;      /* quote dei solai, dal rilievo */
 function corpo(o){
   const x0=o.x0,x1=o.x1,z0=o.z0,z1=o.z1,h=o.h;
   const cx=(x0+x1)/2, cz=(z0+z1)/2, w=x1-x0, d=z1-z0;
-  solido(box(mondo,w,h,d,lam(o.col),cx,h/2,cz,true));
+  /* IL VOLUME PIENO NON E' UN OSTACOLO: le collisioni stanno sulle PARETI
+     (le crea muroFin, che marca solido ogni muro sottile). Marcando solido
+     il volume intero, ogni punto dell'interno risultava "dentro un muro":
+     si restava fuori da tutto e i luoghi del menu erano irraggiungibili.
+     E' il baco che Andrea ha visto come "volo fuori dalle pareti oppure non
+     riesco a esplorare". */
+  box(mondo,w,h,d,lam(o.col),cx,h/2,cz,true);
   if(o.finN) muroFin(null,w,h,o.col,o.finN,cx,0,z0,Math.PI);
   if(o.finS) muroFin(null,w,h,o.col,o.finS,cx,0,z1,0);
   if(o.finO) muroFin(null,d,h,o.col,o.finO,x0,0,cz,-Math.PI/2);
@@ -1421,6 +1432,26 @@ function faroLed(x,y,z,ry){
   telecamera(x1-1.2,h-0.9,z1+0.16,0);
   /* zoccolo AZZURRO: e' la resina del campo che risale sul muro */
   box(mondo,x1-x0,0.26,0.09,lam(0x8FB6D8),(x0+x1)/2,0.13,z1+0.16,false);
+  /* ===== L'INGRESSO CON IL PORTALE AD ARCO ============================
+     RIMESSO. Rifondando il guscio sulle tavole avevo cancellato l'ala in
+     pietra, e con lei se n'era andato il portone ad arco — che e' l'unica
+     curva di pietra chiara di tutta la scuola e per giunta il bersaglio
+     della prima tappa. Le tavole dicono dove stanno i muri, non che cosa
+     rende riconoscibile un edificio: quello lo dicono le fotografie e chi
+     ci passa davanti tutti i giorni.
+     Sta sul fronte nord, in asse con l'ATRIO D'INGRESSO della planimetria,
+     verso la rotonda e il parcheggio. */
+  muroPietra(null,13.0,h,
+    [{fx:0.14,fy:5.30,fw:1.35,fh:1.55},{fx:0.86,fy:5.30,fw:1.35,fh:1.55},
+     {fx:0.14,fy:2.05,fw:1.35,fh:1.55},{fx:0.86,fy:2.05,fw:1.35,fh:1.55}],
+    -22.6,0,z0-0.20,Math.PI,{portale:0.5});
+  /* i tre gradini di soglia e le due lanterne ai lati */
+  for(let i=0;i<3;i++)
+    box(mondo,5.0-i*0.5,0.16,0.42+i*0.42,lam(0xD8D2C4),-22.6,0.08-i*0.16,z0-0.62-i*0.42,true);
+  [-2.15,2.15].forEach(o=>{
+    box(mondo,0.16,1.05,0.16,lam(0x4A4640),-22.6+o,0.52,z0-0.55,false);
+    box(mondo,0.26,0.30,0.26,lam(0xF2EFE2),-22.6+o,1.20,z0-0.55,false);});
+  contatto(mondo,-22.6,0.03,z0-1.4,7.5,3.2,0.45);
 })();
 
 /* ===================== ALA EST — Secondaria ==============================
@@ -1431,20 +1462,24 @@ function faroLed(x,y,z,ry){
    che nelle riprese ombreggia le vetrate e regge i pluviali.
    ====================================================================== */
 (function alaEst(){
-  const x0=14.3,x1=22.5,z0=-18.1,z1=24.8,h=H_P2;
+  /* DUE livelli, non tre: il secondo piano qui NON esiste (correzione di
+     Andrea). L'avevo dedotto da un asse del PianoSecondo, ma quella tavola
+     e' allineata peggio delle altre e in quella fascia stanno i locali delle
+     piscine, non l'ala della Secondaria. Chi la scuola la abita lo sa: vale
+     piu' del disegno mal registrato. */
+  const x0=14.3,x1=22.5,z0=-18.1,z1=24.8,h=H_P1;
   const bianco=0xF2F0EA, spor=2.0;
   corpo({x0:x0,x1:x1,z0:z0,z1:z1,h:h,col:bianco,alt:2.2,tetto:false,
-    finE:(()=>{const f=[];for(let r=0;r<3;r++)for(let i=0;i<9;i++)
+    finE:(()=>{const f=[];for(let r=0;r<2;r++)for(let i=0;i<9;i++)
       f.push({fx:0.05+i*0.1125,fy:1.6+r*3.44,fw:1.7,fh:1.5});return f;})(),
-    finN:griglia(2,3,1.6,3.44,1.6,1.5),
-    finS:griglia(2,3,1.6,3.44,1.6,1.5)});
+    finN:griglia(2,2,1.6,3.44,1.6,1.5),
+    finS:griglia(2,2,1.6,3.44,1.6,1.5)});
   tettoPiano(mondo,(x0+x1)/2,(z0+z1)/2,x1-x0,z1-z0,h);
   /* il volume aggettante del primo piano, verso la corte */
   const ax=x0-spor;
-  solido(box(mondo,spor,H_P2-H_PT,z1-z0,lam(bianco),(ax+x0)/2,(H_PT+H_P2)/2,(z0+z1)/2,true));
+  box(mondo,spor,H_P1-H_PT,z1-z0,lam(bianco),(ax+x0)/2,(H_PT+H_P1)/2,(z0+z1)/2,true);
   box(mondo,spor+0.3,0.34,z1-z0,lam(0xE6E3DA),(ax+x0)/2,H_PT-0.06,(z0+z1)/2,false);
   nastroPrimo(z0+0.6,z1-0.6,ax,-Math.PI/2,H_PT);
-  nastroPrimo(z0+0.6,z1-0.6,ax,-Math.PI/2,H_P1);
   /* sotto l'aggetto, il piano terra vetrato e arretrato */
   vetrataTerra(z0+0.6,z1-6.0,x0,-Math.PI/2);
   for(let i=0;i<6;i++) pluviale(ax-0.18,z0+2.5+i*7,h,0);
@@ -2782,7 +2817,7 @@ const DOMANDE=[
 const TAPPE=[
   { titolo:'L\'arco che tutti attraversano',
     indizio:'Il muro più antico del campus non è intonacato: è fatto di sassi squadrati, uno accanto all\'altro. In mezzo si apre l\'unica curva di pietra chiara di tutta la scuola. Cercala dal lato della strada e del parcheggio, non dal cortile.',
-    pos:[-9.0,0.45,-19.7], da:[-9.0,3.2,-24.5], zona:'Ingresso Scuola, sul fronte nord verso il Parcheggio.',
+    pos:[-22.6,0.45,-19.9], da:[-22.6,3.2,-25.0], zona:'Ingresso Scuola, sul fronte nord verso il Parcheggio.',
     cosa:'Una cassetta di legno appoggiata a terra, accanto allo stipite di pietra chiara.',
     imparato:'Il corpo storico della scuola è in pietra a vista, con il portale ad arco al centro della facciata nord: è da lì che si entrava, ed è la parte più antica del campus. Tutto il resto — le vetrate, i corridoi luminosi — è stato aggiunto dopo, verso il cortile.' },
 
@@ -3216,12 +3251,12 @@ if(TOCCO){
 /* nomi come sulla mappa Campus_zone.png */
 const LUOGHI=[
   ['Vista dall\'alto',[30,46,64],[-25,0,0]],
-  ['Ingresso Scuola',[-36,4,-36],[-36,3,-24]],
-  ['Campo Basket',[-5,2.6,19],[-5,3.5,-6]],
-  ['Scuola Primaria',[-72,5.8,28],[-72,5.2,2]],
-  ['Direzione',[-26,5.6,-3.5],[-27,4.6,-14]],
-  ['Corridoio del primo piano',[-58,5.2,-9],[-30,4.6,-9.3]],
-  ['Scuola Secondaria',[11,5.7,13],[11.5,5.2,-4]],
+  ['Ingresso Scuola',[-22.6,4,-33],[-22.6,3,-19]],
+  ['Campo Basket',[-8.6,2.6,18],[-8.6,3.2,-2]],
+  ['Scuola Primaria',[-57.0,5.4,16],[-57.0,5.0,-6]],
+  ['Direzione',[-26.0,5.2,-7.0],[-26.2,4.9,-14.5]],
+  ['Corridoio del primo piano',[-30.0,5.2,-4.4],[10.0,4.9,-4.4]],
+  ['Scuola Secondaria',[16.4,5.4,14],[16.4,5.0,-6]],
   ['Campo Calcio',[-26,3,80],[-26,3,40]],
   ['Piscine Andreana',[58,18,34],[60,2,-8]],
   ['Portico e le due corti',[-28.1,2.6,26],[-28.1,2.2,-4]]
