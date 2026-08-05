@@ -736,12 +736,15 @@ const matGomma=lam(0x4a4245);
    errore mio, l'ortofoto e' inequivocabile.
    Il tappeto e' piu' grande del campo: la fascia bordeaux di rispetto e' larga. */
 const texBasket=(()=>{const c=mkCanvas(1024,576),g=c.getContext('2d'),rnd=seme(21);
-  const BOR='#8d4038', AZZ='#8fb6d2';
+  /* IMG_4947 (panoramica a livello suolo): il fondo e' un MATTONE SMORZATO,
+     opaco, non un bordeaux saturo; le aree e il cerchio sono AZZURRO-GRIGIO
+     POLVEROSO, non un celeste acceso. */
+  const BOR='#96574E', AZZ='#9FB4C4';
   g.fillStyle=BOR;g.fillRect(0,0,1024,576);
   for(let i=0;i<1800;i++){g.fillStyle='rgba(0,0,0,.06)';g.fillRect(rnd()*1024,rnd()*576,3,3);}
   /* rettangolo di gioco, di poco piu' chiaro della fascia di rispetto */
   const X0=62,Y0=52,W=900,H=472,CY=Y0+H/2;
-  g.fillStyle='#96473e';g.fillRect(X0,Y0,W,H);
+  g.fillStyle='#9E5F55';g.fillRect(X0,Y0,W,H);
   for(let i=0;i<900;i++){g.fillStyle='rgba(255,255,255,.04)';g.fillRect(X0+rnd()*W,Y0+rnd()*H,3,3);}
   /* aree dei tiri liberi e cerchio di centrocampo dipinti in AZZURRO */
   g.fillStyle=AZZ;
@@ -760,8 +763,10 @@ const texBasket=(()=>{const c=mkCanvas(1024,576),g=c.getContext('2d'),rnd=seme(2
   g.beginPath();g.arc(X0+W-80,CY,196,Math.PI-Math.PI/2.3,Math.PI+Math.PI/2.3);g.stroke();
   return tex(c,false);})();
 const texVerde=(()=>{const c=mkCanvas(1024,476),g=c.getContext('2d'),rnd=seme(33);
-  g.fillStyle='#4e7d44';g.fillRect(0,0,1024,476);
-  for(let i=0;i<2800;i++){g.fillStyle=['#46733d','#578a4c','#3f6a38'][(rnd()*3)|0];
+  /* IMG_4947: l'erba sintetica del volley e' VERDE SCURO, quasi bottiglia,
+     non il verde prato che avevo messo. */
+  g.fillStyle='#2F5A34';g.fillRect(0,0,1024,476);
+  for(let i=0;i<2800;i++){g.fillStyle=['#2A5230','#37653B','#26492B'][(rnd()*3)|0];
     g.fillRect(rnd()*1024,rnd()*476,3,3);}
   g.strokeStyle='#fff';g.lineWidth=5;g.strokeRect(120,60,784,356);
   [238,416].forEach(y=>{g.beginPath();g.moveTo(120,y);g.lineTo(904,y);g.stroke();});
@@ -989,7 +994,14 @@ canestroPalo(-18.6,4.5,Math.PI/2);canestroPalo(8.6,4.5,-Math.PI/2);
     new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.35,
       side:THREE.DoubleSide,depthWrite:false}));
   r.rotation.y=Math.PI/2;r.position.set(0,2.05,0);g.add(r);
-  g.position.set(-5,0,23);mondo.add(g);})();
+  g.position.set(-5,0,23);mondo.add(g);
+  /* IMG_4947: attorno al sintetico corre un CORDOLO DI CEMENTO con le
+     CADITOIE a filo — e' il primo dettaglio che si vede stando sul campo */
+  [[-5,16.4,30,1.2],[-5,29.6,30,1.2],[-20.1,23,1.2,14],[10.1,23,1.2,14]].forEach(q=>{
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(q[2],q[3]),matCemento);
+    m.rotation.x=-Math.PI/2;m.position.set(q[0],0.045,q[1]);mondo.add(m);});
+  for(let i=0;i<5;i++)
+    box(mondo,0.55,0.03,0.30,lam(0x55585B),-16+i*6,0.055,16.4,false);})();
 function figura(x,z,ry,cm,cp){
   const g=new THREE.Group();
   const gm=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.11,0.52,7),lam(cp||0x2a3040));
@@ -1092,19 +1104,8 @@ function vetrataCorridoio(p,x0,x1,z,ry,y0){
   for(let i=0;i<16;i++) if(i!==10) fN.push({fx:0.032+i*0.062,fy:3.1,fw:1.25,fh:1.9});
   muroPietra(null,w,hM,fN,cx,0,z0,Math.PI,{portale:0.647});
   /* la facciata sud e' interrotta dal vuoto dell'atrio (x -35.8 .. -24.2) */
-  /* ATTENZIONE: questo muro passa DAVANTI al vano della scala delle tabelline
-     (x -63.85..-61.35). Aprire il vano nella parete del corridoio non basta: se
-     resta questo, la rampa e' murata lo stesso, un muro piu' in la'. Il tratto
-     parte quindi da x=-61.35, non da x=-64. */
-  muroPietra(null,25.55,hM,(()=>{const f=[];for(let i=0;i<5;i++)f.push({fx:0.09+i*0.2,fy:7.0,fw:1.2,fh:1.6});return f;})(),
-    -48.575,0,z1,0);
-  /* Il vano e' aperto SOLO nella fascia del primo piano (4.19 -> 6.4): sotto
-     resta la muratura del piano terra, sopra l'architrave. Prima avevo messo
-     un unico blocco da quota 2.6 in su, che tappava il vano invece di
-     incorniciarlo — ed e' per questo che la scala continuava a sembrare murata. */
-  box(mondo,2.5,4.19,0.34,matPietra(2,2),-62.6,4.19/2,z1,false);   /* sotto  */
-  box(mondo,2.5,hM-6.4,0.34,matPietra(2,1),-62.6,6.4+(hM-6.4)/2,z1,false); /* sopra */
-  box(mondo,2.7,0.16,0.40,lam(0xdcd4c4),-62.6,6.42,z1,false);      /* architrave */
+  muroPietra(null,28.2,hM,(()=>{const f=[];for(let i=0;i<5;i++)f.push({fx:0.09+i*0.2,fy:7.0,fw:1.2,fh:1.6});return f;})(),
+    -49.9,0,z1,0);
   muroPietra(null,38.2,hM,(()=>{const f=[];for(let i=0;i<7;i++)f.push({fx:0.07+i*0.145,fy:7.0,fw:1.2,fh:1.6});return f;})(),
     -5.1,0,z1,0);
   muroPietra(null,12,hM,[{fx:0.5,fy:7.0,fw:1.2,fh:1.6}],x1,0,cz,Math.PI/2);
@@ -1565,7 +1566,9 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
   const cx=-66,cz=56,w=40,d=25,hM=9.4,alt=3.2;
   solido(box(g,w,hM,d,lam(0xe8e5dd),cx,hM/2,cz,true));
   box(g,w+0.3,0.7,d+0.3,lam(0xd6d2c8),cx,0.35,cz,false);
-  const mV=lam(0xEDEAE0);   /* il tendone e' BIANCO: il verde e' della chiesa */
+  /* IMG_4947: il tendone non e' tutto bianco — ha FASCE BLU orizzontali sul
+     manto e sul bordo delle falde. Si vede in fondo, oltre il filare. */
+  const mV=lam(0xEDEAE0);
   const f1=new THREE.Mesh(new THREE.BoxGeometry(w/2+1.4,0.22,d+1.2),mV);
   f1.position.set(cx-w/4,hM+alt/2,cz);f1.rotation.z= alt/(w/2)*0.92;f1.castShadow=true;g.add(f1);
   const f2=new THREE.Mesh(new THREE.BoxGeometry(w/2+1.4,0.22,d+1.2),mV);
@@ -1577,6 +1580,12 @@ function matVetroC(rx,ry){const t=texVetroC.clone();t.needsUpdate=true;t.repeat.
     const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),lam(0xe8e5dd));
     m.position.set(cx,hM,zz);if(zz<cz)m.rotation.y=Math.PI;g.add(m);});
   for(let i=0;i<7;i++) box(g,1.1,1.8,0.1,lam(0x9fb6c4),cx-15+i*5,6.0,cz-d/2-0.02,false);
+  /* fasce blu sul manto e sulla fascia di gronda */
+  [-1,1].forEach(sg=>{
+    for(let k=0;k<3;k++)
+      box(g,w/2+1.2,0.06,1.5,lam(0x2F5FA8),cx+sg*(w/4),hM+alt/2+0.14,cz-d/2+2.5+k*7.5,false);});
+  box(g,w+0.6,0.55,0.14,lam(0x2F5FA8),cx,hM-0.3,cz-d/2-0.18,false);
+  box(g,w+0.6,0.55,0.14,lam(0x2F5FA8),cx,hM-0.3,cz+d/2+0.18,false);
   contatto(mondo,cx,0.03,cz,w+4,d+4,0.5);
 })();
 /* RIMOSSO — "ala Mensa / Aula Musica / Aula Informatica".
@@ -2461,17 +2470,7 @@ const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
     box(g,x1-x0,0.3,z1-z0,lam(0xbdbab2),(x0+x1)/2,q-0.16,(z0+z1)/2,false);
     const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matSoffitto(rip,4));
     s.rotation.x=Math.PI/2;s.position.set((x0+x1)/2,SOFF,(z0+z1)/2);g.add(s);
-    /* la parete verso nord NON e' continua: dove passa la scala delle
-       tabelline va lasciato il VANO, spezzandola in due tratti. Senza questo
-       la rampa resta murata e dal corridoio si vede solo il muro. */
-    const vx0=-63.85, vx1=-61.35;                 /* larghezza del vano  */
-    if(x0<vx0 && x1>vx1){
-      box(g,vx0-x0,SOFF-q,0.16,matBiancoInt,(x0+vx0)/2,(SOFF+q)/2,z0,false);
-      box(g,x1-vx1,SOFF-q,0.16,matBiancoInt,(vx1+x1)/2,(SOFF+q)/2,z0,false);
-      /* architrave sopra il vano */
-      box(g,vx1-vx0,0.55,0.16,matBiancoInt,(vx0+vx1)/2,SOFF-0.27,z0,false);
-    } else {
-      box(g,x1-x0,SOFF-q,0.16,matBiancoInt,(x0+x1)/2,(SOFF+q)/2,z0,false);}}
+    box(g,x1-x0,SOFF-q,0.16,matBiancoInt,(x0+x1)/2,(SOFF+q)/2,z0,false);}
   /* corridoio ovest (quota alta) */
   guscio(-64,-35.8,Q_ALTA,17);
   for(let i=0;i<5;i++) porta(g,matPortaChiara,-61+i*5.8,Q_ALTA,z0+0.1,0,(i===2)?0.7:0);
@@ -2779,44 +2778,46 @@ let ancoraBiliardino=null, ancoraCase=null;
      dell'ala, e buca il soffitto verso il secondo piano che non e' mappato.
      ==================================================================== */
   (function tabelline(){
-    /* scala_primaria.MOV — LETTURA DEFINITIVA.
-       Non e' una rampa che corre lungo il corridoio: e' un flight DRITTO
-       incassato in un VANO della parete opposta alle vetrate, appena prima
-       dell'angolo con la Primaria. Ci sali dando le spalle al corridoio.
-       - DIECI alzate, una per tabellina: 1..10, 2..20, fino a 10..100.
-       - Le pedate sono CHIARE e LISCE: le parole stanno sull'altra scala,
-         quella dell'atrio. Qui non ci sono.
-       - Il vano ha una spalletta SCURA profonda; in cima la parete e' GIALLA
-         e si passa nella Primaria.
-       - Corrimano inox a parete sul lato cieco e COLONNA TONDA d'acciaio sul
-         filo del vano. */
-    const n=10, alz=0.19, ped=0.30, W=2.3, xC=-62.6, zIn=-11.5;
-    const scuro=lam(0x4A3F36), giallo=lam(0xE8B41E);
-    /* spalletta scura del vano, che incornicia la rampa */
-    box(g,0.22,SOFF-Q_ALTA,3.6,scuro,xC-W/2-0.11,(SOFF+Q_ALTA)/2,zIn-1.8,false);
-    box(g,0.22,SOFF-Q_ALTA,3.6,scuro,xC+W/2+0.11,(SOFF+Q_ALTA)/2,zIn-1.8,false);
-    box(g,W+0.44,0.5,3.6,scuro,xC,SOFF-0.25,zIn-1.8,false);
-    for(let i=0;i<n;i++){
-      const zz=zIn-ped*i, yy=Q_ALTA+alz*i;
-      box(g,W,alz,ped,matCrema,xC,yy+alz/2,zz-ped/2,true);
-      /* alzata rivolta al corridoio: la riga della tabellina */
-      const a2=new THREE.Mesh(new THREE.PlaneGeometry(W,alz),
-        lam(0xffffff,{map:texAlzataTab(i+1)}));
-      a2.position.set(xC,yy+alz/2,zz+0.003);g.add(a2);}
-    const zFin=zIn-ped*n, yFin=Q_ALTA+alz*n, ang=Math.atan2(alz,ped);
-    /* in cima: parete gialla e il passaggio verso la Primaria */
-    box(g,W+0.4,SOFF-yFin,0.18,giallo,xC,(SOFF+yFin)/2,zFin-0.3,false);
-    /* corrimano inox a parete, sul fianco cieco */
+    /* IMG_4982 — la scala e' IN VISTA, non incassata in un vano.
+       Sale PARALLELA al corridoio, addossata a una parete GRIGIO ANTRACITE.
+       Gradini in TRAVERTINO chiaro. I quadretti numerati coprono solo le
+       PRIME DIECI alzate: sopra la rampa prosegue liscia fino a una parete
+       ARANCIONE. Corrimano inox sul muro scuro, COLONNA TONDA d'acciaio sul
+       filo libero, gradino-zoccolo largo alla base. */
+    const nNum=10, nTot=16, alz=0.19, ped=0.30, W=2.4;
+    const zC=-10.2, xIn=-58.4, trav=lam(0xE8E2D4);
+    /* parete antracite dietro la rampa */
+    box(g,10.5,SOFF-Q_ALTA,0.18,lam(0x4E5155),-62.6,(SOFF+Q_ALTA)/2,zC-W/2-0.1,false);
+    /* gradino-zoccolo alla base, piu' largo e sporgente */
+    box(g,1.5,0.16,W+0.9,trav,xIn+0.55,Q_ALTA+0.08,zC,true);
+    for(let i=0;i<nTot;i++){
+      const xx=xIn-ped*i, yy=Q_ALTA+0.16+alz*i;
+      box(g,ped,alz,W,trav,xx-ped/2,yy+alz/2,zC,true);
+      if(i<nNum){
+        const a2=new THREE.Mesh(new THREE.PlaneGeometry(W,alz),
+          lam(0xffffff,{map:texAlzataTab(i+1)}));
+        a2.rotation.y=Math.PI/2; a2.position.set(xx+0.004,yy+alz/2,zC);g.add(a2);}}
+    const xFin=xIn-ped*nTot, yFin=Q_ALTA+0.16+alz*nTot, ang=Math.atan2(alz,ped);
+    /* parete ARANCIONE in cima alla rampa */
+    box(g,0.18,SOFF-Q_ALTA,W+0.6,lam(0xE8862A),xFin-0.3,(SOFF+Q_ALTA)/2,zC,false);
+    /* corrimano inox sul muro antracite, a due tratti sfalsati */
     const inoxT=new THREE.MeshPhongMaterial({color:0xc6cad0,shininess:110,specular:0xffffff});
-    const cor=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,ped*n+0.6,10),inoxT);
-    cor.rotation.x=Math.PI/2-ang;
-    cor.position.set(xC-W/2+0.09,(Q_ALTA+yFin)/2+0.95,(zIn+zFin)/2);g.add(cor);
-    for(let i=0;i<=3;i++){const t=i/3;
-      box(g,0.22,0.05,0.05,inoxT,xC-W/2+0.02,Q_ALTA+t*alz*n+0.95,zIn-t*ped*n,false);}
-    /* colonna tonda d'acciaio sul filo del vano */
+    [[0,8],[8,nTot]].forEach(seg=>{
+      const L=ped*(seg[1]-seg[0]), xm=xIn-ped*(seg[0]+seg[1])/2;
+      const c=new THREE.Mesh(new THREE.CylinderGeometry(0.026,0.026,L+0.4,10),inoxT);
+      c.rotation.z=Math.PI/2-ang;
+      c.position.set(xm,Q_ALTA+0.16+alz*(seg[0]+seg[1])/2+0.95,zC-W/2+0.12);g.add(c);
+      for(let k=0;k<=1;k++)
+        box(g,0.05,0.05,0.20,inoxT,xIn-ped*(k?seg[1]:seg[0]),
+            Q_ALTA+0.16+alz*(k?seg[1]:seg[0])+0.95,zC-W/2+0.03,false);});
+    /* colonna tonda d'acciaio sul filo libero della rampa */
     const col=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,SOFF-Q_ALTA,12),inoxT);
-    col.position.set(xC+W/2-0.06,(SOFF+Q_ALTA)/2,zIn+0.12);g.add(col);
-    contatto(g,xC,Q_ALTA+0.012,(zIn+zFin)/2,W+1.2,ped*n+1,0.4);
+    col.position.set(xIn-0.15,(SOFF+Q_ALTA)/2,zC+W/2+0.25);g.add(col);
+    /* la rampa buca il soffitto verso il secondo piano, non mappato */
+    const vano=new THREE.Mesh(new THREE.BoxGeometry(ped*nTot+0.6,1.8,W+0.4),
+      new THREE.MeshBasicMaterial({color:0x1c1a18,side:THREE.BackSide}));
+    vano.position.set((xIn+xFin)/2,SOFF+0.02,zC);g.add(vano);
+    contatto(g,(xIn+xFin)/2,Q_ALTA+0.012,zC,ped*nTot+1.5,W+1.4,0.4);
   })();
 })();
 
