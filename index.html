@@ -863,7 +863,17 @@ const mondo=new THREE.Group(); scene.add(mondo);
      modello e' ancora li'. Misure corrette, posizione avvicinata il piu'
      possibile; lo spostamento del corpo sud a z=30,3 e' scritto fra le
      discrepanze in testa al file. */
-  tappeto(lam(0xffffff,{map:texVerde}),20,11,-6.9,23.5,0.04);
+  /* Il secondo campo e' DENTRO la corte, accanto al basket, in resina BLU
+     SCURO: si vede in tutte le viste aeree. Lo avevo fatto in erba sintetica
+     verde e messo fuori dal cortile. Quote: x[-14.0,+7.6] z[19.9,31.6]. */
+  tappeto(lam(0x2E4A6B),21.6,11.7,-3.2,25.8,0.038);
+  tappeto(lam(0x24405E),18.0,9.0,-3.2,25.8,0.042);
+  (function righeVolley(){
+    const b=lam(0xE8E6DE);
+    [[-3.2,21.3,18.0,0.10],[-3.2,30.3,18.0,0.10],[-3.2,25.8,18.0,0.10]].forEach(q=>
+      tappeto(b,q[2],q[3],q[0],q[1],0.046));
+    [[-12.2,25.8,0.10,9.0],[5.8,25.8,0.10,9.0]].forEach(q=>
+      tappeto(b,q[2],q[3],q[0],q[1],0.046));})();
   tappeto(lam(0xffffff,{map:texCalcio}),35,55,-26.5,59.5,0.03);
   /* ---- fronte, parcheggio, rotonda (§16) ------------------------------- */
   /* ORTOFOTO: il parcheggio non e' un blocco compatto, e' una STRISCIA LUNGA
@@ -924,7 +934,9 @@ function auto(x,z,ry,col){
 for(let i=0;i<8;i++){albero(-46.5,36+i*7.4,1.2+((i*7)%3)*0.12);albero(-6.6,36+i*7.4,1.15+((i*5)%3)*0.12);}
 /* alberi dell'isola della rotonda e del fronte (aerea: la rotonda e' piantumata) */
 [[-60,-56],[-52,-57],[-58,-47],[-51,-49]].forEach(q=>albero(q[0],q[1],1.15));
-albero(-20,-29,0.9);albero(-52,-33,1.2);albero(-64,-34,1.0);albero(-8,-30,0.95);
+/* (7) davanti al portale non ci va nessun albero: era piantato
+   nell'asfalto e copriva l'ingresso. */
+albero(-12,-31,0.9);albero(-52,-33,1.2);albero(-64,-34,1.0);albero(-4,-31,0.95);
 /* stava a (-56,2): dentro il salone della Primaria, spuntava al primo
    piano. Portato nel cortile dell'Infanzia, dove il video lo mostra. */
 albero(-44,4,1.35);
@@ -966,7 +978,9 @@ function reteAlta(x1,z1,x2,z2,h,col,passo){
 reteAlta(-44.5,34.5,-8.5,34.5,4);reteAlta(-44.5,87.5,-8.5,87.5,4);
 reteAlta(-44.5,34.5,-44.5,87.5,4);reteAlta(-8.5,34.5,-8.5,87.5,4);
 /* recinto del campo da volley, che sta fra la corte dei campi e il calcio */
-reteAlta(-19.5,29.5,9.5,29.5,3.2);reteAlta(-19.5,16.5,-19.5,29.5,3.2);reteAlta(9.5,16.5,9.5,29.5,3.2);
+/* (5) fra il campo da volley e quello da calcio c'e' solo una RINGHIERA
+   bassa (quella di ringhieraCampi, a z=31): le reti alte 3,2 m attorno al
+   volley non esistono e le tolgo. */
 function portaCalcio(x,z,rot){
   const g=new THREE.Group(),m=lam(0xf2f2f2);
   box(g,0.1,2.0,0.1,m,-2.5,1.0,0);box(g,0.1,2.0,0.1,m,2.5,1.0,0);box(g,5.1,0.1,0.1,m,0,2.0,0);
@@ -977,7 +991,7 @@ function portaCalcio(x,z,rot){
 portaCalcio(-26.5,33.2,Math.PI);portaCalcio(-26.5,85.8,0);
 /* ringhiera bassa in ferro grigio fra Campo Calcio e Campo Volley */
 (function ringhieraCampi(){
-  const m=lam(0x8d9297), x0=-19.5, x1=10, z=31.0, h=1.05;
+  const m=lam(0x8d9297), x0=-17.5, x1=7.5, z=36.0, h=1.05;
   for(let i=0;i<=Math.round((x1-x0)/2.2);i++){
     const x=x0+i*2.2; if(x>x1)break;
     box(mondo,0.07,h,0.07,m,x,h/2,z,false);
@@ -1000,6 +1014,7 @@ portaCalcio(-26.5,33.2,Math.PI);portaCalcio(-26.5,85.8,0);
 /* canestro completo: tabellone con riquadro dipinto e bordo, anello su piastra,
    e la RETE fatta di maglie che si stringono verso il basso */
 function tabelloneRete(g,y,zf,scala){
+  g.userData.canestro=true;   /* per il collaudo */
   const s2=scala||1;
   box(g,1.8*s2,1.15*s2,0.05,lam(0xf6f6f4),0,y,zf,true);              /* tabellone */
   const bordo=lam(0x2a2f36);
@@ -1027,6 +1042,7 @@ function tabelloneRete(g,y,zf,scala){
     g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(cer),mRete));}
 }
 function canestroPalo(x,z,rot){
+  /* il gruppo si marca dentro tabelloneRete */
   const g=new THREE.Group();
   const p=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.11,3.65,10),lam(0x7f858b));
   p.position.y=1.82;p.castShadow=true;g.add(p);
@@ -1035,8 +1051,12 @@ function canestroPalo(x,z,rot){
   tabelloneRete(g,3.32,1.1,1);
   g.position.set(x,0,z);g.rotation.y=rot;mondo.add(g);
   contatto(mondo,x,0.03,z,1.6,1.6,0.65);}
-canestroPalo(-18.6,4.5,Math.PI/2);canestroPalo(8.6,4.5,-Math.PI/2);
+/* un solo canestro su palo, a OVEST: a est il canestro c'e' gia', ed e'
+   quello a muro sull'ala della Secondaria (video dal campo, prov_02).
+   Ne avevo messi due dalla stessa parte. */
+canestroPalo(-21.0,4.5,Math.PI/2);
 (function volley(){
+  /* pali a bordo del campo blu, non nel prato */
   /* la rete corre sulla mezzeria del campo (campo x[-19,9] z[17,29]) */
   const g=new THREE.Group();
   box(g,0.09,2.6,0.09,lam(0x555a60),0,1.3,-6.5);box(g,0.09,2.6,0.09,lam(0x555a60),0,1.3,6.5);
@@ -1044,10 +1064,10 @@ canestroPalo(-18.6,4.5,Math.PI/2);canestroPalo(8.6,4.5,-Math.PI/2);
     new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.35,
       side:THREE.DoubleSide,depthWrite:false}));
   r.rotation.y=Math.PI/2;r.position.set(0,2.05,0);g.add(r);
-  g.position.set(-5,0,23);mondo.add(g);
+  g.position.set(-3.2,0,25.8);mondo.add(g);   /* centro del campo blu */
   /* IMG_4947: attorno al sintetico corre un CORDOLO DI CEMENTO con le
      CADITOIE a filo — e' il primo dettaglio che si vede stando sul campo */
-  [[-5,16.4,30,1.2],[-5,29.6,30,1.2],[-20.1,23,1.2,14],[10.1,23,1.2,14]].forEach(q=>{
+  [[-3.2,19.6,23,1.0],[-3.2,32.0,23,1.0],[-14.6,25.8,1.0,12.4],[8.2,25.8,1.0,12.4]].forEach(q=>{
     const m=new THREE.Mesh(new THREE.PlaneGeometry(q[2],q[3]),matCemento);
     m.rotation.x=-Math.PI/2;m.position.set(q[0],0.045,q[1]);mondo.add(m);});
   for(let i=0;i<5;i++)
@@ -1426,7 +1446,10 @@ function faroLed(x,y,z,ry){
     finN:(()=>{const f=[];for(let i=0;i<14;i++){
       f.push({fx:0.035+i*0.0715,fy:4.9,fw:1.6,fh:1.5});
       f.push({fx:0.035+i*0.0715,fy:1.6,fw:1.6,fh:1.5});}return f;})()});
-  tettoPiano(mondo,(x0+x1)/2,(z0+z1)/2,x1-x0,z1-z0,h);
+  /* (1) I tetti veri sono a FALDE SPIOVENTI IN COPPI, non piatti
+     (correzione di Andrea sulla vista dall'alto). */
+  tetto(mondo,(x0+x1)/2,(z0+z1)/2,x1-x0,z1-z0,h,2.9,{pluviali:0,
+    comignoli:[[-24,0,1.5],[-4,0,1.4],[8,0,1.4]]});
   /* --- il fronte sulla corte: PT tutto vetrato, P1 a nastro ------------- */
   vetrataTerra(x0+0.6,x1-0.6,z1,0);
   nastroPrimo(x0+0.6,x1-0.6,z1,0,H_PT);
@@ -1478,7 +1501,8 @@ function faroLed(x,y,z,ry){
       f.push({fx:0.05+i*0.1125,fy:1.6+r*3.44,fw:1.7,fh:1.5});return f;})(),
     finN:griglia(2,2,1.6,3.44,1.6,1.5),
     finS:griglia(2,2,1.6,3.44,1.6,1.5)});
-  tettoPiano(mondo,(x0+x1)/2,(z0+z1)/2,x1-x0,z1-z0,h);
+  tetto(mondo,(x0+x1)/2,(z0+z1)/2,x1-x0,z1-z0,h,2.5,{pluviali:0,
+    comignoli:[[0,-10,1.4],[0,12,1.4]]});
   /* il volume aggettante del primo piano, verso la corte */
   const ax=x0-spor;
   box(mondo,spor,H_P1-H_PT,z1-z0,lam(bianco),(ax+x0)/2,(H_PT+H_P1)/2,(z0+z1)/2,true);
@@ -1501,16 +1525,27 @@ function faroLed(x,y,z,ry){
    lavaggio e spogliatoio dipendenti verso il frutteto. Un piano solo, alto,
    con la fila di finestre basse verso il cortile.
    ====================================================================== */
+/* PianoPrimo-corridoio.pdf (evidenziato da Andrea): al primo piano questo
+   corpo ospita il LABORATORIO DI INFORMATICA (due vani, x[-51.2,-37.1]
+   z[25.0,30.9]), l'AULA DI MUSICA e, in un corpo che sporge a sud, il
+   LABORATORIO DI SCIENZE. Sotto: mensa, cucina e la zona dei padri.
+   Quindi e' a DUE PIANI, non a uno — con il suo tetto a falde. */
 (function corpoSud(){
-  const x0=-52.6,x1=-24.6,z0=24.5,z1=32.7,h=4.6;
-  corpo({x0:x0,x1:x1,z0:z0,z1:z1,h:h,col:0xE9DEC6,alt:2.4,
-    finN:(()=>{const f=[];for(let i=0;i<9;i++)
-      f.push({fx:0.06+i*0.11,fy:2.6,fw:1.9,fh:1.6});return f;})(),
-    finS:(()=>{const f=[];for(let i=0;i<7;i++)
-      f.push({fx:0.08+i*0.14,fy:2.6,fw:1.5,fh:1.4});return f;})(),
-    finO:griglia(2,1,2.6,0,1.4,1.4),
+  const x0=-52.6,x1=-24.6,z0=24.5,z1=32.7,h=7.4;
+  corpo({x0:x0,x1:x1,z0:z0,z1:z1,h:h,col:0xE9DEC6,alt:2.9,
+    finN:(()=>{const f=[];for(let r=0;r<2;r++)for(let i=0;i<9;i++)
+      f.push({fx:0.06+i*0.11,fy:1.8+r*3.44,fw:1.9,fh:1.5});return f;})(),
+    finS:(()=>{const f=[];for(let r=0;r<2;r++)for(let i=0;i<7;i++)
+      f.push({fx:0.08+i*0.14,fy:1.8+r*3.44,fw:1.5,fh:1.4});return f;})(),
+    finO:griglia(2,2,1.8,3.44,1.4,1.4),
     tOpt:{tipo:'capanna',colTimpano:0xE9DEC6,comignoli:[[6,0,1.3]]}});
   for(let i=0;i<5;i++) pluviale(x0+2+i*6.5,z0-0.16,h,0);
+  /* il LABORATORIO DI SCIENZE sporge verso sud, in fondo al corridoio */
+  corpo({x0:-30.3,x1:-24.0,z0:32.7,z1:39.2,h:7.4,col:0xE9DEC6,alt:2.6,
+    finE:griglia(2,2,1.8,3.44,1.5,1.4),
+    finS:griglia(2,2,1.8,3.44,1.5,1.4),
+    finO:griglia(2,2,1.8,3.44,1.5,1.4),
+    tOpt:{tipo:'capanna',colTimpano:0xE9DEC6}});
 })();
 
 /* ============ LOCALI PERTINENZA CENTRO PISCINE (fra scuola e vasche) =====
@@ -1531,7 +1566,8 @@ function faroLed(x,y,z,ry){
    ====================================================================== */
 (function cortileInfanzia(){
   const g=new THREE.Group(); mondo.add(g);
-  const x0=-54.4,x1=-30.0,z0=-5.0,z1=19.0;
+  /* quote della didascalia: il giardino sta fra l'ala ovest e la pensilina */
+  const x0=-52.0,x1=-28.9,z0=-0.5,z1=21.8;
   const matSint=lam(0xffffff,{map:(()=>{const t=tex(texPunti('#4f8f47',
     ['#478239','#5c9c54','#427a3c'],71),true);t.repeat.set(12,12);return t;})()});
   const e=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),matSint);
@@ -1555,15 +1591,16 @@ function faroLed(x,y,z,ry){
     const telo=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:0xF2F0E8,
       side:THREE.DoubleSide})); telo.castShadow=true;g.add(telo);})();
   /* il fungo gigante */
-  box(g,0.24,2.0,0.24,lam(0xa8a09a),-50,1.0,2.0,false);
-  const cap=new THREE.Mesh(new THREE.SphereGeometry(1.8,22,12,0,Math.PI*2,0,Math.PI/2.5),lam(0xc23a34));
-  cap.position.set(-50,1.7,2.0);cap.castShadow=true;g.add(cap);
-  const orlo=new THREE.Mesh(new THREE.TorusGeometry(1.78,0.09,7,24),lam(0xa82f28));
-  orlo.rotation.x=Math.PI/2;orlo.position.set(-50,1.74,2.0);g.add(orlo);
+  /* (3) il fungo era grande quanto un ombrellone: ridotto a misura vera */
+  box(g,0.18,1.35,0.18,lam(0xa8a09a),-50,0.68,2.0,false);
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(1.05,20,12,0,Math.PI*2,0,Math.PI/2.5),lam(0xc23a34));
+  cap.position.set(-50,1.15,2.0);cap.castShadow=true;g.add(cap);
+  const orlo=new THREE.Mesh(new THREE.TorusGeometry(1.04,0.06,7,22),lam(0xa82f28));
+  orlo.rotation.x=Math.PI/2;orlo.position.set(-50,1.17,2.0);g.add(orlo);
   [[.85,.5],[-.95,-.35],[.15,-.95],[-.4,.85],[.55,-.4]].forEach(q=>{
     const b=new THREE.Mesh(new THREE.SphereGeometry(0.17,9,7),lam(0xffffff));
-    b.position.set(-50+q[0],2.62,2.0+q[1]);b.scale.y=0.5;g.add(b);});
-  contatto(mondo,-50,0.06,2.0,4.4,4.4,0.6);
+    b.position.set(-50+q[0]*0.6,1.90,2.0+q[1]*0.6);b.scale.y=0.5;g.add(b);});
+  contatto(mondo,-50,0.06,2.0,2.6,2.6,0.6);
   (function scivolo(x,z){
     box(g,1.25,1.55,1.25,lam(0xdcb23a),x,0.78,z,true);
     const rp=box(g,0.92,0.1,2.7,lam(0xc23a34),x,0.88,z+1.6,true);rp.rotation.x=0.52;
@@ -1590,7 +1627,12 @@ function faroLed(x,y,z,ry){
    fili, muretti bassi colorati, pavimento in cemento stampato.
    ====================================================================== */
 (function portico(){
-  const CX=-28.15, CZ=7.2, L=24.8, prof=3.6, h=3.30;
+  /* (4) LA PENSILINA, misurata sull'evidenziazione di PianoTerra+didascalia:
+     x[-28.8,-25.4] (larga 3,40) e z[-0.7,+23.7] (lunga 24,40). Era spostata
+     di 4,5 m verso nord e finiva 4 m prima: per questo non arrivava alla
+     mensa e sembrava "non completa". Adesso va dal fronte della scuola fino
+     al corpo sud, che e' quello che deve collegare. */
+  const CX=-27.10, CZ=11.50, L=24.4, prof=3.4, h=3.30;
   const p=new THREE.Group(); p.position.set(CX,0,CZ); mondo.add(p);
   const bianco=lam(0xf4f2ee);
   const pav=new THREE.Mesh(new THREE.PlaneGeometry(prof+1.0,L+0.6),
@@ -1605,7 +1647,9 @@ function faroLed(x,y,z,ry){
     box(p,prof+0.24,0.30,0.26,bianco,0,h+0.06,-L/2+i*passo,false);
     box(p,0.42,0.03,0.42,lam(0xF6F4EC),0,h-0.09,z,false);}
   box(p,prof+0.24,0.30,0.26,bianco,0,h+0.06,L/2,false);
-  box(p,prof+0.30,0.22,L+0.5,lam(0xEFEDE6),0,h+0.20,0,true);
+  /* nelle viste aeree la copertura e' ARANCIONE: e' la fascia colorata
+     che si riconosce da lontano fra il campo e il giardino. */
+  box(p,prof+0.30,0.22,L+0.5,lam(0xC96A2E),0,h+0.20,0,true);
   [-1,1].forEach(s2=>box(p,0.20,0.42,L+0.5,bianco,s2*(prof/2+0.14),h+0.14,0,false));
   const nP=nC+1;
   for(let i=0;i<nP;i++){
@@ -1668,7 +1712,6 @@ function faroLed(x,y,z,ry){
     const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),lam(0xe8e5dd));
     m.position.set(cx,hM,zz);if(zz<cz)m.rotation.y=Math.PI;g.add(m);});
   for(let i=0;i<7;i++) box(g,1.1,1.8,0.1,lam(0x9fb6c4),cx-15+i*5,6.0,cz-d/2-0.02,false);
-  /* fasce blu sul manto e sulla fascia di gronda */
   [-1,1].forEach(sg=>{
     for(let k=0;k<3;k++)
       box(g,w/2+1.2,0.06,1.5,lam(0x2F5FA8),cx+sg*(w/4),hM+alt/2+0.14,cz-d/2+2.5+k*7.5,false);});
@@ -1732,19 +1775,33 @@ function faroLed(x,y,z,ry){
   /* la copertura della chiesa e' VERDE-GRIGIA (lamiera), non in coppi */
   (function copertura(){
     const sp=0.5, Le=L+2*sp, We=W+2*sp, hw=Le/2, hd=We/2, yt=hM+alt;
-    const mVerde=lam(0x7E9A78);
+    const mVerde=lam(0xA6BFA0);   /* verde chiaro, dalle viste 3D */
     [[-1],[1]].forEach(q=>{
       const f=new THREE.Mesh(new THREE.BoxGeometry(We/2+0.7,0.16,Le),mVerde);
       f.position.set(q[0]*W/4,hM+alt/2,2.5);
       f.rotation.z=q[0]*Math.atan2(alt,W/2);
       f.castShadow=true;g.add(f);});
-    const cm=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,Le,8),lam(0x63805E));
+    const cm=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,Le,8),lam(0x8CA886));
     cm.rotation.x=Math.PI/2;cm.position.set(0,yt+0.05,2.5);g.add(cm);
     const sh=new THREE.Shape();sh.moveTo(-W/2,0);sh.lineTo(W/2,0);sh.lineTo(0,alt);sh.closePath();
     [[-6.28,Math.PI],[11.28,0]].forEach(t=>{
       const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),lam(0xb3a894));
       m.position.set(0,hM,t[0]);m.rotation.y=t[1];g.add(m);});
   })();
+  /* LA LOGGIA AD ARCONI sulla facciata: e' il segno per cui la chiesa si
+     riconosce in tutte le viste dall'alto, e mancava. */
+  (function loggia(){
+    const zf=-7.6, mAr=lam(0xDCD6C6), mOm=lam(0x5A5348);
+    for(let i=0;i<3;i++){
+      const px=-3.1+i*3.1;
+      box(g,2.5,3.0,0.20,mOm,px,1.5,zf+0.02,false);
+      const ar=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.25,0.20,18,1,false,0,Math.PI),mOm);
+      ar.rotation.x=Math.PI/2;ar.rotation.y=Math.PI/2;ar.position.set(px,3.0,zf+0.02);g.add(ar);
+      box(g,0.6,4.4,0.42,mAr,px-1.55,2.2,zf,false);}
+    box(g,0.6,4.4,0.42,mAr,4.45,2.2,zf,false);
+    box(g,W+0.9,0.42,0.52,mAr,0,4.55,zf,false);
+    box(g,W+1.4,0.24,0.62,lam(0xA6BFA0),0,4.85,zf-0.06,true);
+    contatto(mondo,-51.5,0.03,-41.6,11,3,0.45);})();
   contatto(mondo,-51.5,0.03,-31.5,13,20,0.5);
   /* cipressi ai lati della facciata */
   [[-8.5,-5],[8.5,-5],[-8.5,4],[9,7]].forEach(q=>{
@@ -2475,8 +2532,11 @@ function plafo(g,x,z,q,ry,tipo){
 /* ============ CORRIDOIO NORD + AULE DELLA SECONDARIA ==================== */
 (function corridoioNord(){
   const g=new THREE.Group();interni.add(g);
-  const zc0=-6.31, zc1=-2.56;                 /* il corridoio               */
-  const xc0=-36.7, xc1=13.9;
+  const zc0=-5.40, zc1=-0.90;                 /* quote dell'evidenziazione  */
+  /* IL CORRIDOIO E' A U, non a L: gira su tre lati attorno al vuoto sulla
+     corte. Misurato sull'evidenziazione di Andrea (PianoPrimo-corridoio.pdf):
+     braccio nord z[-5.4,-0.9] da x=-58.8 a x=+14.1. */
+  const xc0=-58.8, xc1=14.1;
   vano(g,xc0,xc1,zc0,zc1,pav60(xc1-xc0,zc1-zc0),Q_ALTA,8,'liscio');
   /* parete verso le aule, con le porte */
   box(g,xc1-xc0,SOFF-Q_ALTA,0.16,matBiancoInt,(xc0+xc1)/2,(SOFF+Q_ALTA)/2,zc0,false);
@@ -2486,10 +2546,10 @@ function plafo(g,x,z,q,ry,tipo){
   for(let i=0;i<=17;i++)
     box(g,0.12,SOFF-Q_ALTA-1.5,0.14,lam(0x3A3E44),xc0+0.4+i*(xc1-xc0-0.8)/17,
         Q_ALTA+0.95+(SOFF-Q_ALTA-1.5)/2,zc1-0.05,false);
-  for(let i=0;i<9;i++) plafo(g,xc0+3+i*5.6,(zc0+zc1)/2,SOFF,0,'sosp');
+  for(let i=0;i<12;i++) plafo(g,xc0+3+i*5.6,(zc0+zc1)/2,SOFF,0,'sosp');
   /* i DUE listelli portalavori, su tutta la parete delle aule */
-  listello(g,46,-11.4,Q_ALTA+1.30,zc0+0.09,0);
-  listello(g,46,-11.4,Q_ALTA+1.92,zc0+0.09,0);
+  listello(g,62,-20.2,Q_ALTA+1.30,zc0+0.09,0);
+  listello(g,62,-20.2,Q_ALTA+1.92,zc0+0.09,0);
   /* le QUATTRO AULE, con i divisori dove li mette la tavola */
   const DIV=[-15.80,-9.34,-2.98,3.38,9.93], za0=-14.93;
   for(let i=0;i<DIV.length-1;i++){
@@ -2578,8 +2638,11 @@ function plafo(g,x,z,q,ry,tipo){
 /* ============ ALA EST: corridoio + GRADINATA OBLIQUA ==================== */
 (function alaEstInt(){
   const g=new THREE.Group();interni.add(g);
-  const x0=14.19,x1=22.23,z0=-16.5,z1=24.0;
-  const cx0=14.19,cx1=18.6;                     /* corridoio, largo 4,4     */
+  const x0=14.19,x1=22.23,z0=-16.5,z1=28.0;
+  /* il braccio EST del corridoio a U: x[10.0,14.1], da z=-0.9 fino a z=+28,
+     misurato sull'evidenziazione. Prima stava 4 m piu' a est ed era anche
+     troppo corto: per questo il giro non si chiudeva. */
+  const cx0=10.0,cx1=14.1;
   vano(g,cx0,cx1,z0,z1,pav60(cx1-cx0,z1-z0),Q_ALTA,10,'liscio');
   box(g,0.16,SOFF-Q_ALTA,z1-z0,matBiancoInt,cx1,(SOFF+Q_ALTA)/2,(z0+z1)/2,false);
   /* vetrata verso la corte */
@@ -2623,8 +2686,9 @@ function plafo(g,x,z,q,ry,tipo){
 /* ============ ALA OVEST: la PRIMARIA ==================================== */
 (function primaria(){
   const g=new THREE.Group();interni.add(g);
-  const x0=-70.7,x1=-54.4,z0=-14.0,z1=20.5;
-  const sx0=-59.6,sx1=-54.4;                    /* il salone sul cortile    */
+  /* braccio OVEST del corridoio a U: x[-58.8,-52.6] fino a z=+24,5 */
+  const x0=-70.7,x1=-54.4,z0=-14.0,z1=24.5;
+  const sx0=-58.8,sx1=-52.6;                    /* il salone sul cortile    */
   vano(g,sx0,sx1,z0,z1,matPav(palPrimaria,3,(sx1-sx0)/1.2,(z1-z0)/1.2,4),Q_ALTA,20);
   /* parete est: la vetrata sul cortile */
   box(g,0.16,0.95,z1-z0,matGialloPrim,sx1,Q_ALTA+0.475,(z0+z1)/2,false);
@@ -2633,7 +2697,7 @@ function plafo(g,x,z,q,ry,tipo){
     box(g,0.14,SOFF-Q_ALTA-1.5,0.12,lam(0x3A3E44),sx1-0.06,
         Q_ALTA+0.95+(SOFF-Q_ALTA-1.5)/2,z0+1+i*(z1-z0-2)/13,false);
   /* le AULE, coi divisori della tavola */
-  const DZ=[-14.0,-5.5,2.0,11.2,17.1,20.5];
+  const DZ=[-14.0,-5.5,2.0,11.2,17.1,24.5];
   for(let i=0;i<DZ.length-1;i++){
     const az0=DZ[i],az1=DZ[i+1];
     vano(g,x0,sx0,az0,az1,matPav(palPrimaria,3,(sx0-x0)/1.2,(az1-az0)/1.2,4),Q_ALTA,6);
@@ -2796,11 +2860,9 @@ function plafo(g,x,z,q,ry,tipo){
    ====================================================================== */
 (function corridoioLavori(){
   const g=new THREE.Group();interni.add(g);
+  /* il pavimento lo posa ormai il corridoio lungo: qui restano il soffitto
+     terracotta e la schermatura a listelli, che sono di questo tratto. */
   const x0=-54.4,x1=-36.7,z0=-6.31,z1=-2.56;
-  const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),pav30(x1-x0,z1-z0,105));
-  p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,Q_ALTA,(z0+z1)/2);
-  p.receiveShadow=true;g.add(p);
-  box(g,x1-x0,0.34,z1-z0,lam(0xbdbab2),(x0+x1)/2,Q_ALTA-0.18,(z0+z1)/2,false);
   /* il soffitto TERRACOTTA, ribassato */
   box(g,x1-x0,0.12,z1-z0,matTerracotta,(x0+x1)/2,SOFF-0.30,(z0+z1)/2,false);
   plafo(g,(x0+x1)/2,(z0+z1)/2,SOFF-0.30,0,'app');
@@ -3050,6 +3112,56 @@ function mensolaLibri(p,x,y,z,ry,n){
     const m=new THREE.Mesh(new THREE.PlaneGeometry(0.72,0.145),
       lam(0xffffff,{map:tex(c,false)}));
     m.position.set(-28.0+i*1.1,Q_ALTA+0.62,-8.62); g.add(m);});
+})();
+
+
+/* ============ CORPO SUD, PRIMO PIANO: i laboratori ======================
+   PianoPrimo-corridoio.pdf: LABORATORIO DI INFORMATICA (due vani affiancati),
+   AULA DI MUSICA, e il CORRIDOIO che li serve sul lato del cortile. Piu' in
+   fondo, nel corpo che sporge, il LABORATORIO DI SCIENZE.
+   ====================================================================== */
+(function laboratori(){
+  const g=new THREE.Group();interni.add(g);
+  const zc0=30.9, zc1=32.6;                    /* il corridoio di servizio  */
+  vano(g,-52.0,-25.2,zc0,zc1,pav60(26.8,1.7),Q_ALTA,8,'liscio');
+  for(let i=0;i<5;i++) plafo(g,-50+i*6,(zc0+zc1)/2,SOFF,0,'sosp');
+  box(g,26.8,SOFF-Q_ALTA,0.16,matBiancoInt,-38.6,(SOFF+Q_ALTA)/2,zc1,false);
+  /* i due vani del laboratorio di informatica + l'aula di musica */
+  const AMB=[[-51.2,-44.2,'informatica'],[-44.2,-37.1,'informatica'],
+             [-37.1,-30.0,'musica']];
+  AMB.forEach((a,i)=>{
+    vano(g,a[0],a[1],25.0,zc0,pav60(a[1]-a[0],zc0-25.0),Q_ALTA,4);
+    box(g,0.16,SOFF-Q_ALTA,zc0-25.0,matCrema,a[1],(SOFF+Q_ALTA)/2,(25.0+zc0)/2,false);
+    box(g,a[1]-a[0],1.05,0.10,matFasciaVerde,(a[0]+a[1])/2,Q_ALTA+0.52,25.09,false);
+    porta(g,matPortaRossa,(a[0]+a[1])/2,Q_ALTA,zc0-0.1,Math.PI,(i===0)?0.7:0);
+    box(g,3.0,1.10,0.05,lam(0xF6F5F0),(a[0]+a[1])/2,Q_ALTA+1.62,25.10,false);
+    for(let k=0;k<3;k++) plafo(g,a[0]+1.6+k*2.2,(25.0+zc0)/2,SOFF,Math.PI/2,'inc');
+    if(a[2]==='informatica'){
+      /* i banchi coi computer, in due file lungo le pareti */
+      for(let r=0;r<2;r++)for(let c=0;c<4;c++){
+        const bx=a[0]+1.2+c*1.5, bz=26.2+r*2.4;
+        tavolo(g,bx,bz,0,1.35,0.70,lam(0xE4E0D4),Q_ALTA,0.74,false);
+        box(g,0.40,0.30,0.04,lam(0x2A2C30),bx,Q_ALTA+0.92,bz-0.16,false);
+        box(g,0.14,0.03,0.10,lam(0x44464A),bx,Q_ALTA+0.76,bz+0.16,false);
+        sedia(g,bx,bz+0.72,Math.PI,(r+c)%2?cVerde:cBluS,Q_ALTA);}
+    } else {
+      /* l'aula di musica: sedie in semicerchio e il pianoforte verticale */
+      box(g,1.45,1.15,0.62,lam(0x3A2A22),(a[0]+a[1])/2,Q_ALTA+0.58,25.6,true);
+      box(g,1.30,0.06,0.16,lam(0xF2F0E8),(a[0]+a[1])/2,Q_ALTA+0.72,25.30,false);
+      for(let k=0;k<7;k++){
+        const ang=-0.9+k*0.3, R=2.7;
+        sedia(g,(a[0]+a[1])/2+Math.sin(ang)*R,26.4+Math.cos(ang)*R*0.55,
+              Math.PI+ang,(k%2)?cGialla:cVerde,Q_ALTA);}
+    }});
+  /* LABORATORIO DI SCIENZE, nel corpo che sporge a sud */
+  vano(g,-30.1,-24.2,32.8,39.0,pav60(5.9,6.2),Q_ALTA,4);
+  for(let k=0;k<2;k++) plafo(g,-27.1,34.2+k*3,SOFF,0,'inc');
+  box(g,5.9,1.05,0.10,matFasciaVerde,-27.1,Q_ALTA+0.52,32.89,false);
+  for(let r=0;r<2;r++)for(let c=0;c<2;c++){
+    const bx=-29.0+c*2.4, bz=34.6+r*2.2;
+    tavolo(g,bx,bz,0,1.9,0.85,lam(0x3F4A44),Q_ALTA,0.86,false);
+    box(g,0.30,0.16,0.30,lam(0xD8D5CC),bx-0.5,Q_ALTA+0.94,bz,true);}
+  porta(g,matPortaRossa,-27.1,Q_ALTA,32.9,0,0);
 })();
 
 /* ===================== CACCIA AL TESORO: le tappe ======================= */
@@ -3875,6 +3987,67 @@ function anima(){
 })();
 
 compilaCollisioni();
+
+/* ==========================================================================
+   COLLAUDO — si lancia da console con  collaudo()
+   --------------------------------------------------------------------------
+   Fino a ieri gli errori li trovava Andrea guardando: il tetto mancante, i due
+   canestri dalla stessa parte, l'angolo chiuso, l'albero dentro il salone.
+   Sono tutte cose che una manciata di raggi trova in un secondo. Questo e' il
+   controllo che avrei dovuto scrivere il primo giorno: si rilancia dopo ogni
+   modifica e dice DOVE guardare, invece di aspettare che se ne accorga lui.
+   ========================================================================== */
+const CORPI=[['ala ovest',-70.7,-54.4,-24.4,21],['palestra',-57.3,-36.3,-15.5,-5],
+  ['corpo nord',-36,14.3,-18.1,-2.4],['ala est',14.3,22.5,-18.1,24.8],
+  ['corpo sud (mensa)',-52.6,-24.6,24.5,32.7],['pertinenze',22.5,36.7,-18.1,-2.4]];
+const PERCORSI=[['corridoio nord',-34,-4.4,12,-4.4],['corridoio est',16.4,-14,16.4,22],
+  ['angolo fra i due',6,-4.4,16.4,4],['salone Primaria',-57,-12,-57,19],
+  ['corte',-24,6,12,6]];
+function collaudo(){
+  scene.updateMatrixWorld(true);
+  const R=[]; const pieni=h=>h.filter(q=>{const m=q.object.material;
+    return m&&m.depthWrite!==false&&m.transparent!==true;});
+  /* 1. COPERTURE: ogni corpo dev'essere coperto su tutta l'impronta */
+  CORPI.forEach(c=>{
+    let buchi=0,tot=0;
+    const nx=Math.max(3,Math.round((c[2]-c[1])/2)), nz=Math.max(3,Math.round((c[4]-c[3])/2));
+    for(let i=1;i<nx;i++)for(let j=1;j<nz;j++){
+      const x=c[1]+(c[2]-c[1])*i/nx, z=c[3]+(c[4]-c[3])*j/nz; tot++;
+      const r=new THREE.Raycaster(new THREE.Vector3(x,45,z),new THREE.Vector3(0,-1,0),0.1,70);
+      if(!pieni(r.intersectObjects(scene.children,true)).length) buchi++;}
+    if(buchi) R.push('TETTO MANCANTE  '+c[0]+': '+buchi+'/'+tot+' punti scoperti');});
+  /* 2. PERCORRIBILITA': si cammina davvero da un capo all'altro? */
+  PERCORSI.forEach(p=>{
+    let bl=0; const n=40;
+    for(let i=0;i<=n;i++){const t=i/n;
+      const y=(p[0]===-24)?1.7:Q_ALTA+1.6;
+      if(!libero(new THREE.Vector3(p[1]+(p[3]-p[1])*t,y,p[2]+(p[4]-p[2])*t))) bl++;}
+    if(bl>2) R.push('PASSAGGIO CHIUSO  '+p[0]+': '+bl+'/41 punti bloccati');});
+  /* 3. OGGETTI DENTRO I MURI (alberi, pali, arredi esterni) */
+  {const b=new THREE.Box3(), v=new THREE.Vector3(); let n=0;
+   mondo.traverse(o=>{ if(!o.isMesh||!o.geometry) return;
+     if(o.geometry.type!=='SphereGeometry') return;
+     b.setFromObject(o); b.getCenter(v); if(v.y<2.5) return;
+     CORPI.forEach(c=>{ if(v.x>c[1]&&v.x<c[2]&&v.z>c[3]&&v.z<c[4]) n++;});});
+   if(n) R.push('VEGETAZIONE DENTRO GLI EDIFICI: '+n+' chiome');}
+  /* 4. CANESTRI: due, e da lati OPPOSTI del campo (x del campo: -22.6 .. 5.4) */
+  {const cx=[]; const b=new THREE.Box3(), v=new THREE.Vector3();
+   scene.traverse(o=>{ if(o.userData&&o.userData.canestro){
+     b.setFromObject(o); b.getCenter(v); cx.push(+v.x.toFixed(1));}});
+   const ov=cx.filter(x=>x<-8.6).length, es=cx.filter(x=>x>-8.6).length;
+   if(cx.length&&(ov===0||es===0))
+     R.push('CANESTRI DALLO STESSO LATO: '+ov+' a ovest, '+es+' a est  ('+cx.join(' ')+')');}
+  /* 5. LUOGHI e TAPPE raggiungibili */
+  LUOGHI.forEach(L=>{ if(!libero(new THREE.Vector3(L[1][0],L[1][1],L[1][2])))
+    R.push('LUOGO IRRAGGIUNGIBILE: '+L[0]);});
+  TAPPE.forEach((t,i)=>{ const d=t.da||t.pos;
+    if(!libero(new THREE.Vector3(d[0],d[1],d[2])))
+      R.push('TAPPA '+(i+1)+' IRRAGGIUNGIBILE: '+t.titolo);});
+  console.log(R.length? '— COLLAUDO: '+R.length+' problemi —\n'+R.join('\n')
+                      : '— COLLAUDO: nessun problema —');
+  return R;
+}
+
 console.log('[Campus3D] ostacoli:',SOLIDI.length,'| varchi:',VARCHI.length);
 guardaVerso(V(-25,0,0));
 anima();
