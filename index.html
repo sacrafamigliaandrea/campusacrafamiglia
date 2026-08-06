@@ -1696,43 +1696,55 @@ function faroLed(x,y,z,ry){
 /* QdV Arena: il "tendone". Falde a doppio spiovente che salgono verso il colmo
    (prima erano invertite) e manto VERDE, come nella foto della facciata. */
 (function qdvArena(){
+  /* Foto aerea annotata: il Q.D.V. ARENA e' un CAPANNONE con la copertura
+     METALLICA CHIARA a due falde poco inclinate e il fronte a portale — non
+     il tendone da circo con le fasce blu che avevo modellato per mesi.
+     Accanto, verso l'esterno, il GARAGE DEI BUS. */
   const g=new THREE.Group();mondo.add(g);
-  /* §16: il grande edificio e' quotato 40,00 x 25,00 (era 22x22) */
-  const cx=-66,cz=56,w=40,d=25,hM=9.4,alt=3.2;
-  solido(box(g,w,hM,d,lam(0xe8e5dd),cx,hM/2,cz,true));
-  box(g,w+0.3,0.7,d+0.3,lam(0xd6d2c8),cx,0.35,cz,false);
-  /* IMG_4947: il tendone non e' tutto bianco — ha FASCE BLU orizzontali sul
-     manto e sul bordo delle falde. Si vede in fondo, oltre il filare. */
-  const mV=lam(0xEDEAE0);
-  const f1=new THREE.Mesh(new THREE.BoxGeometry(w/2+1.4,0.22,d+1.2),mV);
-  f1.position.set(cx-w/4,hM+alt/2,cz);f1.rotation.z= alt/(w/2)*0.92;f1.castShadow=true;g.add(f1);
-  const f2=new THREE.Mesh(new THREE.BoxGeometry(w/2+1.4,0.22,d+1.2),mV);
-  f2.position.set(cx+w/4,hM+alt/2,cz);f2.rotation.z=-alt/(w/2)*0.92;f2.castShadow=true;g.add(f2);
-  const colmo=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,d+1.3,8),lam(0xD6D2C6));
-  colmo.rotation.x=Math.PI/2;colmo.position.set(cx,hM+alt+0.1,cz);g.add(colmo);
-  [cz-d/2-0.6,cz+d/2+0.6].forEach(zz=>{
-    const sh=new THREE.Shape();sh.moveTo(-w/2-0.6,0);sh.lineTo(w/2+0.6,0);sh.lineTo(0,alt+0.2);sh.closePath();
-    const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),lam(0xe8e5dd));
+  const cx=-66,cz=56,w=40,d=25,hM=8.6,alt=2.2;
+  const mur=lam(0xE4E0D6), lam1=lam(0xD8DCE0), lam2=lam(0xC2C8CE);
+  solido(box(g,w,hM,d,mur,cx,hM/2,cz,true));
+  box(g,w+0.4,0.8,d+0.4,lam(0xCFCABE),cx,0.4,cz,false);
+  /* copertura metallica a due falde, con le nervature */
+  [[-1],[1]].forEach(q=>{
+    const f=new THREE.Mesh(new THREE.BoxGeometry(w/2+1.0,0.20,d+1.0),lam1);
+    f.position.set(cx+q[0]*w/4,hM+alt/2,cz);
+    f.rotation.z=-q[0]*Math.atan2(alt,w/2);
+    f.castShadow=true;g.add(f);
+    for(let k=0;k<9;k++){
+      const n=new THREE.Mesh(new THREE.BoxGeometry(w/2+0.9,0.06,0.16),lam2);
+      n.position.set(cx+q[0]*w/4,hM+alt/2+0.13,cz-d/2+1.4+k*2.8);
+      n.rotation.z=-q[0]*Math.atan2(alt,w/2);g.add(n);}});
+  const cm=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,d+1.1,8),lam2);
+  cm.rotation.x=Math.PI/2;cm.position.set(cx,hM+alt+0.08,cz);g.add(cm);
+  [cz-d/2-0.5,cz+d/2+0.5].forEach(zz=>{
+    const sh=new THREE.Shape();sh.moveTo(-w/2-0.5,0);sh.lineTo(w/2+0.5,0);
+    sh.lineTo(0,alt+0.15);sh.closePath();
+    const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),mur);
     m.position.set(cx,hM,zz);if(zz<cz)m.rotation.y=Math.PI;g.add(m);});
-  for(let i=0;i<7;i++) box(g,1.1,1.8,0.1,lam(0x9fb6c4),cx-15+i*5,6.0,cz-d/2-0.02,false);
-  [-1,1].forEach(sg=>{
-    for(let k=0;k<3;k++)
-      box(g,w/2+1.2,0.06,1.5,lam(0x2F5FA8),cx+sg*(w/4),hM+alt/2+0.14,cz-d/2+2.5+k*7.5,false);});
-  box(g,w+0.6,0.55,0.14,lam(0x2F5FA8),cx,hM-0.3,cz-d/2-0.18,false);
-  box(g,w+0.6,0.55,0.14,lam(0x2F5FA8),cx,hM-0.3,cz+d/2+0.18,false);
+  /* il portale d'ingresso e la fila di finestre alte sul fronte */
+  box(g,7.0,4.2,0.20,lam(0x6E747A),cx,2.1,cz-d/2-0.12,false);
+  box(g,7.4,0.34,0.34,lam(0xCFCABE),cx,4.35,cz-d/2-0.14,false);
+  for(let i=0;i<8;i++) box(g,2.2,1.5,0.10,lam(0x9FB6C4),cx-16+i*4.6,6.6,cz-d/2-0.06,false);
   contatto(mondo,cx,0.03,cz,w+4,d+4,0.5);
+  /* ---- GARAGE BUS: capannone piu' basso, subito accanto --------------- */
+  const bx=-66,bz=78,bw=26,bd=14,bh=5.6,ba=1.5;
+  solido(box(g,bw,bh,bd,lam(0xE0DCD2),bx,bh/2,bz,true));
+  [[-1],[1]].forEach(q=>{
+    const f=new THREE.Mesh(new THREE.BoxGeometry(bw/2+0.8,0.18,bd+0.8),lam1);
+    f.position.set(bx+q[0]*bw/4,bh+ba/2,bz);
+    f.rotation.z=-q[0]*Math.atan2(ba,bw/2);f.castShadow=true;g.add(f);});
+  [bz-bd/2-0.4,bz+bd/2+0.4].forEach(zz=>{
+    const sh=new THREE.Shape();sh.moveTo(-bw/2-0.4,0);sh.lineTo(bw/2+0.4,0);
+    sh.lineTo(0,ba+0.12);sh.closePath();
+    const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),lam(0xE0DCD2));
+    m.position.set(bx,bh,zz);if(zz<bz)m.rotation.y=Math.PI;g.add(m);});
+  /* i tre portoni dei bus */
+  for(let i=0;i<3;i++)
+    box(g,6.6,4.3,0.16,lam(0x7A8088),bx-8+i*8,2.15,bz-bd/2-0.10,false);
+  contatto(mondo,bx,0.03,bz,bw+4,bd+4,0.5);
 })();
-/* RIMOSSO — "ala Mensa / Aula Musica / Aula Informatica".
-   Era l'UNICO edificio del modello costruito senza una fotografia: l'avevo
-   dedotto da un'etichetta della mappa. Andrea conferma che non esiste in quella
-   forma. Finche' non c'e' una foto, qui non va messo nulla: meglio un vuoto
-   onesto di un volume inventato. */
 
-/* CHIESA — ricostruita dall'aerea etichettata: facciata a capanna in muratura
-   con timpano e cornice marcapiano, DUE finestre alte ad arco ai lati del
-   portale, porta rettangolare con archetto, gradini d'accesso; navata lunga
-   con tetto a due falde in coppi; cipressi ai lati. La facciata guarda a NORD,
-   verso la strada e la rotonda. L'interno non e' modellato: non l'ho visto. */
 (function chiesa(){
   const g=new THREE.Group();g.position.set(-51.5,0,-34);mondo.add(g);
   const W=9.4, L=17, hM=7.2, alt=3.0;
@@ -2100,6 +2112,18 @@ function pav30(w,d,seed){            /* 30 cm: texture da 4x4 celle = 1,20 m */
    CALDO, piuttosto chiaro, con nuvolature evidenti e fuga sottile appena piu'
    scura. Con l'antracite il corridoio veniva quasi nero e la gradinata in
    cemento non staccava; nel filmato e' l'opposto, l'ambiente e' luminoso. */
+/* gres CHIARO delle aule (video scuola_primo_piano, 180-210 s): beige-grigio
+   a grande formato, non l'antracite dei corridoi. */
+const texChiaro60=(()=>{const c=mkCanvas(256,256),g=c.getContext('2d'),rnd=seme(811);
+  g.fillStyle='#DCD6C8';g.fillRect(0,0,256,256);
+  for(let i=0;i<1600;i++){const x=rnd()*256,y=rnd()*256;
+    g.fillStyle='rgba('+(196+rnd()*36|0)+','+(190+rnd()*34|0)+','+(176+rnd()*32|0)+',0.5)';
+    g.fillRect(x,y,2.2,1.6);}
+  g.strokeStyle='#C6BFB0';g.lineWidth=2;g.strokeRect(0,0,256,256);
+  return tex(c,true);})();
+function pavChiaro(w,d){const t=texChiaro60.clone();t.needsUpdate=true;
+  t.repeat.set(Math.max(1,Math.round(w/0.6)),Math.max(1,Math.round(d/0.6)));
+  return lam(0xffffff,{map:t});}
 const texAntracite60=(()=>{const c=mkCanvas(256,256),g=c.getContext('2d'),rnd=seme(613);
   g.fillStyle='#918F89';g.fillRect(0,0,256,256);
   for(let i=0;i<160;i++){                       /* venature e nuvolature */
@@ -2557,7 +2581,7 @@ function plafo(g,x,z,q,ry,tipo){
   const DIV=[-15.80,-9.34,-2.98,3.38,9.93], za0=-14.93;
   for(let i=0;i<DIV.length-1;i++){
     const ax0=DIV[i],ax1=DIV[i+1],acx=(ax0+ax1)/2;
-    vano(g,ax0,ax1,za0,zc0,pav60(ax1-ax0,zc0-za0),Q_ALTA,4);
+    vano(g,ax0,ax1,za0,zc0,pavChiaro(ax1-ax0,zc0-za0),Q_ALTA,4);
     box(g,0.16,SOFF-Q_ALTA,zc0-za0,matGialloAula,ax1,(SOFF+Q_ALTA)/2,(za0+zc0)/2,false);
     /* 4889/4891: crema sopra, fascia GRIGIO-VERDE sotto — e la fascia GIRA
        su tutte le pareti, non solo su quella di fondo. */
@@ -2658,7 +2682,7 @@ function plafo(g,x,z,q,ry,tipo){
   /* aule sul lato est */
   for(let i=0;i<4;i++){
     const az0=z0+2+i*9.5, az1=az0+8.6;
-    vano(g,cx1,x1,az0,az1,pav60(x1-cx1,az1-az0),Q_ALTA,4);
+    vano(g,cx1,x1,az0,az1,pavChiaro(x1-cx1,az1-az0),Q_ALTA,4);
     box(g,x1-cx1,0.16,0.16,matCrema,(cx1+x1)/2,Q_ALTA+0.02,az1,false);
     porta(g,matPortaRossa,cx1+0.1,Q_ALTA,az0+1.6,Math.PI/2,0);}
   listello(g,34,cx1-0.09,Q_ALTA+1.30,4,Math.PI/2);
@@ -3135,7 +3159,7 @@ function mensolaLibri(p,x,y,z,ry,n){
   const AMB=[[-51.2,-44.2,'informatica'],[-44.2,-37.1,'informatica'],
              [-37.1,-30.0,'musica']];
   AMB.forEach((a,i)=>{
-    vano(g,a[0],a[1],25.0,zc0,pav60(a[1]-a[0],zc0-25.0),Q_ALTA,4);
+    vano(g,a[0],a[1],25.0,zc0,pavChiaro(a[1]-a[0],zc0-25.0),Q_ALTA,4);
     box(g,0.16,SOFF-Q_ALTA,zc0-25.0,matCrema,a[1],(SOFF+Q_ALTA)/2,(25.0+zc0)/2,false);
     box(g,a[1]-a[0],1.05,0.10,matFasciaVerde,(a[0]+a[1])/2,Q_ALTA+0.52,25.09,false);
     porta(g,matPortaRossa,(a[0]+a[1])/2,Q_ALTA,zc0-0.1,Math.PI,(i===0)?0.7:0);
@@ -3159,7 +3183,7 @@ function mensolaLibri(p,x,y,z,ry,n){
               Math.PI+ang,(k%2)?cGialla:cVerde,Q_ALTA);}
     }});
   /* LABORATORIO DI SCIENZE, nel corpo che sporge a sud */
-  vano(g,-30.1,-24.2,32.8,39.0,pav60(5.9,6.2),Q_ALTA,4);
+  vano(g,-30.1,-24.2,32.8,39.0,pavChiaro(5.9,6.2),Q_ALTA,4);
   for(let k=0;k<2;k++) plafo(g,-27.1,34.2+k*3,SOFF,0,'inc');
   box(g,5.9,1.05,0.10,matFasciaVerde,-27.1,Q_ALTA+0.52,32.89,false);
   for(let r=0;r<2;r++)for(let c=0;c<2;c++){
