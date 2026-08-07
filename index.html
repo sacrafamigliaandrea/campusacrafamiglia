@@ -873,14 +873,28 @@ const mondo=new THREE.Group(); scene.add(mondo);
      bordeaux con le aree azzurre. Confermato da Andrea: nella foto aerea
      annotata i due campi si leggono male, il video di agosto e' la fonte
      buona. Quote: x[-14.0,+7.6] z[19.9,31.6]. */
-  tappeto(lam(0xffffff,{map:texVerde}),21.6,11.7,-3.2,25.8,0.038);
+  /* ORTOFOTO ZENITALE (Andrea): basket, volley e campo da calcio sono
+     ALLINEATI SUL LATO EST. Il basket e' la misura certa — 28,00 x 15,00 dal
+     rilievo, lato est a x=+5,4 — e gli altri due si allineano su quello.
+     Il volley era sfalsato di 2,2 m verso est. */
+  /* ANDREA: i tre campi vanno allineati su ENTRAMBI i lati, e il campo che
+     comanda lo slittamento e' il BASKET (l'unica misura certa: 28,00 x 15,00
+     dal rilievo). Quindi tutti e tre condividono la stessa fascia in X:
+     da x=-22,6 (ovest) a x=+5,4 (est), larghezza 28,00, centro x=-8,6.
+     Le righe regolamentari del volley (18 x 9) restano centrate dentro il
+     tappeto sintetico. */
+  tappeto(lam(0xffffff,{map:texVerde}),28,11.7,-8.6,25.8,0.038);
   (function righeVolley(){
     const b=lam(0xE8E6DE);
-    [[-3.2,21.3,18.0,0.10],[-3.2,30.3,18.0,0.10],[-3.2,25.8,18.0,0.10]].forEach(q=>
+    [[-8.6,21.3,18.0,0.10],[-8.6,30.3,18.0,0.10],[-8.6,25.8,18.0,0.10]].forEach(q=>
       tappeto(b,q[2],q[3],q[0],q[1],0.044));
-    [[-12.2,25.8,0.10,9.0],[5.8,25.8,0.10,9.0]].forEach(q=>
+    [[-17.6,25.8,0.10,9.0],[0.4,25.8,0.10,9.0]].forEach(q=>
       tappeto(b,q[2],q[3],q[0],q[1],0.044));})();
-  tappeto(lam(0xffffff,{map:texCalcio}),35,55,-26.5,59.5,0.03);
+  /* il campo da calcio sconfinava di 7 m sotto il fabbricato a ovest: portato
+     nella stessa fascia del basket. */
+  tappeto(lam(0xffffff,{map:texCalcio}),28,55,-8.6,59.5,0.03);
+  /* Sul lato OVEST dei tre campi corre un VIALE DI CAMMINAMENTO (Andrea). */
+  tappeto(matGhiaia,3.4,64,-31.6,54,0.028);
   /* ---- fronte, parcheggio, rotonda (§16) ------------------------------- */
   /* ORTOFOTO: il parcheggio non e' un blocco compatto, e' una STRISCIA LUNGA
      lungo tutto il fronte, fra la scuola e la strada, con le auto a pettine su
@@ -935,9 +949,14 @@ function auto(x,z,ry,col){
     r.rotation.z=Math.PI/2;r.position.set(p[0],0.3,p[1]);g.add(r);});
   g.position.set(x,0,z);g.rotation.y=ry||0;mondo.add(g);
   contatto(mondo,x,0.03,z,2.6,4.8,0.6);}
-/* il filare ovest partiva da z=33, dentro il corpo sud (mensa): comincia
-   dopo il fabbricato. */
-for(let i=0;i<8;i++){albero(-46.5,36+i*7.4,1.2+((i*7)%3)*0.12);albero(-6.6,36+i*7.4,1.15+((i*5)%3)*0.12);}
+/* I DUE FILARI DEL CAMPO DA CALCIO — misurati sull'ortofoto zenitale, non
+   stimati: nella foto il prato e' racchiuso fra due file di alberi fitte, una
+   per lato. Il filare est stava a x=-6,6, cioe' IN MEZZO al campo (Andrea:
+   "ci sono degli alberi in mezzo al campo"); quello ovest stava a x=-46,5,
+   molto piu' a ovest del vero. Ora stanno appena fuori dalla fascia dei campi
+   (x da -22,6 a +5,4): ovest a -26,5, fra il viale di camminamento e il
+   prato; est a +9,5. */
+for(let i=0;i<8;i++){albero(-26.5,36+i*7.4,1.2+((i*7)%3)*0.12);albero(9.5,36+i*7.4,1.15+((i*5)%3)*0.12);}
 /* alberi dell'isola della rotonda e del fronte (aerea: la rotonda e' piantumata) */
 [[-60,-56],[-52,-57],[-58,-47],[-51,-49]].forEach(q=>albero(q[0],q[1],1.15));
 /* (7) davanti al portale non ci va nessun albero: era piantato
@@ -981,8 +1000,12 @@ function reteAlta(x1,z1,x2,z2,h,col,passo){
   for(let i=0;i<=n;i++){const t=i/n;
     const p=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,h,6),lam(0x4a5a50));
     p.position.set(x1+dx*t,h/2,z1+dz*t);mondo.add(p);}}
-reteAlta(-44.5,34.5,-8.5,34.5,4);reteAlta(-44.5,87.5,-8.5,87.5,4);
-reteAlta(-44.5,34.5,-44.5,87.5,4);reteAlta(-8.5,34.5,-8.5,87.5,4);
+/* La rete seguiva il vecchio campo (x da -30,1) e la sua testata NORD cadeva
+   2,5 m DENTRO il prato. Ora corre 1 m fuori dalla fascia dei tre campi
+   (x -22,6..+5,4) e solo su ovest, est e sud: a nord, verso il volley, c'e'
+   la sola ringhiera bassa di ringhieraCampi. */
+reteAlta(-23.6,88.2,6.4,88.2,4);
+reteAlta(-23.6,31.4,-23.6,88.2,4);reteAlta(6.4,31.4,6.4,88.2,4);
 /* recinto del campo da volley, che sta fra la corte dei campi e il calcio */
 /* (5) fra il campo da volley e quello da calcio c'e' solo una RINGHIERA
    bassa (quella di ringhieraCampi, a z=31): le reti alte 3,2 m attorno al
@@ -994,10 +1017,12 @@ function portaCalcio(x,z,rot){
     new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.18,side:THREE.DoubleSide}));
   r.position.set(0,1.0,-0.5);g.add(r);
   g.position.set(x,0,z);g.rotation.y=rot;mondo.add(g);}
-portaCalcio(-26.5,33.2,Math.PI);portaCalcio(-26.5,85.8,0);
+portaCalcio(-8.6,33.2,Math.PI);portaCalcio(-8.6,85.8,0);
 /* ringhiera bassa in ferro grigio fra Campo Calcio e Campo Volley */
 (function ringhieraCampi(){
-  const m=lam(0x8d9297), x0=-17.5, x1=7.5, z=36.0, h=1.05;
+  /* stava a z=36, cioe' 4 m DENTRO il campo da calcio: portata fra i due
+     campi, sulla stessa fascia in X degli altri (x -23,6 .. +6,4). */
+  const m=lam(0x8d9297), x0=-23.6, x1=6.4, z=31.4, h=1.05;
   for(let i=0;i<=Math.round((x1-x0)/2.2);i++){
     const x=x0+i*2.2; if(x>x1)break;
     box(mondo,0.07,h,0.07,m,x,h/2,z,false);
@@ -1925,9 +1950,17 @@ function faroLed(x,y,z,ry){
      a se': e' la COPERTURA CHIUSA DELLA VASCA GRANDE (indicazione di Andrea).
      Quindi qui va un capannone 40x25 sopra la vasca quotata, non un volume
      staccato. Il secondo capannone, piu' piccolo, resta per la vasca coperta. */
+  /* ANDREA: sul lato piscine la COPERTURA BLU ce l'ha SOLO la vasca grande.
+     Tutte le altre vasche sono a cielo aperto — il secondo capannone non
+     esiste. Resta la vasca, con il solo bordo piastrellato e le scalette. */
   capannone(98.5,-6.5,40,25,5.4,2.0);
-  capannone(124,-26,22,13,4.6,1.5);
-  vascaRett(124,-26,17,7,0,false,0);
+  vascaRett(124,-26,17,7,4,false,0);
+  (function bordoVascaNord(){
+    const cx=124,cz=-26;
+    box(g,23,0.3,13,matBordo,cx,0.15,cz,false);          /* piano vasca a raso */
+    for(let i=0;i<2;i++)                                  /* scalette a bordo  */
+      box(g,0.06,1.0,0.06,lam(0xd6d8d6),cx-8.7,0.6,cz-2.4+i*4.8,false);
+    contatto(g,cx,0.03,cz,25,15,0.40);})();
 
   /* --- 1) VASCA GRANDE quotata: 25 x 15, piano vasca +0,50 --------------- */
   (function vascaGrande(){
