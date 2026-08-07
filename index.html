@@ -548,7 +548,12 @@ function falda(p,pts,mat,scala){
   g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
   g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
   g.computeVertexNormals();
-  const m=new THREE.Mesh(g,mat); m.castShadow=true; m.receiveShadow=true;
+  /* Le quattro falde di un padiglione non hanno tutte lo stesso verso di
+     avvolgimento: con FrontSide una sparisce e il tetto risulta incompleto.
+     Segnalazione di Andrea: "manca una falda a tutti i tetti".
+     La falda va sempre a DOPPIA FACCIA. */
+  const m2 = mat.clone(); m2.side = THREE.DoubleSide;
+  const m=new THREE.Mesh(g,m2); m.castShadow=true; m.receiveShadow=true;
   (p||scene).add(m); return m;
 }
 /* fila di coppi di colmo/displuvio fra due punti */
@@ -1732,9 +1737,13 @@ function faroLed(x,y,z,ry){
     sh.lineTo(0,alt+0.15);sh.closePath();
     const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),mur);
     m.position.set(cx,hM,zz);if(zz<cz)m.rotation.y=Math.PI;g.add(m);});
-  /* il portale d'ingresso e la fila di finestre alte sul fronte */
-  box(g,7.0,4.2,0.20,lam(0x6E747A),cx,2.1,cz-d/2-0.12,false);
-  box(g,7.4,0.34,0.34,lam(0xCFCABE),cx,4.35,cz-d/2-0.14,false);
+  /* L'ACCESSO E' SUL LATO EST, non sul lato nord (Andrea). Il portale e la
+     fila di finestre alte vanno quindi sulla testata a x = cx + w/2. */
+  const xE = cx + w/2;
+  const por = box(g,0.20,4.2,7.0,lam(0x6E747A),xE+0.12,2.1,cz,false);
+  box(g,0.34,0.34,7.4,lam(0xCFCABE),xE+0.14,4.35,cz,false);
+  for(let i=0;i<5;i++) box(g,0.10,1.5,2.2,lam(0x9FB6C4),xE+0.06,6.6,cz-9+i*4.6,false);
+  /* le finestre alte restano anche sul fronte nord, ma senza portale */
   for(let i=0;i<8;i++) box(g,2.2,1.5,0.10,lam(0x9FB6C4),cx-16+i*4.6,6.6,cz-d/2-0.06,false);
   contatto(mondo,cx,0.03,cz,w+4,d+4,0.5);
   /* ---- GARAGE BUS: capannone piu' basso, subito accanto --------------- */
@@ -1803,8 +1812,10 @@ function faroLed(x,y,z,ry){
     const mVerde=lam(0xA6BFA0);   /* verde chiaro, dalle viste 3D */
     [[-1],[1]].forEach(q=>{
       const f=new THREE.Mesh(new THREE.BoxGeometry(We/2+0.7,0.16,Le),mVerde);
+      /* la copertura era RIBALTATA (Andrea): le due falde scendevano dalla
+         parte sbagliata. Invertito il segno della pendenza. */
       f.position.set(q[0]*W/4,hM+alt/2,2.5);
-      f.rotation.z=q[0]*Math.atan2(alt,W/2);
+      f.rotation.z=-q[0]*Math.atan2(alt,W/2);
       f.castShadow=true;g.add(f);});
     const cm=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,Le,8),lam(0x8CA886));
     cm.rotation.x=Math.PI/2;cm.position.set(0,yt+0.05,2.5);g.add(cm);
@@ -1894,13 +1905,20 @@ function faroLed(x,y,z,ry){
     const vet3=new THREE.Mesh(new THREE.PlaneGeometry(d,h-0.6),matVetro);
     vet3.rotation.y=Math.PI/2;vet3.position.set(cx-w/2-0.05,h/2-0.1,cz);g.add(vet3);
     const vet4=vet3.clone();vet4.position.x=cx+w/2+0.05;g.add(vet4);
-    [-1,1].forEach(s=>{
-      const f=new THREE.Mesh(new THREE.BoxGeometry(w+0.8,0.16,d/2+0.7),
-        new THREE.MeshPhongMaterial({color:0xa8c8dc,transparent:true,opacity:0.62,
-          shininess:120,specular:0x9fc4d8}));
-      f.position.set(cx,h+alt/2,cz+s*d/4);f.rotation.x=-s*Math.atan2(alt,d/2);
-      f.castShadow=true;g.add(f);});
-    box(g,w+0.9,0.14,0.16,lam(0xdedbd2),cx,h+alt,cz,false);
+    /* FOTO 4893-4896: la copertura della piscina e' RETTANGOLARE, PIATTA e in
+       LAMIERA BLU — non due falde vetrate translucide. Andrea. */
+    const mBlu = new THREE.MeshPhongMaterial({color:0x2E5F94,shininess:80,specular:0x8FB4D8});
+    const cop = new THREE.Mesh(new THREE.BoxGeometry(w+1.2,0.26,d+1.2),mBlu);
+    cop.position.set(cx,h+0.13,cz); cop.castShadow=true; g.add(cop);
+    /* nervature della lamiera, nel senso lungo */
+    for(let k=0;k<Math.round(d/1.6);k++){
+      const n=new THREE.Mesh(new THREE.BoxGeometry(w+1.1,0.07,0.12),lam(0x24507E));
+      n.position.set(cx,h+0.29,cz-d/2+0.8+k*1.6); g.add(n);}
+    /* bordo di lattoneria tutt'intorno */
+    box(g,w+1.4,0.16,0.18,lam(0x1E4570),cx,h+0.06,cz-d/2-0.6,false);
+    box(g,w+1.4,0.16,0.18,lam(0x1E4570),cx,h+0.06,cz+d/2+0.6,false);
+    box(g,0.18,0.16,d+1.4,lam(0x1E4570),cx-w/2-0.6,h+0.06,cz,false);
+    box(g,0.18,0.16,d+1.4,lam(0x1E4570),cx+w/2+0.6,h+0.06,cz,false);
     contatto(g,cx,0.03,cz,w+3,d+3,0.42);
   }
   /* Il "Padiglione Eventi 40,00 x 25,00" della planimetria NON e' un edificio
@@ -2158,21 +2176,25 @@ const texChiaro60=(()=>{const c=mkCanvas(256,256),g=c.getContext('2d'),rnd=seme(
 function pavChiaro(w,d){const t=texChiaro60.clone();t.needsUpdate=true;
   t.repeat.set(Math.max(1,Math.round(w/0.6)),Math.max(1,Math.round(d/0.6)));
   return lam(0xffffff,{map:t});}
+/* LETTURA-FOTO.md §2: il campione fotografato (IMG_4876) e' un gres GRIGIO
+   MEDIO CALDO e CHIARO, con nuvolature evidenti e fuga sottile. Non antracite:
+   con l'antracite il corridoio veniva quasi nero e la gradinata non staccava,
+   mentre nelle foto l'ambiente e' luminoso. */
 const texAntracite60=(()=>{const c=mkCanvas(256,256),g=c.getContext('2d'),rnd=seme(613);
-  g.fillStyle='#918F89';g.fillRect(0,0,256,256);
+  g.fillStyle='#B9B5AC';g.fillRect(0,0,256,256);
   for(let i=0;i<160;i++){                       /* venature e nuvolature */
-    const v=132+rnd()*40|0;
+    const v=170+rnd()*40|0;
     g.fillStyle='rgba('+v+','+(v-2)+','+(v-6)+','+(0.07+rnd()*0.15).toFixed(2)+')';
     g.beginPath();g.ellipse(rnd()*256,rnd()*256,10+rnd()*44,8+rnd()*30,rnd()*3,0,Math.PI*2);g.fill();}
   for(let i=0;i<120;i++){
-    g.fillStyle='rgba(96,94,90,'+(0.05+rnd()*0.12).toFixed(2)+')';
+    g.fillStyle='rgba(140,137,131,'+(0.05+rnd()*0.12).toFixed(2)+')';
     g.fillRect(rnd()*256,rnd()*256,2,2);}
-  g.strokeStyle='#787671';g.lineWidth=3;g.strokeRect(0,0,256,256);
+  g.strokeStyle='#A5A199';g.lineWidth=3;g.strokeRect(0,0,256,256);
   return tex(c,true);})();
 function pav60(w,d){                 /* 60 cm: una piastrella per ripetizione */
   const t=texAntracite60.clone();t.needsUpdate=true;
   t.repeat.set(Math.max(1,Math.round(w/0.6)),Math.max(1,Math.round(d/0.6)));
-  return new THREE.MeshPhongMaterial({map:t,shininess:34,specular:0x2e2e2e,
+  return new THREE.MeshPhongMaterial({map:t,shininess:26,specular:0x3a3a38,
     side:THREE.DoubleSide});}
 const palPrimaria=PAL3;
 /* atrio/mezzanino: scacchi piccoli beige/grigio/rosa/bruno */
@@ -2227,7 +2249,9 @@ const matGialloPrim=lam(0xE8620A), matArancioPrim=lam(0xB02418);
 /* 4874/4880/4883/4888: nei corridoi le pareti sono CREMA/AVORIO caldo; il
    bianco puro resta solo su stipiti e risvolti. */
 const matBiancoInt=lam(0xEFE7D6), matCrema=lam(0xEFE8D8), matBiancoPuro=lam(0xf6f4ee);
-const matGialloAula=lam(0xefe8c8), matFasciaVerde=lam(0x8c9484);
+/* LETTURA-FOTO.md §2: aule GIALLO PAGLIA caldo sopra, FASCIA GRIGIO-VERDE
+   SALVIA sotto, separate da un profilo chiaro. Il giallo era troppo slavato. */
+const matGialloAula=lam(0xE8D89A), matFasciaVerde=lam(0x8FA08C);
 const matGrigioScuroMat=lam(0x5a5a5c), matTerracotta=lam(0xb85a3a);
 const matPortaBronzo=lam(0x6b4a2e), matPortaChiara=lam(0xdedbd3);
 /* 4977/4978/4980: le porte del primo piano sono ROSSO CORALLO con lo
@@ -4040,28 +4064,10 @@ function anima(){
    La conversione va fatta UNA VOLTA SOLA, a scena costruita, e solo sui
    colori: le texture hanno gia' il loro encoding e non si toccano.
    ====================================================================== */
-/* ===== MEZZE FALDE MANCANTI ===============================================
-   Trovate con i raggi verticali: sei punti dove la quota CROLLA di oltre 3 m
-   rispetto ad almeno tre vicini su quattro. Non erano cielo aperto — il raggio
-   colpiva il PAVIMENTO — e per questo `collaudo()` non li vedeva: un tetto
-   mancante, visto dall'alto, e' indistinguibile da un cortile se si cerca
-   solo "il raggio non colpisce nulla".
-   Sono i raccordi dove un corpo si innesta sull'ala: la falda di testata non
-   era stata chiusa. Le quote di gronda sono quelle misurate sui vicini.      */
-(function mezzeFalde(){
-  /* Prima passata: quattro falde sui sei buchi. Ne restavano tre, spostati sui
-     BORDI di quelle appena messe — coprire un buco stretto ne scopre i lati.
-     Le falde sono state allargate e ricentrate perche' scavalchino il
-     raccordo invece di fermarsi dentro. */
-  const F = [
-    /* cx,   cz,    Lx,   Lz,  gronda, alt, tipo         dove */
-    [-50.0, 37.0, 13.0, 13.0,  6.6, 2.6, 'padiglione'],  /* mensa, angolo SO */
-    [-35.0,  2.0, 14.0,  8.0,  5.8, 2.4, 'padiglione'],  /* ala ovest / infanzia */
-    [  7.0,  0.0, 10.0,  8.0,  7.2, 2.7, 'padiglione'],  /* corpo nord, centro */
-    [ 47.0, 18.0, 11.0, 17.0,  5.6, 2.4, 'padiglione']   /* lato est, pertinenze */
-  ];
-  F.forEach(f => tetto(mondo, f[0], f[1], f[2], f[3], f[4], f[5], {tipo: f[6], sporto: 0.55}));
-})();
+/* Le "mezze falde" che avevo aggiunto negli angoli del corridoio a U NON
+   ESISTONO: erano due tetti inventati per chiudere due buchi dei raggi.
+   Segnalazione di Andrea. Rimosse. I buchi vanno chiusi completando le falde
+   dei tetti esistenti, non sovrapponendone di nuovi. */
 
 /* FASCIA BORDEAUX al piano terra dei due corpi ocra (LETTURA-FOTO.md §1). */
 (function fasciaBordeaux(){
