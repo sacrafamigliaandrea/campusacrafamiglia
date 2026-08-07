@@ -805,9 +805,12 @@ const texVerde=(()=>{const c=mkCanvas(1024,476),g=c.getContext('2d'),rnd=seme(33
   g.fillStyle='#2F5A34';g.fillRect(0,0,1024,476);
   for(let i=0;i<2800;i++){g.fillStyle=['#2A5230','#37653B','#26492B'][(rnd()*3)|0];
     g.fillRect(rnd()*1024,rnd()*476,3,3);}
-  g.strokeStyle='#fff';g.lineWidth=5;g.strokeRect(120,60,784,356);
-  [238,416].forEach(y=>{g.beginPath();g.moveTo(120,y);g.lineTo(904,y);g.stroke();});
-  g.beginPath();g.moveTo(120,238);g.lineTo(904,238);g.stroke();
+  /* QUI NON SI DISEGNANO RIGHE. C'erano un rettangolo e due linee orizzontali
+     dipinti nella texture, PIU' le righe fatte con le mesh: due tracciati
+     sovrapposti. E quello dipinto seguiva il tappeto, per cui allargando il
+     campo da 21,6 a 28 m si e' stirato e sfalsato — sono le righe storte che
+     si vedevano. La texture fa l'erba sintetica, il tracciato lo fanno le
+     mesh di righeVolley, che sono in metri veri. */
   return tex(c,false);})();
 const texCalcio=(()=>{const c=mkCanvas(672,1024),g=c.getContext('2d'),rnd=seme(41);
   for(let i=0;i<8;i++){g.fillStyle=(i%2)?'#5e8c3e':'#54803a';g.fillRect(0,i*128,672,128);}
@@ -884,12 +887,20 @@ const mondo=new THREE.Group(); scene.add(mondo);
      Le righe regolamentari del volley (18 x 9) restano centrate dentro il
      tappeto sintetico. */
   tappeto(lam(0xffffff,{map:texVerde}),28,11.7,-8.6,25.8,0.038);
+  /* TRACCIATO DEL CAMPO DA PALLAVOLO — 18 x 9 con l'asse lungo in X.
+     C'era una terza riga da 18 m a meta' campo, PARALLELA ai lati lunghi:
+     non esiste in nessun campo da volley. La linea di meta' campo sta
+     SOTTO LA RETE, quindi e' perpendicolare all'asse lungo ed e' lunga 9 m.
+     Mancavano anche le due LINEE D'ATTACCO, a 3 m dalla mezzeria: sono
+     quelle che si vedono nella foto, e senza di loro il campo sembra un
+     rettangolo qualunque. */
   (function righeVolley(){
-    const b=lam(0xE8E6DE);
-    [[-8.6,21.3,18.0,0.10],[-8.6,30.3,18.0,0.10],[-8.6,25.8,18.0,0.10]].forEach(q=>
-      tappeto(b,q[2],q[3],q[0],q[1],0.044));
-    [[-17.6,25.8,0.10,9.0],[0.4,25.8,0.10,9.0]].forEach(q=>
-      tappeto(b,q[2],q[3],q[0],q[1],0.044));})();
+    const b=lam(0xE8E6DE), cx=-8.6, cz=25.8, R=0.10;
+    /* i due lati lunghi (18 m) e i due lati corti (9 m) */
+    [cz-4.5,cz+4.5].forEach(z=>tappeto(b,18.0,R,cx,z,0.044));
+    [cx-9.0,cx+9.0].forEach(x=>tappeto(b,R,9.0,x,cz,0.044));
+    /* mezzeria sotto la rete + le due linee d'attacco a 3 m */
+    [cx,cx-3.0,cx+3.0].forEach(x=>tappeto(b,R,9.0,x,cz,0.044));})();
   /* il campo da calcio sconfinava di 7 m sotto il fabbricato a ovest: portato
      nella stessa fascia del basket. */
   tappeto(lam(0xffffff,{map:texCalcio}),28,55,-8.6,59.5,0.03);
@@ -905,14 +916,18 @@ const mondo=new THREE.Group(); scene.add(mondo);
   tappeto(matAsfalto,6,190,-82,10,0.02);
   tappeto(matAsfalto,5,32,-41,45,0.02);
   tappeto(matGhiaia,156,3.4,0,-25.4,0.03);
-  /* rotonda e driveway davanti all'INGRESSO SCUOLA (il portale ad arco sta a
-     x=-36.5): nell'aerea la rotonda e' esattamente li', fra scuola e chiesa */
+  /* ROTONDA — sta ESATTAMENTE IN ASSE COL PORTONE D'INGRESSO della scuola
+     (Andrea). Il portale ad arco e' a x=-22,6 (muroPietra largo 13 centrato
+     li', con portale:0.5): la rotonda era a x=-56, cioe' 33 m piu' a ovest,
+     davanti alla CHIESA. Il commento diceva "il portale sta a x=-36,5", ed
+     era falso: il numero non l'aveva mai verificato nessuno. */
+  const XPORT=-22.6;
   const rot=new THREE.Mesh(new THREE.CircleGeometry(19,40),matAsfalto);
-  rot.rotation.x=-Math.PI/2;rot.position.set(-56,0.021,-52);mondo.add(rot);
+  rot.rotation.x=-Math.PI/2;rot.position.set(XPORT,0.021,-52);mondo.add(rot);
   const rv=new THREE.Mesh(new THREE.CircleGeometry(10,32),matPrato);
-  rv.rotation.x=-Math.PI/2;rv.position.set(-56,0.045,-52);mondo.add(rv);
-  tappeto(matAsfalto,9,30,-56,-74,0.021);          /* driveway verso la strada */
-  tappeto(matAsfalto,26,8,-46,-52,0.021);          /* innesto sul parcheggio   */
+  rv.rotation.x=-Math.PI/2;rv.position.set(XPORT,0.045,-52);mondo.add(rv);
+  tappeto(matAsfalto,9,30,XPORT,-74,0.021);        /* driveway verso la strada */
+  tappeto(matAsfalto,9,22,XPORT,-38,0.021);        /* raccordo verso il portone */
   const cs=mkCanvas(512,128),gg=cs.getContext('2d');
   gg.strokeStyle='rgba(255,255,255,.8)';gg.lineWidth=4;
   for(let i=0;i<18;i++){gg.beginPath();gg.moveTo(i*28+8,4);gg.lineTo(i*28+8,60);gg.stroke();
@@ -958,7 +973,9 @@ function auto(x,z,ry,col){
    prato; est a +9,5. */
 for(let i=0;i<8;i++){albero(-26.5,36+i*7.4,1.2+((i*7)%3)*0.12);albero(9.5,36+i*7.4,1.15+((i*5)%3)*0.12);}
 /* alberi dell'isola della rotonda e del fronte (aerea: la rotonda e' piantumata) */
-[[-60,-56],[-52,-57],[-58,-47],[-51,-49]].forEach(q=>albero(q[0],q[1],1.15));
+/* gli alberi dell'isola seguono la rotonda: erano piantati sulla vecchia
+   posizione, davanti alla chiesa, e ci sarebbero rimasti da soli. */
+[[-26.6,-56],[-18.6,-57],[-24.6,-47],[-17.6,-49]].forEach(q=>albero(q[0],q[1],1.15));
 /* (7) davanti al portale non ci va nessun albero: era piantato
    nell'asfalto e copriva l'ingresso. */
 albero(-12,-31,0.9);albero(-52,-33,1.2);albero(-64,-34,1.0);albero(-4,-31,0.95);
@@ -1087,22 +1104,29 @@ function canestroPalo(x,z,rot){
    Ne avevo messi due dalla stessa parte. */
 canestroPalo(-21.0,4.5,Math.PI/2);
 (function volley(){
-  /* pali a bordo del campo blu, non nel prato */
-  /* la rete corre sulla mezzeria del campo (campo x[-19,9] z[17,29]) */
+  /* LA RETE sta sulla MEZZERIA del campo (x=-8,6) ed e' lunga quanto il campo
+     e' largo: 9 m, non 13. Stava a x=-3,2 — 5,4 m fuori centro, con i pali
+     piantati nel prato oltre la linea laterale. Il campo e' 18 x 9 centrato
+     su (-8,6 · 25,8): i pali vanno appena fuori dai due lati lunghi. */
   const g=new THREE.Group();
-  box(g,0.09,2.6,0.09,lam(0x555a60),0,1.3,-6.5);box(g,0.09,2.6,0.09,lam(0x555a60),0,1.3,6.5);
-  const r=new THREE.Mesh(new THREE.PlaneGeometry(13,0.9),
+  box(g,0.09,2.6,0.09,lam(0x555a60),0,1.3,-4.9);box(g,0.09,2.6,0.09,lam(0x555a60),0,1.3,4.9);
+  const r=new THREE.Mesh(new THREE.PlaneGeometry(9.8,0.9),
     new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.35,
       side:THREE.DoubleSide,depthWrite:false}));
   r.rotation.y=Math.PI/2;r.position.set(0,2.05,0);g.add(r);
-  g.position.set(-3.2,0,25.8);mondo.add(g);   /* centro del campo blu */
+  g.position.set(-8.6,0,25.8);mondo.add(g);   /* mezzeria del campo */
   /* IMG_4947: attorno al sintetico corre un CORDOLO DI CEMENTO con le
      CADITOIE a filo — e' il primo dettaglio che si vede stando sul campo */
-  [[-3.2,19.6,23,1.0],[-3.2,32.0,23,1.0],[-14.6,25.8,1.0,12.4],[8.2,25.8,1.0,12.4]].forEach(q=>{
+  /* il cordolo era rimasto sul vecchio centro (-3,2) insieme alla rete: era
+     un rettangolo 23 x 12,4 sfalsato di 5,4 m, e da terra si leggeva come un
+     secondo campo. Ora segue il sintetico vero: x[-22,6 · 5,4] z[20 · 31,6]. */
+  const CX=-8.6, CZ=25.8, CW=28.0, CD=11.6;
+  [[CX,CZ-CD/2-0.5,CW+1,1.0],[CX,CZ+CD/2+0.5,CW+1,1.0],
+   [CX-CW/2-0.5,CZ,1.0,CD],[CX+CW/2+0.5,CZ,1.0,CD]].forEach(q=>{
     const m=new THREE.Mesh(new THREE.PlaneGeometry(q[2],q[3]),matCemento);
     m.rotation.x=-Math.PI/2;m.position.set(q[0],0.045,q[1]);mondo.add(m);});
   for(let i=0;i<5;i++)
-    box(mondo,0.55,0.03,0.30,lam(0x55585B),-16+i*6,0.055,16.4,false);})();
+    box(mondo,0.55,0.03,0.30,lam(0x55585B),CX-12+i*6,0.055,CZ-CD/2-0.5,false);})();
 function figura(x,z,ry,cm,cp){
   const g=new THREE.Group();
   const gm=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.11,0.52,7),lam(cp||0x2a3040));
@@ -1722,15 +1746,20 @@ function faroLed(x,y,z,ry){
   contatto(mondo,-41,0.035,22.4,LT+1,4,0.4);
 })();
 
-/* pergola bianca a listelli, davanti alla mensa */
+/* PERGOLA BIANCA A LISTELLI — sta nel CORTILE DELL'INFANZIA, addossata
+   all'edificio, come la mostrano 4865/4866/4926-4929 e come la descrive
+   l'indizio della caccia ("sotto una pergola bianca a listelli crescono i
+   rampicanti"). Stava a (-20, 27.5), cioe' SOPRA IL CAMPO DA VOLLEY, dove
+   non c'e' mai stato niente: portata nel cortile e girata di 90 gradi per
+   correre lungo il fronte dell'edificio. */
 (function pergolaLunga(){
   const p=new THREE.Group(),mL=lam(0xf2f0ea),L=17;
   for(let i=0;i<6;i++){box(p,0.15,2.5,0.15,mL,-L/2+0.6+i*(L-1.2)/5,1.25,-1.5,false);
     box(p,0.15,2.5,0.15,mL,-L/2+0.6+i*(L-1.2)/5,1.25,1.5,false);}
   box(p,L,0.16,0.14,mL,0,2.55,-1.5,false);box(p,L,0.16,0.14,mL,0,2.55,1.5,false);
   for(let i=0;i<26;i++) box(p,0.09,0.1,3.3,mL,-L/2+0.4+i*(L-0.8)/25,2.66,0,false);
-  p.position.set(-20,0,27.5);mondo.add(p);
-  contatto(mondo,-20,0.04,27.5,18,4.4,0.45);})();
+  p.position.set(-51.0,0,11.0);p.rotation.y=Math.PI/2;mondo.add(p);
+  contatto(mondo,-51.0,0.04,11.0,4.4,18,0.45);})();
 
 /* ===================== PALESTRA, capannone, CHIESA ====================== */
 /* QdV Arena: il "tendone". Falde a doppio spiovente che salgono verso il colmo
