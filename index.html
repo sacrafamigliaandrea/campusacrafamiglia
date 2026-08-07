@@ -2269,7 +2269,14 @@ const interni=new THREE.Group(); scene.add(interni);
 /* QUOTE DAL RILIEVO: il solaio del primo piano sta a 3,44 (in tavola
    "H solaio 3,44" sopra aule alte 3,00). Il tratto alto del corridoio sta
    0,68 piu' su — le quattro alzate da 17 cm della gradinata obliqua. */
-const Q_BASSA=3.44,Q_ALTA=4.12,SOFF=6.80;
+/* QUOTE DEL PRIMO PIANO — lette sulla tavola a 300 dpi, non dedotte.
+   Q_ALTA valeva 4,12, cioe' 3,44 + 0,68: era la quota del TRATTO RIALZATO
+   dell'ala est, e l'avevo usata come quota di tutto il piano. Settanta
+   centimetri di errore su ogni pavimento, parete e arredo del primo piano.
+   In tavola le quote di piano ai due lati della gradinata sono +3,42 e
+   +3,79, e il conto chiude: 3,42 + 0,37 = 3,79. Con "H corridoio 3,00" il
+   soffitto va a 6,42 e il solaio successivo a 6,88, che e' H_P1. */
+const Q_BASSA=3.42,Q_ALTA=3.42,SOFF=6.42;
 /* SOFF sta 8 cm SOTTO il solaio (H_P1=6,88): erano complanari e il
    controsoffitto sfarfallava a chiazze contro la copertura. Un
    controsoffitto ha sempre la sua intercapedine. */
@@ -2799,82 +2806,185 @@ const U_OX0=-61.80, U_OX1=-55.50;          /* braccio ovest (Primaria)      */
 const U_EX0=10.40,  U_EX1=15.00;           /* braccio est  (Secondaria)     */
 const U_OZ1=22.60, U_EZ1=28.30;            /* i due fondi dei bracci        */
 const U_SOF=Q_ALTA+3.00;                   /* "H corridoio 3,00" in tavola  */
-/* ASSONOMETRIA ANNOTATA (Andrea): "Scale 3 gradini", e la freccia punta
-   esattamente al punto dove il tratteggio rosso GIRA L'ANGOLO nord-est.
-   Erano quattro alzate e stavano a meta' del braccio est: sono TRE e stanno
-   nell'angolo, appena dopo l'innesto. 3 x 0,17 = 0,51 di salto. */
-const U_ZGRAD=0.60, U_SALTO=0.51;
+/* QUOTE LETTE SULLA TAVOLA, a 300 dpi, non dedotte (Andrea: "hai la
+   planimetria con le quote! l'assonometria serve per capire COME e' fatto,
+   non per prendere le misure").
+     CORRIDOIO - LOCALE POLIVALENTE   mq 150,20 · H solaio 3,44 · H corr 3,00
+     tratto est                       mq  17,30 · H solaio 3,49 · H corr 3,00
+     quote di piano ai due lati della gradinata:  +3,42  e  +3,79
+   Quindi il salto e' 0,37 in TRE alzate da 12,3 cm — non 0,68 in quattro,
+   ne' 0,51. E il disegno mostra i gradini in DIAGONALE a ~30 gradi
+   sull'asse: quattro linee parallele oblique, con la freccia di salita che
+   le attraversa. L'avevo letto giusto la prima volta e poi l'ho scartato
+   guardando IMG_4879, dove sembra trasversale: quando la tavola quota una
+   cosa, la fotografia non la smentisce. */
+const U_ZGRAD=0.60, U_SALTO=0.37, U_ANGGRAD=-Math.PI/6;
 
-/* ---- i materiali dei due corridoi, letti sulle fotografie ----------------
-   SECONDARIA (bracci nord ed est) — 4874/4879/4883/4884/4899: pareti
-   BIANCHE pulite senza zoccolo, gres GRIGIO MEDIO CALDO a grandi lastre,
-   soffitto bianco liscio, DUE aste portalavori in legno chiaro a 1,30 e
-   1,92, porte CHIARE (le rosse sono della Primaria), tavoli con gambe BLU
-   e piano VERDE SALVIA, Kallax bianchi, un pannello GIALLO SENAPE.
-   PRIMARIA (braccio ovest) — 4854/4855/4857: pareti CREMA, plafone
-   TERRACOTTA, pavimento a scacchi, porte ROSSO CORALLO, i lavori appesi al
-   listello con le cornici di cartone, l'idrante a cassetta. */
-const matMuroSec=lam(0xF2F1ED), matPlafSec=lam(0xF7F6F2);
-const matGresSec=lam(0x8E8A84), matSenapeU=lam(0xD8A83C);
+const matMuroSec=lam(0xF2F1ED);
 const matPianoSalvia=lam(0xA8C49A), matPortaSec=lam(0xE4E2DC);
-const matPlafPrim=lam(0xB0563A);   /* il plafone terracotta della Primaria */
+
+/* ##########################################################################
+   IL CORRIDOIO A U DEL PRIMO PIANO — UNA SOLA FUNZIONE, UNA SOLA VOLTA
+   ##########################################################################
+   Prima stava in tre pezzi dentro tre IIFE diverse (corridoioNord,
+   alaEstInt, primaria), ognuna con le sue quote scritte a mano. E' per
+   questo che ogni correzione ne sistemava un terzo e rompeva gli altri due.
+   Qui il corridoio si costruisce IN UN POSTO SOLO, da queste costanti.
+
+   ---- QUELLO CHE SO DI CERTO, con la fonte accanto ----------------------
+
+   GEOMETRIA — PianoPrimo.pdf, misurata sui muri (mai sull'evidenziazione a
+   pennarello, che alla scala del disegno e' spessa 40 cm):
+     conversione rilievo -> modello   X - 30,5   ·   Z - 0,93
+       (verificata su 3 riferimenti indipendenti: i cinque divisori delle
+        aule della Secondaria, i muri 40,86/45,48 del braccio est, e il
+        "VUOTO DI CORTILE" che cade sul cortile dell'Infanzia)
+     NORD    z[-5,40 · -0,50]   da x=-61,80 a +15,00     largo 4,90
+     OVEST   x[-61,80 · -55,50] da z=-0,50 a +22,60      largo 6,30
+     EST     x[+10,40 · +15,00] da z=-0,50 a +28,30      largo 4,60
+   Le larghezze non sono stimate: la tavola scrive "mq 150,20" sul braccio
+   nord, che su 30,7 m di sviluppo da' 4,89.
+
+   QUOTE — lette sulla tavola rasterizzata a 300 dpi (pdftotext non le
+   estrae, sono vettoriali):
+     "CORRIDOIO - LOCALE POLIVALENTE  mq 150,20 · H solaio 3,44 · H corr 3,00"
+     "tratto est                      mq  17,30 · H solaio 3,49 · H corr 3,00"
+     quote di piano ai lati della gradinata:  +3,42  e  +3,79
+   Da cui: pavimento 3,42 · soffitto 6,42 · tratto est 3,79. Il conto chiude
+   (3,42 + 0,37 = 3,79) e il solaio successivo cade a 6,88 = H_P1.
+
+   GRADINATA — disegnata in tavola: quattro linee parallele OBLIQUE a ~30
+   gradi con la freccia di salita che le attraversa = TRE gradini, salto
+   0,37 (3 x 12,3 cm). Sta NELL'ANGOLO NORD-EST, dove il tracciato gira
+   (assonometria annotata, etichetta "Scale 3 gradini").
+
+   ASPETTO — dalle fotografie, non dedotto:
+     SECONDARIA (nord + est) 4868/4874/4883/4884/4899: pareti BIANCHE senza
+       zoccolo · gres GRIGIO a grandi lastre · CONTROSOFFITTO A QUADROTTI con
+       plafoniere incassate · UNA sola asta portalavori a 1,40 · porte CHIARE
+       · vetrata CONTINUA E CHIUSA su parapetto basso, telai grigio chiaro,
+       campate ~1,5 m · tavoli gambe BLU e piano VERDE SALVIA appoggiati al
+       LATO NORD · Kallax bianchi · campiture GIALLO SENAPE piatte a muro.
+     PRIMARIA (ovest) 4854/4855/4856/4857: pareti ARANCIONE · pavimento a
+       SCACCHI · porte ROSSO CORALLO · controsoffitto a quadrotti · vetrata
+       chiusa con telai GRIGIO SCURO.
+
+   LA REGOLA CHE VALE PIU' DI TUTTE (Andrea, tre volte): il corridoio e' una
+   STRUTTURA SEMPLICE DI PASSAGGIO. Nessun setto trasversale, nessun
+   pannello a mezz'aria, nessun ostacolo. Le pareti stanno SOLO sui lati
+   lunghi. Si collauda camminando su TRE LINEE PARALLELE per braccio e
+   contando i punti bloccati con un test GEOMETRICO su tutte le mesh — non
+   con libero(), che vede solo gli ostacoli registrati e per questo mi ha
+   fatto dire "zero bloccati" mentre c'erano cinque muri in mezzo.
+
+   DUBBIO ANCORA APERTO, non risolto e non nascosto: in
+   primopiano_ricostruzione3d.png le corti sono DUE (Infanzia a ovest, campi
+   a est) e la U sembra girare attorno a UNA sola, mentre qui il braccio
+   nord le abbraccia entrambe (da -61,8 a +15,0). Va deciso sull'SVG QCAD.
+   ########################################################################## */
+function corridoioU(){
+  const g=new THREE.Group(); interni.add(g);
+  const YP=Q_ALTA, YS=U_SOF, HV=YS-0.30-(YP+0.90);   /* vetro fra parapetto e traverso */
+
+  /* --- il piano di calpestio di un braccio: pavimento, solaio, plafone --- */
+  function piano(x0,x1,z0,z1,q){
+    const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),pav60(x1-x0,z1-z0));
+    p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,q,(z0+z1)/2);
+    p.receiveShadow=true;g.add(p);
+    box(g,x1-x0,0.34,z1-z0,lam(0xbdbab2),(x0+x1)/2,q-0.18,(z0+z1)/2,false);
+    const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),
+      matSoffitto((x1-x0)/1.2,(z1-z0)/1.2));
+    s.rotation.x=Math.PI/2;s.position.set((x0+x1)/2,q+3.00,(z0+z1)/2);g.add(s);}
+
+  /* --- parete piena su un lato lungo ------------------------------------ */
+  function parete(x0,x1,z0,z1,q,mat){
+    const dx=x1-x0, dz=z1-z0;
+    box(g,dx||0.16,3.00,dz||0.16,mat,(x0+x1)/2,q+1.50,(z0+z1)/2,false);}
+
+  /* --- fronte vetrato CHIUSO: parapetto, lastra, montanti, traverso ------
+     un montante senza lastra non e' una finestra, e' un colonnato: e' cosi'
+     che il corridoio sembrava un ballatoio esterno. */
+  function vetrata(x0,x1,z0,z1,q,telaio){
+    const dx=x1-x0, dz=z1-z0, L=dx||dz, ry=dx?0:Math.PI/2;
+    box(g,dx||0.16,0.90,dz||0.16,matMuroSec,(x0+x1)/2,q+0.45,(z0+z1)/2,false);
+    box(g,dx||0.16,0.30,dz||0.16,matMuroSec,(x0+x1)/2,q+3.00-0.15,(z0+z1)/2,false);
+    const lastra=new THREE.Mesh(new THREE.PlaneGeometry(L,HV),matVetro);
+    lastra.rotation.y=ry;lastra.position.set((x0+x1)/2,q+0.90+HV/2,(z0+z1)/2);g.add(lastra);
+    const N=Math.round(L/1.5);
+    for(let i=0;i<=N;i++){
+      const t=i/N, mx=x0+(x1-x0)*t, mz=z0+(z1-z0)*t;
+      box(g,dx?0.09:0.14,HV,dx?0.14:0.09,lam(telaio||0xB9BEC3),mx,q+0.90+HV/2,mz,false);}
+    box(g,dx||0.14,0.09,dz||0.14,lam(telaio||0xB9BEC3),
+        (x0+x1)/2,q+0.90+HV*0.62,(z0+z1)/2,false);}
+
+  /* ===== BRACCIO NORD =================================================== */
+  piano(U_X0,U_X1,U_NZ0,U_NZ1,YP);
+  parete(U_X0,U_X1,U_NZ0,U_NZ0,YP,matMuroSec);          /* verso le aule    */
+  vetrata(U_X0,U_X1,U_NZ1,U_NZ1,YP);                    /* sulla corte      */
+  listello(g,U_X1-U_X0-1.0,(U_X0+U_X1)/2,YP+1.40,U_NZ0+0.09,0);
+  for(let i=0;i<13;i++) plafo(g,U_X0+3+i*6.0,(U_NZ0+U_NZ1)/2,YS,0,'inc');
+
+  /* ===== BRACCIO OVEST — la Primaria ==================================== */
+  piano(U_OX0,U_OX1,U_NZ1,U_OZ1,YP);
+  parete(U_OX0,U_OX0,U_NZ1,U_OZ1,YP,matGialloPrim);     /* verso le aule    */
+  vetrata(U_OX1,U_OX1,U_NZ1,U_OZ1,YP,0x4A4E52);         /* sulla corte      */
+  listello(g,U_OZ1-U_NZ1-1.0,U_OX0+0.09,YP+1.40,(U_NZ1+U_OZ1)/2,Math.PI/2);
+  for(let i=0;i<5;i++) plafo(g,(U_OX0+U_OX1)/2,U_NZ1+3+i*5.0,YS,Math.PI/2,'inc');
+
+  /* ===== BRACCIO EST — la Secondaria ====================================
+     due tratti a quote diverse, separati dalla gradinata nell'angolo. */
+  piano(U_EX0,U_EX1,U_NZ1,U_ZGRAD,YP);
+  piano(U_EX0,U_EX1,U_ZGRAD,U_EZ1,YP+U_SALTO);
+  parete(U_EX1,U_EX1,U_NZ1,U_EZ1,YP+U_SALTO/2,matMuroSec);
+  vetrata(U_EX0,U_EX0,U_NZ1,U_EZ1,YP+U_SALTO/2);
+  listello(g,U_EZ1-U_NZ1-1.0,U_EX1-0.09,YP+1.40+U_SALTO/2,(U_NZ1+U_EZ1)/2,Math.PI/2);
+  for(let i=0;i<6;i++) plafo(g,(U_EX0+U_EX1)/2,U_NZ1+4+i*5.0,YS+U_SALTO,Math.PI/2,'inc');
+
+  /* ===== LA GRADINATA: 3 alzate, obliqua a 30 gradi, nell'angolo NE ===== */
+  (function gradinata(){
+    const gres=lam(0x7E7A75), naso=lam(0xA8A49E);
+    const N=3, alz=U_SALTO/N, ped=0.46;
+    const cxm=(U_EX0+U_EX1)/2, L=(U_EX1-U_EX0)/Math.cos(U_ANGGRAD)+0.9;
+    const dirx=Math.sin(-U_ANGGRAD), dirz=Math.cos(U_ANGGRAD);
+    for(let i=0;i<N;i++){
+      const h=alz*(i+1), t=-(N-i)+0.5;
+      const cx=cxm+dirx*ped*t, cz=U_ZGRAD+dirz*ped*t;
+      const gr=box(g,L,h,ped,gres,cx,YP+h/2,cz,true); gr.rotation.y=U_ANGGRAD;
+      const ns=box(g,L,0.03,0.11,naso,cx-dirx*ped*0.45,YP+h+0.004,
+                   cz-dirz*ped*0.45,false); ns.rotation.y=U_ANGGRAD;}
+    contatto(g,cxm,YP+0.012,U_ZGRAD,L+1.0,ped*N+1.2,0.4);})();
+
+  /* ===== quello che sta NEL corridoio, sempre CONTRO la parete ==========
+     4874/4884/4899: le due file di tavoli stanno fra 0,05 e 1,65 m dalla
+     parete nord; davanti restano 3,25 m di passaggio netto sui 4,90. */
+  [-38,-26,-13,-1,8].forEach(x=>{
+    tavolo(g,x,U_NZ0+0.45,0,2.2,0.8,matPianoSalvia,YP,0.76,false);
+    tavolo(g,x,U_NZ0+1.25,0,2.2,0.8,matPianoSalvia,YP,0.76,false);
+    [-0.7,0.7].forEach(o=>sedia(g,x+o,U_NZ0+1.95,Math.PI,cLegno,YP));});
+  [-32,-19.5,-7,3.5].forEach(x=>{
+    box(g,0.78,0.78,0.40,lam(0xF4F3EF),x,YP+0.39,U_NZ0+0.28,true);
+    box(g,0.72,0.03,0.36,lam(0xD8D6D0),x,YP+0.39,U_NZ0+0.28,false);
+    box(g,0.03,0.72,0.36,lam(0xD8D6D0),x,YP+0.39,U_NZ0+0.28,false);});
+  [-50,-42,-34,-26,-18].forEach(x=>pannelloSenape(g,x,U_NZ0+0.06,2.5,0));
+  antincendio(g,-19.5,YP+1.5,U_NZ0+0.10,0);
+  estintore(g,-24.5,YP+0.9,U_NZ0+0.20);
+  quadro(g,texQuadro(151),0.9,1.1,-27.5,YP+1.65,U_NZ0+0.10,0);
+  quadro(g,texMorin,3.2,1.0,-6.0,YP+2.30,U_NZ0+0.10,0);
+  return g;
+}
+corridoioU();
 
 /* ============ IL BRACCIO NORD + LE AULE DELLA SECONDARIA ================ */
-(function corridoioNord(){
+/* ============ LE AULE DELLA SECONDARIA ==================================
+   Il CORRIDOIO non si costruisce piu' qui: lo fa corridoioU(), una volta
+   sola. Qui restano solo le aule che vi si affacciano. Prima il braccio
+   nord era costruito in questa funzione, quello est in alaEstInt e quello
+   ovest in primaria: tre pezzi con tre serie di quote scritte a mano, ed e'
+   per questo che ogni correzione ne sistemava uno e rompeva gli altri due.
+   ====================================================================== */
+(function auleSecondaria(){
   const g=new THREE.Group();interni.add(g);
-  const zc0=U_NZ0, zc1=U_NZ1;
-  const xc0=U_X0, xc1=U_X1;
-  /* PAVIMENTO E SOFFITTO: gres grigio a grandi lastre, plafone bianco liscio
-     a quota 3,00 dal pavimento (la quota scritta in tavola). */
-  const p=new THREE.Mesh(new THREE.PlaneGeometry(xc1-xc0,zc1-zc0),
-    pav60(xc1-xc0,zc1-zc0));
-  p.rotation.x=-Math.PI/2;p.position.set((xc0+xc1)/2,Q_ALTA,(zc0+zc1)/2);
-  p.receiveShadow=true;g.add(p);
-  box(g,xc1-xc0,0.34,zc1-zc0,lam(0xbdbab2),(xc0+xc1)/2,Q_ALTA-0.18,(zc0+zc1)/2,false);
-  /* IMG_4868: il soffitto e' un CONTROSOFFITTO A QUADROTTI bianchi con le
-     plafoniere incassate, non un plafone liscio. */
-  const s=new THREE.Mesh(new THREE.PlaneGeometry(xc1-xc0,zc1-zc0),
-    matSoffitto((xc1-xc0)/1.2,(zc1-zc0)/1.2));
-  s.rotation.x=Math.PI/2;s.position.set((xc0+xc1)/2,U_SOF,(zc0+zc1)/2);g.add(s);
-  /* PARETE NORD, verso le aule: bianca, piena, con le porte. E' l'unica
-     parete del braccio, e corre per tutta la lunghezza: niente setti. */
-  box(g,xc1-xc0,U_SOF-Q_ALTA,0.16,matMuroSec,(xc0+xc1)/2,(U_SOF+Q_ALTA)/2,zc0,false);
-  /* FRONTE SUD, sulla corte: parapetto pieno e vetrata continua fino al
-     traverso alto. Il primo piano sporge sul campo — "profilo esterno piano
-     primo" in tavola — quindi questo fronte e' tutto vetrato. */
-  /* IMG_4868 — IL CORRIDOIO E' TOTALMENTE CHIUSO DALLE VETRATE. Qui c'erano
-     parapetto e montanti ma NESSUN VETRO: si leggeva come un ballatoio
-     esterno affacciato sulla corte, e Andrea l'ha visto subito ("hai
-     inventato un corridoio esterno che sembra un balcone"). Un montante
-     senza lastra non e' una finestra: e' un colonnato.
-     Parapetto basso 0,90 · vetro fino al traverso alto · telai grigio
-     chiaro, campate da ~1,5 m come nella foto. */
-  box(g,xc1-xc0,0.90,0.16,matMuroSec,(xc0+xc1)/2,Q_ALTA+0.45,zc1,false);
-  box(g,xc1-xc0,0.30,0.16,matMuroSec,(xc0+xc1)/2,U_SOF-0.15,zc1,false);
-  (function vetri(){
-    const HV=U_SOF-0.30-(Q_ALTA+0.90), YV=Q_ALTA+0.90+HV/2;
-    const lastra=new THREE.Mesh(new THREE.PlaneGeometry(xc1-xc0,HV),matVetro);
-    lastra.position.set((xc0+xc1)/2,YV,zc1-0.02);g.add(lastra);
-    const N=Math.round((xc1-xc0)/1.5);
-    for(let i=0;i<=N;i++)
-      box(g,0.09,HV,0.14,lam(0xB9BEC3),xc0+i*(xc1-xc0)/N,YV,zc1-0.04,false);
-    /* traverso orizzontale a due terzi, come nelle campate della foto */
-    box(g,xc1-xc0,0.09,0.14,lam(0xB9BEC3),(xc0+xc1)/2,Q_ALTA+0.90+HV*0.62,zc1-0.04,false);
-    /* CHIUSURA DELLO SPORTO. Il rilievo ("profilo esterno piano primo") dice
-       che il primo piano aggetta ~2 m sulla corte: il guscio del corpo nord
-       finisce a z=-2,45, il corridoio arriva a -0,50. Lo sporto e' vero, ma
-       era rimasto APERTO — sopra la vetrata si vedeva il cielo e sotto
-       passavano i pluviali del corpo: da fuori sembrava un ballatoio.
-       Qui si chiude sopra e sotto, cosi' e' un volume, non un porticato. */
-    box(g,xc1-xc0,0.42,2.10,matMuroSec,(xc0+xc1)/2,U_SOF+0.21,zc1+1.05,false);  /* velo di gronda */
-    box(g,xc1-xc0,0.34,2.10,lam(0xbdbab2),(xc0+xc1)/2,Q_ALTA-0.18,zc1+1.05,false); /* intradosso */
-    [xc0,xc1].forEach(px=>                                                        /* le due testate */
-      box(g,0.18,U_SOF-Q_ALTA+0.42,2.10,matMuroSec,px,(U_SOF+Q_ALTA)/2+0.10,zc1+1.05,false));})();
-  /* plafoniere rettangolari a plafone, in fila sull'asse */
-  for(let i=0;i<13;i++) plafo(g,xc0+3+i*6.0,(zc0+zc1)/2,U_SOF,0,'app');
-  /* IMG_4868: l'asta portalavori in legno chiaro e' UNA SOLA, a 1,40 m, e ci
-     sono appese le tele colorate. Ne avevo messe due. */
-  listello(g,xc1-xc0-1.0,(xc0+xc1)/2,Q_ALTA+1.40,zc0+0.09,0);
+  const zc0=U_NZ0;
   /* LE QUATTRO AULE. I divisori sono quelli della tavola, riportati con la
      conversione vera: 14,78 · 21,21 · 27,57 · 33,92 · 40,27 meno 30,5.
      La profondita' e' 8,08 (Z -12,553 .. -4,469), non 9,53: le avevo
@@ -2916,24 +3026,6 @@ const matPlafPrim=lam(0xB0563A);   /* il plafone terracotta della Primaria */
     for(let k=0;k<3;k++) plafo(g,ax0+1.6+k*2.1,(za0+zc0)/2,U_SOF,Math.PI/2,'inc');
     /* finestre sul fronte nord: qui c'e' il muro esterno del corpo */
     box(g,ax1-ax0,0.95,0.14,matCrema,acx,Q_ALTA+0.48,za0,false);}
-  antincendio(g,-19.5,Q_ALTA+1.5,zc0+0.1,0);
-  estintore(g,-24.5,Q_ALTA+0.9,zc0+0.2);
-  quadro(g,texQuadro(151),0.9,1.1,-27.5,Q_ALTA+1.65,zc0+0.1,0);
-  quadro(g,texMorin,3.2,1.0,-6.0,Q_ALTA+2.30,zc0+0.1,0);
-  /* GLI ARREDI DEL LOCALE POLIVALENTE — 4874/4884/4899: tavoli con gambe BLU
-     e piano VERDE SALVIA, APPOGGIATI AL LATO NORD del corridoio (Andrea).
-     Le due file di tavoli stanno fra 0,05 e 1,65 m dalla parete: davanti
-     restano 3,25 m di passaggio netto sui 4,90 totali. */
-  [-38,-26,-13,-1,8].forEach(x=>{
-    tavolo(g,x,zc0+0.45,0,2.2,0.8,matPianoSalvia,Q_ALTA,0.76,false);
-    tavolo(g,x,zc0+1.25,0,2.2,0.8,matPianoSalvia,Q_ALTA,0.76,false);
-    [[-0.7,zc0+1.95],[0.7,zc0+1.95]].forEach(q=>
-      sedia(g,x+q[0],q[1],Math.PI,cLegno,Q_ALTA));});
-  /* i Kallax bianchi 2x2 a filo della parete, fra un'isola e l'altra */
-  [-32,-19.5,-7,3.5].forEach(x=>{
-    box(g,0.78,0.78,0.40,lam(0xF4F3EF),x,Q_ALTA+0.39,zc0+0.28,true);
-    box(g,0.72,0.03,0.36,lam(0xD8D6D0),x,Q_ALTA+0.39,zc0+0.28,false);
-    box(g,0.03,0.72,0.36,lam(0xD8D6D0),x,Q_ALTA+0.39,zc0+0.28,false);});
 })();
 
 /* ============ ZONA UFFICI (ovest del corridoio) ========================== */
@@ -2977,66 +3069,20 @@ const matPlafPrim=lam(0xB0563A);   /* il plafone terracotta della Primaria */
 })();
 
 /* ============ ALA EST: corridoio + GRADINATA OBLIQUA ==================== */
-(function alaEstInt(){
+/* ============ LE AULE DELL'ALA EST ======================================
+   Corridoio e gradinata li fa corridoioU(). Qui restano le aule.  ------ */
+(function auleAlaEst(){
   const g=new THREE.Group();interni.add(g);
-  /* IL BRACCIO EST: x[10,40 · 15,00], misurato fra i muri 40,86 e 45,48 del
-     rilievo. Corre da z=-5,40 (dove si innesta nel braccio nord, senza
-     sovrapporsi) fino a z=+28,30. Le aule stanno a est del corridoio. */
-  const cx0=U_EX0, cx1=U_EX1, z0=U_NZ0, z1=U_EZ1;
-  const x1=22.23;                       /* filo esterno dell'ala */
-  /* il pavimento e' in due tratti a quote diverse, separati dalla gradinata:
-     prima z<U_ZGRAD alla quota del corridoio nord, poi 68 cm piu' in alto. */
-  [[z0,U_ZGRAD,Q_ALTA],[U_ZGRAD,z1,Q_ALTA+U_SALTO]].forEach(t=>{
-    const p=new THREE.Mesh(new THREE.PlaneGeometry(cx1-cx0,t[1]-t[0]),
-      pav60(cx1-cx0,t[1]-t[0]));
-    p.rotation.x=-Math.PI/2;p.position.set((cx0+cx1)/2,t[2],(t[0]+t[1])/2);
-    p.receiveShadow=true;g.add(p);
-    box(g,cx1-cx0,0.34,t[1]-t[0],lam(0xbdbab2),(cx0+cx1)/2,t[2]-0.18,(t[0]+t[1])/2,false);
-    const s=new THREE.Mesh(new THREE.PlaneGeometry(cx1-cx0,t[1]-t[0]),
-      matSoffitto((cx1-cx0)/1.2,(t[1]-t[0])/1.2));
-    s.rotation.x=Math.PI/2;s.position.set((cx0+cx1)/2,t[2]+3.00,(t[0]+t[1])/2);g.add(s);});
-  /* parete est, verso le aule — piena, continua, con le porte */
-  box(g,0.16,U_SOF-Q_ALTA+U_SALTO,z1-z0,matMuroSec,cx1,
-      (U_SOF+Q_ALTA)/2+U_SALTO/2,(z0+z1)/2,false);
-  /* fronte ovest: CHIUSO DALLA VETRATA, come il braccio nord */
-  box(g,0.16,0.90,z1-z0,matMuroSec,cx0,Q_ALTA+0.45,(z0+z1)/2,false);
-  box(g,0.16,0.30,z1-z0,matMuroSec,cx0,U_SOF-0.15+U_SALTO/2,(z0+z1)/2,false);
-  (function vetriEst(){
-    const HV=U_SOF-0.30-(Q_ALTA+0.90), YV=Q_ALTA+0.90+HV/2+U_SALTO/2;
-    const lastra=new THREE.Mesh(new THREE.PlaneGeometry(z1-z0,HV),matVetro);
-    lastra.rotation.y=Math.PI/2;lastra.position.set(cx0+0.02,YV,(z0+z1)/2);g.add(lastra);
-    const N=Math.round((z1-z0)/1.5);
-    for(let i=0;i<=N;i++)
-      box(g,0.14,HV,0.09,lam(0xB9BEC3),cx0+0.04,YV,z0+i*(z1-z0)/N,false);
-    box(g,0.14,0.09,z1-z0,lam(0xB9BEC3),cx0+0.04,Q_ALTA+0.90+HV*0.62+U_SALTO/2,(z0+z1)/2,false);})();
-  for(let i=0;i<6;i++) plafo(g,(cx0+cx1)/2,z0+4+i*5.6,U_SOF,Math.PI/2,'app');
+  const cx1=U_EX1, x1=22.23, z0=U_NZ0;
   /* aule sul lato est */
   for(let i=0;i<4;i++){
     const az0=z0+4.2+i*8.6, az1=az0+8.08, q=(az0<U_ZGRAD)?Q_ALTA:Q_ALTA+U_SALTO;
     vano(g,cx1,x1,az0,az1,pavChiaro(x1-cx1,az1-az0),q,4);
     box(g,x1-cx1,0.16,0.16,matCrema,(cx1+x1)/2,q+0.02,az1,false);
     porta(g,matPortaSec,cx1+0.1,q,az0+1.6,Math.PI/2,0);}
-  listello(g,z1-z0-2,cx1-0.09,Q_ALTA+1.30+U_SALTO/2,(z0+z1)/2,Math.PI/2);
-  listello(g,z1-z0-2,cx1-0.09,Q_ALTA+1.92+U_SALTO/2,(z0+z1)/2,Math.PI/2);
-  /* ===== LA GRADINATA (IMG_4879 + assonometria annotata) ================
-     DRITTA e TRASVERSALE all'asse del corridoio, in gres grigio, larga tutto
-     il passaggio, coi fianchi che si allargano verso il basso. Non e'
-     obliqua a 30 gradi — quella l'avevo dedotta leggendo per tratteggio la
-     scala che sta nell'angolo, che e' un'altra cosa.
-     TRE ALZATE, non quattro, e NELL'ANGOLO nord-est: lo dice l'etichetta
-     "Scale 3 gradini" dell'assonometria, con la freccia sul punto dove il
-     tracciato gira. 3 x 0,17 = 0,51. */
-  (function gradinata(){
-    const gres=lam(0x7E7A75), naso=lam(0xA8A49E);
-    const alz=0.17, ped=0.42, N=3, W=cx1-cx0-0.32, cxm=(cx0+cx1)/2;
-    for(let i=0;i<N;i++){
-      const h=alz*(i+1);
-      const zz=U_ZGRAD-ped*(N-i);          /* il piu' basso e' il piu' a sud */
-      const larg=W+ (N-1-i)*0.34;          /* i fianchi si allargano in basso */
-      box(g,larg,h,ped,gres,cxm,Q_ALTA+h/2,zz+ped/2,true);
-      box(g,larg,0.03,0.10,naso,cxm,Q_ALTA+h+0.004,zz+0.05,false);}
-    /* pianerottolo del tratto alto, a filo dell'ultima alzata */
-    contatto(g,cxm,Q_ALTA+0.012,U_ZGRAD-ped*N/2,W+1.6,ped*N+1.0,0.4);})();
+  /* le aste portalavori le posa corridoioU(): erano rimaste qui e usavano
+     una z1 che non esiste piu' — un solo ReferenceError e lo script muore
+     a meta', con Q_ALTA gia' definito e CORPI no. */
 })();
 
 /* ============ ALA OVEST: la PRIMARIA ==================================== */
@@ -3049,26 +3095,10 @@ const matPlafPrim=lam(0xB0563A);   /* il plafone terracotta della Primaria */
      Le porte delle aule cadono dove il muro X=-31,297 e' interrotto:
      Z -4,16..-2,0 · 1,75..5,66 · 7,71..11,62 · 13,66..17,57 · 19,62..23,53. */
   const z0=U_NZ0, z1=U_OZ1;
+  /* il CORRIDOIO (pavimento, vetrata sulla corte, plafone) lo costruisce
+     corridoioU(): qui restano le aule, gli arredi e la scala. */
   const sx0=U_OX0, sx1=U_OX1;                   /* il corridoio-salone      */
   const x0=-70.7;                               /* le aule, a ovest         */
-  vano(g,sx0,sx1,z0,z1,matPav(palPrimaria,3,(sx1-sx0)/1.2,(z1-z0)/1.2,4),Q_ALTA,20);
-  /* IMG_4856 — IL SOFFITTO E' A QUADROTTI BIANCHI, come nella Secondaria.
-     Il "plafone terracotta" che avevo dedotto da 4855/4857 non esiste: li'
-     quella fascia rossa in alto e' una PARETE, non il soffitto. Rimosso.
-     Le pareti invece sono ARANCIONE PIENO su tutti e due i lati, dal
-     pavimento al soffitto — non crema con la zoccolatura. */
-  /* parete est: la vetrata sul cortile, CHIUSA, con la fascia arancione
-     sotto il davanzale e i telai GRIGIO SCURO a due registri. */
-  box(g,0.16,1.00,z1-z0,matGialloPrim,sx1,Q_ALTA+0.50,(z0+z1)/2,false);
-  box(g,0.16,0.30,z1-z0,matGialloPrim,sx1,U_SOF-0.15,(z0+z1)/2,false);
-  (function vetriPrim(){
-    const HV=U_SOF-0.30-(Q_ALTA+1.00), YV=Q_ALTA+1.00+HV/2;
-    const lastra=new THREE.Mesh(new THREE.PlaneGeometry(z1-z0,HV),matVetro);
-    lastra.rotation.y=Math.PI/2;lastra.position.set(sx1-0.02,YV,(z0+z1)/2);g.add(lastra);
-    const N=Math.round((z1-z0)/1.6);
-    for(let i=0;i<=N;i++)
-      box(g,0.14,HV,0.10,lam(0x4A4E52),sx1-0.05,YV,z0+i*(z1-z0)/N,false);
-    box(g,0.14,0.10,z1-z0,lam(0x4A4E52),sx1-0.05,Q_ALTA+1.00+HV*0.55,(z0+z1)/2,false);})();
   /* LE AULE, coi divisori del rilievo: i setti stanno a Z 1,75 · 7,46 ·
      13,41 · 19,37 (mezzeria dei due fili), che meno 0,93 danno queste. */
   const DZ=[z0,0.82,6.53,12.48,18.44,z1];
@@ -3107,14 +3137,16 @@ const matPlafPrim=lam(0xB0563A);   /* il plafone terracotta della Primaria */
      alzate, corrimano inox sul muro, colonna tonda sul filo libero, e in
      cima la parete arancio con la scritta "Solo chi sogna puo' volare". */
   (function tabelline(){
-    /* La scala stava in MEZZO al braccio ovest (xC=-57,0) e per giunta
-       all'incrocio coi due corridoi: il suo muro antracite correva lungo la
-       mezzeria e la parete arancio di testata, 3 x 3 m, tagliava il
-       passaggio di traverso a z=-1,7. In 4982 la scala e' ADDOSSATA A UN
-       MURO. Portata contro la parete ovest (x=-61,8) e spostata a sud,
-       lontano dall'angolo: davanti restano 3,25 m di corridoio netto. */
+    /* POSIZIONE DALL'ASSONOMETRIA ANNOTATA (primopiano3d): l'etichetta
+       "Scala con tabelline" punta all'ANGOLO NORD-OVEST della U, dove il
+       braccio della Primaria incontra quello nord, sotto la palestra.
+       L'avevo messa prima in mezzo al braccio ovest col muro sulla mezzeria
+       (e la parete arancio di testata che tagliava il passaggio), poi 12 m
+       troppo a sud. Qui la rampa parte da z=+4,0 e sale verso nord fino a
+       z=-0,8, cioe' finisce nell'angolo. Resta addossata alla parete ovest
+       come in 4982: davanti restano 3,5 m di corridoio netto. */
     const nNum=10,nTot=16,alz=0.19,ped=0.30,W=2.4;
-    const xC=-60.2, zIn=12.0, trav=lam(0xE8E2D4);
+    const xC=-60.2, zIn=4.0, trav=lam(0xE8E2D4);
     box(g,0.18,U_SOF-Q_ALTA,7.2,lam(0x4E5155),xC-W/2-0.12,(U_SOF+Q_ALTA)/2,zIn+2.6,false);
     box(g,W+0.9,0.16,1.5,trav,xC,Q_ALTA+0.08,zIn+0.55,true);
     for(let i=0;i<nTot;i++){
