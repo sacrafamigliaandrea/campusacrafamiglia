@@ -3597,123 +3597,15 @@ function p1Porta(x,y,z,ry,m){
 })();
 
 /* ===== una passata di sRGB->lineare sui soli color, a scena costruita ==== */
-scena.traverse(o=>{ if(o.isMesh && o.material && o.material.color && !o.material.__c){
+scene.traverse(o=>{ if(o.isMesh && o.material && o.material.color && !o.material.__c){
   o.material.color.convertSRGBToLinear(); o.material.__c=true; }});
 
-/* ============================ navigazione =============================== */
-const VISTE = {
-  nord : {p:[-40, PAV+1.62, -2.60], l:[ 14, PAV+1.45, -2.45]},
-  ovest: {p:[-58.6, PAV+1.62, 18.0], l:[-58.6, PAV+1.30, -5.0]},
-  est  : {p:[ 12.7, PAV+1.62, 24.0], l:[ 12.7, PAV+1.45+SALTO, -4.0]},
-  grad : {p:[ 12.7, PAV+1.62, 6.20], l:[ 12.7, PAV+1.10, -3.0]},
-  scala: {p:[-53.6, PAV+1.62, 8.40], l:[-54.0, PAV+1.70, 3.5]},
-  uffici:{p:[-18.5, PAV+1.62, -6.6], l:[-31.0, PAV+1.30, -12.6]},
-  alto : {p:[-24, 46, 30], l:[-24, PAV, 6]}
-};
-let giro = 0, becco = 0, agganciato = false;
-const pos = new THREE.Vector3();
-function vaiA(k){
-  const v = VISTE[k]; if(!v) return;
-  pos.set(v.p[0], v.p[1], v.p[2]);
-  const d = new THREE.Vector3(v.l[0]-v.p[0], v.l[1]-v.p[1], v.l[2]-v.p[2]);
-  giro = Math.atan2(-d.x, -d.z);
-  becco = Math.asin(Math.max(-1,Math.min(1, d.clone().normalize().y)));
-  document.querySelectorAll('#barra button').forEach(b=>
-    b.classList.toggle('on', b.dataset.va===k));
-}
-vaiA('nord');
+/* La NAVIGAZIONE non si trapianta: index ha gia' la sua (camera, tasti,
+   viste, loop di animazione). Qui erano finiti VISTE, vaiA, anima, pos,
+   cam, ren e scena di primopiano.html — riferimenti a oggetti che in
+   questo file si chiamano in un altro modo, e bastava il primo a fermare
+   lo script prima ancora della schermata di accesso. */
 
-const p1_tasti = {};
-addEventListener('keydown', e=>{ p1_tasti[e.key.toLowerCase()]=true; });
-addEventListener('keyup',   e=>{ p1_tasti[e.key.toLowerCase()]=false; });
-ren.domElement.addEventListener('click', ()=>{
-  if(!agganciato) ren.domElement.requestPointerLock();
-});
-document.addEventListener('pointerlockchange', ()=>{
-  agganciato = (document.pointerLockElement===ren.domElement);
-});
-addEventListener('mousemove', e=>{
-  if(!agganciato) return;
-  giro  -= e.movementX*0.0022;
-  becco -= e.movementY*0.0020;
-  becco  = Math.max(-1.25, Math.min(1.25, becco));
-});
-
-/* --- comandi a sfioramento: l'iPad e' hardware d'aula, non un ripiego --- */
-const tocchi = document.getElementById('tocchi');
-if (matchMedia('(pointer:coarse)').matches || location.search.includes('touch=1')){
-  tocchi.style.display = 'grid';
-  tocchi.querySelectorAll('div').forEach(d=>{
-    const k = d.dataset.t;
-    const giu = e=>{ e.preventDefault(); p1_tasti[k]=true; };
-    const su  = e=>{ e.preventDefault(); p1_tasti[k]=false; };
-    d.addEventListener('touchstart',giu,{passive:false});
-    d.addEventListener('touchend',su,{passive:false});
-    d.addEventListener('touchcancel',su,{passive:false});
-  });
-}
-
-document.querySelectorAll('#barra button').forEach(b=>
-  b.addEventListener('click', ()=>vaiA(b.dataset.va)));
-document.getElementById('via').addEventListener('click', ()=>{
-  document.getElementById('avviso').style.display='none';
-  vaiA('nord');
-});
-
-/* --- quale quota di pavimento sta sotto un punto? ---------------------- */
-function quotaSotto(x,z){
-  /* IL DISLIVELLO SEGUE LA GRADINATA A SPEZZATA, e deve seguirla con la
-     STESSA retta con cui e' costruito il pavimento: il tratto obliquo passa
-     per il vertice (9,40 · -3,30) a 45 gradi, cioe' z = x - 12,70.
-     Prima qui c'era una soglia dritta (z > ZGRAD) mentre il pavimento era
-     gia' una spezzata: nella fascia fra le due il gioco cercava l appoggio
-     alla quota alta dove c era ancora quella bassa — i 30 punti "senza
-     pavimento" del collaudo. Il pavimento e la regola che dice a che quota
-     si cammina devono venire dalla stessa formula. */
-  /* ...e vale solo OLTRE L'INCROCIO (z > NZ1): l'angolo appartiene al
-     braccio nord, che e' tutto alla quota bassa. Senza questo limite la
-     regola alzava anche una fetta del braccio nord — 25 punti che prima
-     non c'erano. */
-  if (x>EX0-0.2 && x<EX1+0.2 && z>NZ1 && z>zSoglia(x)) return PAV+SALTO;
-  return PAV;
-}
-
-let ultimo = performance.now();
-function anima(){
-  requestAnimationFrame(anima);
-  const ora = performance.now(), dt = Math.min(0.05,(ora-ultimo)/1000); ultimo = ora;
-
-  /* la camera guarda lungo il proprio -Z: avanti e' (-sin, -cos) */
-  const av = (p1_tasti.w?1:0) - (p1_tasti.s?1:0);
-  const la = (p1_tasti.d?1:0) - (p1_tasti.a?1:0);
-  if (p1_tasti.q) giro += 1.4*dt;
-  if (p1_tasti.e) giro -= 1.4*dt;
-  const v = 3.4*dt;
-  pos.x += (-Math.sin(giro)*av + Math.cos(giro)*la) * v;
-  pos.z += (-Math.cos(giro)*av - Math.sin(giro)*la) * v;
-  pos.y  = quotaSotto(pos.x,pos.z) + 1.62;
-
-  cam.position.copy(pos);
-  cam.rotation.set(0,0,0);
-  cam.rotateY(giro); cam.rotateX(becco);
-  document.getElementById('quota').textContent =
-    '+' + quotaSotto(pos.x,pos.z).toFixed(2).replace('.',',');
-  ren.render(scena,cam);
-}
-anima();
-
-addEventListener('resize', ()=>{
-  cam.aspect = innerWidth/innerHeight; cam.updateProjectionMatrix();
-  ren.setSize(innerWidth, innerHeight);
-});
-
-/* ======================== COLLAUDO, non a occhio ========================
-   collaudo() cammina i tre bracci su TRE LINEE PARALLELE e per ogni punto
-   verifica due cose: che non ci sia una mesh all'altezza del corpo, e che
-   sotto ci sia il pavimento. Il test e' GEOMETRICO, sui bounding box di
-   tutte le mesh: non usa una lista di ostacoli registrati, perche' quella
-   non vede cio' che nessuno ha registrato.
-   Da console:  collaudo()                                              */
 /* le due ANCORE della caccia al tesoro vivevano dentro la vecchia
    primaria(): il pannello delle Case e il biliardino del salone. Le
    riaggancio qui, sulle coordinate nuove del braccio ovest. */
