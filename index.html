@@ -427,6 +427,84 @@ const texOmbra=(()=>{const c=mkCanvas(128,128),g=c.getContext('2d');
   gr.addColorStop(0,'rgba(0,0,0,.55)');gr.addColorStop(.55,'rgba(0,0,0,.28)');gr.addColorStop(1,'rgba(0,0,0,0)');
   g.fillStyle=gr;g.fillRect(0,0,128,128);return tex(c,false);})();
 const matOmbra=new THREE.MeshBasicMaterial({map:texOmbra,transparent:true,depthWrite:false});
+/* plafo() stava nel blocco del primo piano che ho svuotato, ma la usa
+   anche la PALESTRA: portata qui fra le utilita' generali. */
+function plafo(g,x,z,q,ry,tipo){
+  const y=(q||SOFF); const t=tipo||'inc';
+  if(t==='inc'){
+    const m=box(g,1.25,0.06,0.22,lam(0xF8F6EE),x,y-0.04,z,false);
+    if(ry) m.rotation.y=ry; return m;}
+  if(t==='app'){
+    const m=box(g,1.20,0.10,0.26,lam(0xF6F4EC),x,y-0.09,z,false);
+    if(ry) m.rotation.y=ry;
+    const c=box(g,1.24,0.04,0.30,lam(0xD8D5CC),x,y-0.02,z,false);
+    if(ry) c.rotation.y=ry; return m;}
+  /* sospesa */
+  const g2=new THREE.Group(); g2.position.set(x,0,z); if(ry) g2.rotation.y=ry;
+  [-0.45,0.45].forEach(o=>box(g2,0.015,0.34,0.015,lam(0xB0B4B8),o,y-0.17,0,false));
+  box(g2,1.30,0.09,0.16,lam(0xE8E6E0),0,y-0.38,0,false);
+  box(g2,1.22,0.03,0.13,lam(0xFAF8F0),0,y-0.43,0,false);
+  g.add(g2); return g2;
+}
+/* Definizioni che stavano nel blocco del primo piano svuotato ma che il
+   resto del file usa ancora (palestra, cortili, corpo sud): portate qui
+   fra le utilita' generali, dove nessuno le puo' portare via. */
+function texLavori(n,fondo){
+  const c=mkCanvas(512,256),g=c.getContext('2d'),rnd=seme(n);
+  g.fillStyle=fondo||'#efe9dd';g.fillRect(0,0,512,256);
+  for(let i=0;i<30;i++){g.save();
+    g.translate(20+rnd()*460,20+rnd()*200);g.rotate((rnd()-0.5)*0.2);
+    g.fillStyle=['#fff','#cfe3f5','#f5e3a8','#cde8c0','#f2c7b8','#e2d4f0'][(rnd()*6)|0];
+    g.fillRect(-20,-14,40,28);g.strokeStyle='rgba(0,0,0,.18)';g.strokeRect(-20,-14,40,28);
+    g.fillStyle='rgba(60,60,80,.55)';for(let r=0;r<3;r++)g.fillRect(-15,-8+r*7,30,2);
+    g.restore();}
+  return tex(c,false);}
+function ficus(p,x,z,q,s){
+  s=s||1;const g=new THREE.Group();
+  const v=new THREE.Mesh(new THREE.CylinderGeometry(0.4*s,0.3*s,0.55*s,12),lam(0xb85a3a));
+  v.position.y=0.27*s;g.add(v);
+  box(g,0.09*s,1.0*s,0.09*s,matTronco,0,1.0*s,0);
+  [[0,1.9,0,.85],[.5,1.6,.25,.6],[-.5,1.65,-.2,.6],[.1,2.4,.1,.6],[-.2,2.1,.5,.5]].forEach(w=>{
+    const c=new THREE.Mesh(new THREE.SphereGeometry(w[3]*s,9,7),mCh2);
+    c.position.set(w[0]*s,w[1]*s,w[2]*s);c.castShadow=true;g.add(c);});
+  g.position.set(x,q,z);(p||interni).add(g);
+  contatto(p||interni,x,q+0.012,z,1.9*s,1.9*s,0.55);}
+function porta(p,mat,x,y,z,ry,ap){
+  const g=new THREE.Group();
+  /* l'anta e' un gruppo a se': cosi' pannelli, maniglia e cerniere ruotano con lei */
+  const ant=new THREE.Group(); g.add(ant);
+  const a=new THREE.Mesh(geoSmussata(0.95,2.15,0.05,0.012),mat);
+  a.position.set(0,1.075,0);a.castShadow=true;ant.add(a);
+  /* due pannelli incassati, appena piu' scuri, con la cornicetta */
+  const scuro=new THREE.MeshLambertMaterial({color:mat.color.clone().multiplyScalar(0.86)});
+  /* Object3D.position e' di sola lettura: si imposta con .set(), non con
+     Object.assign, che sotto 'use strict' lancia e blocca l'intero script. */
+  [[0.60,0.72],[1.52,0.86]].forEach(q=>{
+    const pn=new THREE.Mesh(new THREE.BoxGeometry(0.66,q[1],0.012),scuro);
+    pn.position.set(0,q[0],0.026); ant.add(pn);
+    const cr=new THREE.Mesh(new THREE.BoxGeometry(0.74,q[1]+0.08,0.008),mat);
+    cr.position.set(0,q[0],0.022); ant.add(cr);});
+  /* maniglia a leva su rosetta, piu' la toppa */
+  const inox=new THREE.MeshPhongMaterial({color:0xc6cad0,shininess:110,specular:0xffffff});
+  const ros=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,0.014,14),inox);
+  ros.rotation.x=Math.PI/2;ros.position.set(0.34,1.05,0.032);ant.add(ros);
+  const lev=new THREE.Mesh(new THREE.CylinderGeometry(0.017,0.014,0.14,10),inox);
+  lev.rotation.z=Math.PI/2;lev.position.set(0.27,1.05,0.05);ant.add(lev);
+  const gam=new THREE.Mesh(new THREE.CylinderGeometry(0.019,0.019,0.05,10),inox);
+  gam.rotation.x=Math.PI/2;gam.position.set(0.34,1.05,0.045);ant.add(gam);
+  const top=new THREE.Mesh(new THREE.CylinderGeometry(0.021,0.021,0.012,12),inox);
+  top.rotation.x=Math.PI/2;top.position.set(0.34,0.88,0.032);ant.add(top);
+  if(ap){ant.rotation.y=ap;ant.position.x=-0.42*Math.sin(ap);}
+  /* telaio con battuta, tre cerniere e soglia */
+  box(g,1.14,2.28,0.07,lam(0xc9c6be),0,1.14,-0.045,false);
+  box(g,0.08,2.20,0.10,lam(0xbdbab2),-0.53,1.10,0,false);
+  box(g,0.08,2.20,0.10,lam(0xbdbab2), 0.53,1.10,0,false);
+  box(g,1.14,0.08,0.10,lam(0xbdbab2),0,2.22,0,false);
+  [0.28,1.08,1.90].forEach(hy=>{
+    const c=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.10,8),inox);
+    c.position.set(-0.475,hy,0.01);ant.add(c);});
+  box(g,1.02,0.02,0.12,lam(0x9aa0a5),0,0.01,0,false);
+  g.position.set(x,y,z);g.rotation.y=ry||0;(p||interni).add(g);return g;}
 function contatto(p,x,y,z,w,d,f){
   const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),matOmbra.clone());
   m.material.opacity=(f===undefined)?0.8:f;
@@ -2264,644 +2342,43 @@ function faroLed(x,y,z,ry){
       c.rotation.z=v*Math.PI/3.6;});
     box(mondo,0.16,0.16,0.14,lam(0xB8B4AC),px,1.62,-2.26,false);}})();
 
-/* ===================== INTERNI PRIMO PIANO ===================== */
+/* ===================== INTERNI PRIMO PIANO =====================
+   SVUOTATO COMPLETAMENTE. Tutto il vecchio primo piano — corridoio,
+   aule, uffici, atrio, corridoio dei lavori, arredi, segnaletica,
+   laboratori — e' stato tolto in un colpo solo, non a pezzi. Poi si
+   verifica coi raggi che la fascia sia VUOTA, e solo dopo si riempie
+   con il primo piano di primopiano.html.
+   Le tre volte precedenti avevo tolto una parte e aggiunto sopra: il
+   risultato era un albero dentro il corridoio e due primi piani
+   sovrapposti. Prima si svuota e si controlla che sia svuotato. */
 const interni=new THREE.Group(); scene.add(interni);
-/* QUOTE DAL RILIEVO: il solaio del primo piano sta a 3,44 (in tavola
-   "H solaio 3,44" sopra aule alte 3,00). Il tratto alto del corridoio sta
-   0,68 piu' su — le quattro alzate da 17 cm della gradinata obliqua. */
-/* QUOTE DEL PRIMO PIANO — lette sulla tavola a 300 dpi, non dedotte.
-   Q_ALTA valeva 4,12, cioe' 3,44 + 0,68: era la quota del TRATTO RIALZATO
-   dell'ala est, e l'avevo usata come quota di tutto il piano. Settanta
-   centimetri di errore su ogni pavimento, parete e arredo del primo piano.
-   In tavola le quote di piano ai due lati della gradinata sono +3,42 e
-   +3,79, e il conto chiude: 3,42 + 0,37 = 3,79. Con "H corridoio 3,00" il
-   soffitto va a 6,42 e il solaio successivo a 6,88, che e' H_P1. */
-const Q_BASSA=3.42,Q_ALTA=3.42,SOFF=6.42;
-/* SOFF sta 8 cm SOTTO il solaio (H_P1=6,88): erano complanari e il
-   controsoffitto sfarfallava a chiazze contro la copertura. Un
-   controsoffitto ha sempre la sua intercapedine. */
 
-/* pavimenti */
-function texScacchi(pal,n,celle){
-  const N=celle||8,c=mkCanvas(N*32,N*32),g=c.getContext('2d'),rnd=seme(n);
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    g.fillStyle=pal[(rnd()*pal.length)|0];g.fillRect(x*32,y*32,32,32);
-    g.strokeStyle='rgba(90,84,80,.5)';g.lineWidth=2;g.strokeRect(x*32,y*32,32,32);}
-  return c;}
-/* primaria: scacchi CALDI (beige/terracotta/bruno/grigio) — dal video */
-/* DUE SOLI TIPI DI PIASTRELLA IN TUTTA LA SCUOLA (indicazione di Andrea):
-   1) Primaria, uffici e atrio: 30x30 a TRE COLORI — sabbia, antracite, rosa,
-      posati a scacchiera irregolare (gli stessi del laboratorio di informatica);
-   2) Secondaria: 60x60 effetto cemento GRIGIO MEDIO CALDO (non antracite:
-      corretto sul video della passeggiata al primo piano).
-   Le ripetizioni si calcolano dalle dimensioni reali del vano, cosi' la
-   piastrella misura davvero 30 cm o 60 cm e non "quello che viene". */
-const PAL3=['#DCCFB2','#6E6B67','#C9A79E','#DCCFB2','#6E6B67','#C9A79E',
-            '#E2D6BA','#736F6B'];
-function pav30(w,d,seed){            /* 30 cm: texture da 4x4 celle = 1,20 m */
-  return matPav(PAL3, seed||107, Math.max(1,Math.round(w/1.2)),
-                Math.max(1,Math.round(d/1.2)), 4);}
-/* CORREZIONE DAL VIDEO (§18): il 60x60 della Secondaria NON e' antracite.
-   Nella passeggiata del primo piano e' un gres effetto cemento GRIGIO MEDIO
-   CALDO, piuttosto chiaro, con nuvolature evidenti e fuga sottile appena piu'
-   scura. Con l'antracite il corridoio veniva quasi nero e la gradinata in
-   cemento non staccava; nel filmato e' l'opposto, l'ambiente e' luminoso. */
-/* gres CHIARO delle aule (video scuola_primo_piano, 180-210 s): beige-grigio
-   a grande formato, non l'antracite dei corridoi. */
-const texChiaro60=(()=>{const c=mkCanvas(256,256),g=c.getContext('2d'),rnd=seme(811);
-  g.fillStyle='#DCD6C8';g.fillRect(0,0,256,256);
-  for(let i=0;i<1600;i++){const x=rnd()*256,y=rnd()*256;
-    g.fillStyle='rgba('+(196+rnd()*36|0)+','+(190+rnd()*34|0)+','+(176+rnd()*32|0)+',0.5)';
-    g.fillRect(x,y,2.2,1.6);}
-  g.strokeStyle='#C6BFB0';g.lineWidth=2;g.strokeRect(0,0,256,256);
-  return tex(c,true);})();
-function pavChiaro(w,d){const t=texChiaro60.clone();t.needsUpdate=true;
-  t.repeat.set(Math.max(1,Math.round(w/0.6)),Math.max(1,Math.round(d/0.6)));
-  return lam(0xffffff,{map:t});}
-/* LETTURA-FOTO.md §2: il campione fotografato (IMG_4876) e' un gres GRIGIO
-   MEDIO CALDO e CHIARO, con nuvolature evidenti e fuga sottile. Non antracite:
-   con l'antracite il corridoio veniva quasi nero e la gradinata non staccava,
-   mentre nelle foto l'ambiente e' luminoso. */
-const texAntracite60=(()=>{const c=mkCanvas(256,256),g=c.getContext('2d'),rnd=seme(613);
-  g.fillStyle='#B9B5AC';g.fillRect(0,0,256,256);
-  for(let i=0;i<160;i++){                       /* venature e nuvolature */
-    const v=170+rnd()*40|0;
-    g.fillStyle='rgba('+v+','+(v-2)+','+(v-6)+','+(0.07+rnd()*0.15).toFixed(2)+')';
-    g.beginPath();g.ellipse(rnd()*256,rnd()*256,10+rnd()*44,8+rnd()*30,rnd()*3,0,Math.PI*2);g.fill();}
-  for(let i=0;i<120;i++){
-    g.fillStyle='rgba(140,137,131,'+(0.05+rnd()*0.12).toFixed(2)+')';
-    g.fillRect(rnd()*256,rnd()*256,2,2);}
-  g.strokeStyle='#A5A199';g.lineWidth=3;g.strokeRect(0,0,256,256);
-  return tex(c,true);})();
-function pav60(w,d){                 /* 60 cm: una piastrella per ripetizione */
-  const t=texAntracite60.clone();t.needsUpdate=true;
-  t.repeat.set(Math.max(1,Math.round(w/0.6)),Math.max(1,Math.round(d/0.6)));
-  return new THREE.MeshPhongMaterial({map:t,shininess:26,specular:0x3a3a38,
-    side:THREE.DoubleSide});}
-const palPrimaria=PAL3;
-/* atrio/mezzanino: scacchi piccoli beige/grigio/rosa/bruno */
-/* 4901/4903: scacchi ROSA ANTICO / GRIGIO / BEIGE, piastrella media (~20 cm). */
-const palAtrio=['#d6b5ad','#8e8b86','#e0d6c4','#c9a79e','#7e7b77','#d9cfbd'];
-function matPav(pal,n,rx,ry,celle){
-  const t=tex(texScacchi(pal,n,celle),true);t.repeat.set(rx,ry);
-  return new THREE.MeshPhongMaterial({map:t,shininess:28,specular:0x2e2e2e,side:THREE.DoubleSide});}
-/* 4876: gres EFFETTO CEMENTO grigio caldo, piastre ~60x60, venature chiare e
-   scure irregolari, fuga sottile scura. Non uniforme: ha tessitura marcata. */
-const texGres=(()=>{const c=mkCanvas(512,512),g=c.getContext('2d'),rnd=seme(61);
-  g.fillStyle='#8f8d87';g.fillRect(0,0,512,512);
-  for(let y=0;y<2;y++)for(let x=0;x<2;x++){
-    const ox=x*256,oy=y*256;
-    g.fillStyle=['#928f89','#8a877f','#96938c','#8d8a83'][(rnd()*4)|0];
-    g.fillRect(ox+3,oy+3,250,250);
-    for(let i=0;i<70;i++){                       /* velature e nuvolature */
-      const v=140+rnd()*70|0;
-      g.fillStyle='rgba('+v+','+(v-3)+','+(v-9)+','+(0.05+rnd()*0.13).toFixed(2)+')';
-      g.beginPath();g.ellipse(ox+8+rnd()*240,oy+8+rnd()*240,
-        14+rnd()*54,10+rnd()*38,rnd()*3,0,Math.PI*2);g.fill();}
-    for(let i=0;i<50;i++){                       /* graniglia chiara */
-      g.fillStyle='rgba(214,210,200,'+(0.10+rnd()*0.22).toFixed(2)+')';
-      g.fillRect(ox+6+rnd()*244,oy+6+rnd()*244,2+rnd()*3,2+rnd()*3);}
-    for(let i=0;i<26;i++){                       /* macchie scure */
-      g.fillStyle='rgba(84,81,76,'+(0.06+rnd()*0.12).toFixed(2)+')';
-      g.beginPath();g.arc(ox+8+rnd()*240,oy+8+rnd()*240,3+rnd()*13,0,Math.PI*2);g.fill();}
-  }
-  g.strokeStyle='#5f5d59';g.lineWidth=4;
-  g.strokeRect(0,0,512,512);
-  g.beginPath();g.moveTo(256,0);g.lineTo(256,512);g.moveTo(0,256);g.lineTo(512,256);g.stroke();
-  return tex(c,true);})();
-function matGres(rx,ry){const t=texGres.clone();t.needsUpdate=true;t.repeat.set(rx,ry);
-  return new THREE.MeshPhongMaterial({map:t,shininess:30,specular:0x303030,side:THREE.DoubleSide});}
-/* soffitto a quadrotti con PLAFONIERE LINEARI incassate (dal video) */
-const texSoff=(()=>{const c=mkCanvas(256,256),g=c.getContext('2d');
-  g.fillStyle='#f2efe8';g.fillRect(0,0,256,256);
-  g.strokeStyle='#cbc7bc';g.lineWidth=3;
-  g.strokeRect(0,0,128,128);g.strokeRect(128,0,128,128);
-  g.strokeRect(0,128,128,128);g.strokeRect(128,128,128,128);
-  g.fillStyle='#fdfcf6';g.fillRect(18,42,92,16);
-  g.fillStyle='#e2ded2';g.fillRect(18,40,92,2);
-  return tex(c,true);})();
-function matSoffitto(rx,ry){const t=texSoff.clone();t.needsUpdate=true;t.repeat.set(rx,ry);
-  return lam(0xffffff,{map:t,side:THREE.DoubleSide});}
-
-/* materiali interni — colori corretti sul video */
-/* Primaria: pareti ARANCIONE pieno (foto 4847-4850). Il giallo che avevo letto
-   dal video era la luce radente del mattino. Gli stipiti delle porte sono ROSSI
-   e le ante chiare, non bronzo. */
-const matGialloPrim=lam(0xE8620A), matArancioPrim=lam(0xB02418);
-/* 4874/4880/4883/4888: nei corridoi le pareti sono CREMA/AVORIO caldo; il
-   bianco puro resta solo su stipiti e risvolti. */
-const matBiancoInt=lam(0xEFE7D6), matCrema=lam(0xEFE8D8), matBiancoPuro=lam(0xf6f4ee);
-/* LETTURA-FOTO.md §2: aule GIALLO PAGLIA caldo sopra, FASCIA GRIGIO-VERDE
-   SALVIA sotto, separate da un profilo chiaro. Il giallo era troppo slavato. */
-const matGialloAula=lam(0xE8D89A), matFasciaVerde=lam(0x8FA08C);
-const matGrigioScuroMat=lam(0x5a5a5c), matTerracotta=lam(0xb85a3a);
-const matPortaBronzo=lam(0x6b4a2e), matPortaChiara=lam(0xdedbd3);
-/* 4977/4978/4980: le porte del primo piano sono ROSSO CORALLO con lo
-   stipite chiaro. Le avevo fatte tutte grigio-tortora. */
-const matPortaRossa=lam(0xD9503F);
-/* 4884/4878/4897: pannello di parete SENAPE, largo ~2,5 m, fra due campate di
-   vetrata, a tutta altezza e con zoccolino chiaro alla base. Non un pilastrino. */
-const matSenape=lam(0xE8A310);
-/* PANNELLO SENAPE (4884) — e' una CAMPITURA DI COLORE SULLA PARETE, piatta,
-   non un setto. Era costruito spesso 0,22 in X e largo 2,50 in Z, cioe'
-   perpendicolare al camminamento: cinque di questi, piazzati sulla mezzeria
-   del corridoio nord, erano le "mezze pareti arancione trasversali" — cinque
-   muri alti 2,68 che occupavano meta' della larghezza del passaggio.
-   Ora e' largo in X e spesso 8 cm: si appoggia al muro e basta. */
-function pannelloSenape(g,x,z,largo,ry){
-  const H=Q_ALTA+3.00;
-  const p=box(g,largo,H-Q_ALTA-0.12,0.08,matSenape,x,(H+Q_ALTA)/2-0.06,z,false);
-  const zoc=box(g,largo,0.12,0.12,lam(0xdedbd2),x,Q_ALTA+0.06,z,false);
-  if(ry){p.rotation.y=ry;zoc.rotation.y=ry;}
-  return p;}
-const matLegno=lam(0xb9905e), matLegnoScuro=lam(0x7a5230), matGambeBlu=lam(0x2b5cae);
-
-function porta(p,mat,x,y,z,ry,ap){
-  const g=new THREE.Group();
-  /* l'anta e' un gruppo a se': cosi' pannelli, maniglia e cerniere ruotano con lei */
-  const ant=new THREE.Group(); g.add(ant);
-  const a=new THREE.Mesh(geoSmussata(0.95,2.15,0.05,0.012),mat);
-  a.position.set(0,1.075,0);a.castShadow=true;ant.add(a);
-  /* due pannelli incassati, appena piu' scuri, con la cornicetta */
-  const scuro=new THREE.MeshLambertMaterial({color:mat.color.clone().multiplyScalar(0.86)});
-  /* Object3D.position e' di sola lettura: si imposta con .set(), non con
-     Object.assign, che sotto 'use strict' lancia e blocca l'intero script. */
-  [[0.60,0.72],[1.52,0.86]].forEach(q=>{
-    const pn=new THREE.Mesh(new THREE.BoxGeometry(0.66,q[1],0.012),scuro);
-    pn.position.set(0,q[0],0.026); ant.add(pn);
-    const cr=new THREE.Mesh(new THREE.BoxGeometry(0.74,q[1]+0.08,0.008),mat);
-    cr.position.set(0,q[0],0.022); ant.add(cr);});
-  /* maniglia a leva su rosetta, piu' la toppa */
-  const inox=new THREE.MeshPhongMaterial({color:0xc6cad0,shininess:110,specular:0xffffff});
-  const ros=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,0.014,14),inox);
-  ros.rotation.x=Math.PI/2;ros.position.set(0.34,1.05,0.032);ant.add(ros);
-  const lev=new THREE.Mesh(new THREE.CylinderGeometry(0.017,0.014,0.14,10),inox);
-  lev.rotation.z=Math.PI/2;lev.position.set(0.27,1.05,0.05);ant.add(lev);
-  const gam=new THREE.Mesh(new THREE.CylinderGeometry(0.019,0.019,0.05,10),inox);
-  gam.rotation.x=Math.PI/2;gam.position.set(0.34,1.05,0.045);ant.add(gam);
-  const top=new THREE.Mesh(new THREE.CylinderGeometry(0.021,0.021,0.012,12),inox);
-  top.rotation.x=Math.PI/2;top.position.set(0.34,0.88,0.032);ant.add(top);
-  if(ap){ant.rotation.y=ap;ant.position.x=-0.42*Math.sin(ap);}
-  /* telaio con battuta, tre cerniere e soglia */
-  box(g,1.14,2.28,0.07,lam(0xc9c6be),0,1.14,-0.045,false);
-  box(g,0.08,2.20,0.10,lam(0xbdbab2),-0.53,1.10,0,false);
-  box(g,0.08,2.20,0.10,lam(0xbdbab2), 0.53,1.10,0,false);
-  box(g,1.14,0.08,0.10,lam(0xbdbab2),0,2.22,0,false);
-  [0.28,1.08,1.90].forEach(hy=>{
-    const c=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.10,8),inox);
-    c.position.set(-0.475,hy,0.01);ant.add(c);});
-  box(g,1.02,0.02,0.12,lam(0x9aa0a5),0,0.01,0,false);
-  g.position.set(x,y,z);g.rotation.y=ry||0;(p||interni).add(g);return g;}
-function quadro(p,t,w,h,x,y,z,ry){
-  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),lam(0xffffff,{map:t,transparent:true}));
-  m.position.set(x,y,z);m.rotation.y=ry||0;(p||interni).add(m);return m;}
-function listello(p,len,x,y,z,ry){
-  const m=box(p,len,0.05,0.03,matLegno,x,y,z,false);m.rotation.y=ry||0;return m;}
-function antincendio(p,x,y,z,ry){
-  const g=new THREE.Group();
-  box(g,0.5,0.7,0.16,lam(0xa8241e),0,0,0,false);
-  box(g,0.34,0.4,0.02,lam(0xd8d8d4),0,0.05,0.09,false);
-  g.position.set(x,y,z);g.rotation.y=ry||0;(p||interni).add(g);}
-function estintore(p,x,y,z){
-  const c=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,0.5,10),lam(0xa8241e));
-  c.position.set(x,y,z);(p||interni).add(c);}
-/* banco della SECONDARIA: piano beige, struttura BIANCA a slitta, su ROTELLE,
-   con il cestello in rete sotto (4889/4890). Quello degli uffici/Primaria ha
-   invece le gambe blu: si distinguono col parametro "bianco". */
-function bancoRuote(p,x,z,ry,q){
-  const g=new THREE.Group(), bianco=new THREE.MeshPhongMaterial({color:0xF2F1ED,shininess:70});
-  const t=new THREE.Mesh(geoSmussata(1.30,0.05,0.62,0.015),lam(0xE3D9BE));
-  t.position.y=0.74;t.castShadow=true;g.add(t);
-  box(g,1.30,0.035,0.62,lam(0xB08A5A),0,0.712,0,false);          /* bordo legno */
-  [-0.56,0.56].forEach(dx=>{                                      /* telaio a slitta */
-    box(g,0.05,0.66,0.05,bianco,dx,0.35,-0.24,false);
-    box(g,0.05,0.66,0.05,bianco,dx,0.35, 0.24,false);
-    box(g,0.05,0.05,0.54,bianco,dx,0.68,0,false);
-    box(g,0.05,0.05,0.54,bianco,dx,0.09,0,false);});
-  box(g,1.12,0.045,0.045,bianco,0,0.09,-0.24,false);
-  box(g,1.12,0.045,0.045,bianco,0,0.09, 0.24,false);
-  const fil=lam(0xA8ADB4);                                        /* cestello in rete */
-  box(g,1.02,0.016,0.016,fil,0,0.48,-0.20,false);
-  box(g,1.02,0.016,0.016,fil,0,0.48, 0.20,false);
-  box(g,1.02,0.016,0.016,fil,0,0.32,-0.20,false);
-  box(g,1.02,0.016,0.016,fil,0,0.32, 0.20,false);
-  for(let i=0;i<9;i++){box(g,0.014,0.17,0.014,fil,-0.50+i*0.125,0.40,-0.20,false);
-    box(g,0.014,0.17,0.014,fil,-0.50+i*0.125,0.40,0.20,false);}
-  for(let i=0;i<5;i++) box(g,1.02,0.014,0.014,fil,0,0.315,-0.20+i*0.10,false);
-  [[-0.56,-0.24],[0.56,-0.24],[-0.56,0.24],[0.56,0.24]].forEach(w=>{  /* ROTELLE */
-    const r=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.035,10),lam(0x33373C));
-    r.rotation.z=Math.PI/2; r.position.set(w[0],0.05,w[1]); g.add(r);});
-  g.position.set(x,q,z);g.rotation.y=ry||0;(p||interni).add(g);
-  contatto(p||interni,x,q+0.012,z,1.7,1.0,0.55);return g;}
-
-function banco(p,x,z,ry,cTop,q){
-  const g=new THREE.Group();
-  const t=new THREE.Mesh(geoSmussata(1.3,0.05,0.6,0.015),cTop||lam(0xcfe0c8));
-  t.position.y=0.76;t.castShadow=true;g.add(t);
-  [[-.58,-.24],[.58,-.24],[-.58,.24],[.58,.24]].forEach(w=>{
-    const gm=new THREE.Mesh(new THREE.CylinderGeometry(0.024,0.02,0.74,8),matGambeBlu);
-    gm.position.set(w[0],0.37,w[1]);g.add(gm);});
-  /* traverse fra le gambe e cestello portalibri in filo metallico */
-  box(g,1.18,0.022,0.022,matGambeBlu,0,0.14,-0.24,false);
-  box(g,1.18,0.022,0.022,matGambeBlu,0,0.14, 0.24,false);
-  const fil=lam(0xa8adb4);
-  box(g,1.02,0.016,0.016,fil,0,0.50,-0.20,false);
-  box(g,1.02,0.016,0.016,fil,0,0.50, 0.20,false);
-  box(g,1.02,0.016,0.016,fil,0,0.34,-0.20,false);
-  box(g,1.02,0.016,0.016,fil,0,0.34, 0.20,false);
-  for(let i=0;i<9;i++) box(g,0.014,0.17,0.014,fil,-0.50+i*0.125,0.42,-0.20,false);
-  for(let i=0;i<9;i++) box(g,0.014,0.17,0.014,fil,-0.50+i*0.125,0.42, 0.20,false);
-  for(let i=0;i<5;i++) box(g,1.02,0.014,0.014,fil,0,0.335,-0.20+i*0.10,false);
-  g.position.set(x,q,z);g.rotation.y=ry||0;(p||interni).add(g);
-  contatto(p||interni,x,q+0.012,z,1.7,1.0,0.55);return g;}
-function sedia(p,x,z,ry,col,q){
-  const g=new THREE.Group();
-  const s=new THREE.Mesh(geoSmussata(0.42,0.04,0.42,0.03),col);
-  s.position.y=0.46;s.castShadow=true;g.add(s);
-  const sc=new THREE.Mesh(geoSmussata(0.42,0.4,0.035,0.03),col);
-  sc.position.set(0,0.72,-0.2);sc.rotation.x=-0.08;sc.castShadow=true;g.add(sc);
-  [[-.18,-.17],[.18,-.17],[-.18,.18],[.18,.18]].forEach(w=>{
-    const gm=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.015,0.46,6),lam(0x8a8f95));
-    gm.position.set(w[0],0.23,w[1]);g.add(gm);});
-  const tr=lam(0x8a8f95);
-  box(g,0.36,0.016,0.016,tr,0,0.16,-0.17,false);
-  box(g,0.36,0.016,0.016,tr,0,0.16, 0.18,false);
-  box(g,0.016,0.016,0.35,tr,-0.18,0.12,0.005,false);
-  box(g,0.016,0.016,0.35,tr, 0.18,0.12,0.005,false);
-  g.position.set(x,q,z);g.rotation.y=ry||0;(p||interni).add(g);
-  contatto(p||interni,x,q+0.01,z,0.7,0.7,0.45);return g;}
-const cGialla=lam(0xe8c020),cVerde=lam(0xA8C82E),cBluS=lam(0x2b3a6e),
-      cLime=lam(0xb8c832),cLegno=lam(0xc9a06a);
-function tavolo(p,x,z,ry,w,d,mt,q,hh,gambeNere){
-  const g=new THREE.Group(),h=hh||0.76;
-  const t=new THREE.Mesh(geoSmussata(w,0.05,d,0.015),mt);
-  t.position.y=h;t.castShadow=true;g.add(t);
-  const mg=gambeNere?lam(0x26262a):lam(0x4a4a4c);
-  [[-w/2+0.12,-d/2+0.1],[w/2-0.12,-d/2+0.1],[-w/2+0.12,d/2-0.1],[w/2-0.12,d/2-0.1]].forEach(q2=>
-    box(g,0.055,h-0.03,0.055,mg,q2[0],(h-0.03)/2,q2[1],false));
-  g.position.set(x,q,z);g.rotation.y=ry||0;(p||interni).add(g);
-  contatto(p||interni,x,q+0.012,z,w+0.4,d+0.4,0.55);return g;}
-function ficus(p,x,z,q,s){
-  s=s||1;const g=new THREE.Group();
-  const v=new THREE.Mesh(new THREE.CylinderGeometry(0.4*s,0.3*s,0.55*s,12),lam(0xb85a3a));
-  v.position.y=0.27*s;g.add(v);
-  box(g,0.09*s,1.0*s,0.09*s,matTronco,0,1.0*s,0);
-  [[0,1.9,0,.85],[.5,1.6,.25,.6],[-.5,1.65,-.2,.6],[.1,2.4,.1,.6],[-.2,2.1,.5,.5]].forEach(w=>{
-    const c=new THREE.Mesh(new THREE.SphereGeometry(w[3]*s,9,7),mCh2);
-    c.position.set(w[0]*s,w[1]*s,w[2]*s);c.castShadow=true;g.add(c);});
-  g.position.set(x,q,z);(p||interni).add(g);
-  contatto(p||interni,x,q+0.012,z,1.9*s,1.9*s,0.55);}
-function ringhiera(p,len,x,y,z,ry,col){
-  const g=new THREE.Group(),m=lam(col||0x5a72a0);
-  box(g,len,0.05,0.05,m,0,1.02,0,false);
-  const n=Math.max(2,Math.round(len/0.14));
-  for(let i=0;i<=n;i++) box(g,0.02,1.0,0.02,m,-len/2+i*len/n,0.5,0,false);
-  g.position.set(x,y,z);g.rotation.y=ry||0;(p||interni).add(g);return g;}
-/* confine fra UFFICI e SECONDARIA lungo il corridoio del primo piano.
-   Ricavato da map.jpeg: il braccio orizzontale della Secondaria copre circa il
-   40% del corridoio a partire dall'angolo est. */
-const X_CONFINE=-22.5;
-/* GRADINATA fra le due quote del corridoio — riletta sul video (§18).
-   Sono QUATTRO alzate in CEMENTO A VISTA chiaro, non nel grigio scuro del
-   pavimento: nel filmato lo stacco fra il cemento delle pedate e le piastrelle
-   del corridoio e' l'elemento che si vede da lontano. Larghezza: tutto il
-   passaggio, con la guancia laterale piena. */
-const matGradino=lam(0xb9b7b0);
-function gradinata(p,xc,est,z0,z1){
-  for(let i=0;i<4;i++){const dx=est?i*0.32:-i*0.32;
-    box(p,0.32,0.16*(i+1),z1-z0-0.3,matGradino,xc+dx,Q_BASSA+0.08*(i+1),(z0+z1)/2,false);
-    /* naso del gradino, un filo piu' scuro: nel video si legge bene */
-    box(p,0.34,0.02,z1-z0-0.3,lam(0x8f8d87),xc+dx,Q_BASSA+0.16*(i+1),(z0+z1)/2,false);}
-  /* guancia laterale piena, in cemento come le alzate */
-  const gx=est?xc+0.64:xc-0.64;
-  box(p,1.35,0.66,0.16,matGradino,gx,Q_BASSA+0.33,z0+0.14,false);
-  box(p,1.35,0.66,0.16,matGradino,gx,Q_BASSA+0.33,z1-0.14,false);}
-function biliardino(p,x,z,ry,col,q){
-  const g=new THREE.Group();
-  const c=new THREE.Mesh(geoSmussata(1.5,0.42,0.9,0.03),col);
-  c.position.y=0.85;c.castShadow=true;g.add(c);
-  box(g,1.34,0.02,0.74,lam(0x4a8a4a),0,1.07,0,false);
-  [[-.62,-.34],[.62,-.34],[-.62,.34],[.62,.34]].forEach(w=>
-    box(g,0.09,0.66,0.09,lam(0x333a40),w[0],0.33,w[1],false));
-  for(let i=0;i<6;i++){
-    const a=new THREE.Mesh(new THREE.CylinderGeometry(0.016,0.016,1.4,6),lam(0xc9ccd0));
-    a.rotation.z=Math.PI/2;a.position.set(0,1.13,-0.3+i*0.12);g.add(a);
-    const mn=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.12,6),lam((i%2)?0xc23a34:0x2b5cae));
-    mn.rotation.z=Math.PI/2;mn.position.set((i%2)?0.76:-0.76,1.13,-0.3+i*0.12);g.add(mn);}
-  g.position.set(x,q,z);g.rotation.y=ry||0;(p||interni).add(g);
-  contatto(p||interni,x,q+0.012,z,1.9,1.3,0.6);return g;}
-
-/* texture di contenuto */
-function stemma(g,cx,cy,col,nome){
-  g.save();g.translate(cx,cy);
-  g.fillStyle=col;g.strokeStyle='#fff';g.lineWidth=5;
-  g.beginPath();g.moveTo(-34,-40);g.lineTo(34,-40);g.lineTo(34,8);
-  g.quadraticCurveTo(34,34,0,46);g.quadraticCurveTo(-34,34,-34,8);g.closePath();g.fill();g.stroke();
-  g.fillStyle='rgba(255,255,255,.85)';g.beginPath();g.arc(0,-2,16,0,Math.PI*2);g.fill();
-  g.fillStyle='#fff';g.font='bold 15px Lexend, sans-serif';g.textAlign='center';
-  g.fillText(nome,0,-52);g.restore();}
-/* pannello 4 Case: 2x2 dipinto sul muro (azzurro/verde/giallo pallido/rosso) */
-const texCase=(()=>{const c=mkCanvas(512,384),g=c.getContext('2d');
-  g.fillStyle='#8fbcd8';g.fillRect(0,0,256,192);
-  g.fillStyle='#7fae70';g.fillRect(256,0,256,192);
-  g.fillStyle='#efe6a8';g.fillRect(0,192,256,192);
-  g.fillStyle='#c8402e';g.fillRect(256,192,256,192);
-  stemma(g,128,100,'#274b9f','AQUILABLU');stemma(g,384,100,'#2e6b34','QUERCIAVERDE');
-  stemma(g,128,292,'#d8a02a','CEROGIALLO');stemma(g,384,292,'#a02420','TASSOROSSO');
-  return tex(c,false);})();
-const texStemmiMuro=(()=>{const c=mkCanvas(512,384),g=c.getContext('2d');
-  g.fillStyle='#f2efe8';g.fillRect(0,0,512,384);
-  stemma(g,120,110,'#274b9f','AQUILABLU');stemma(g,392,110,'#2e6b34','QUERCIAVERDE');
-  stemma(g,120,290,'#d8a02a','CEROGIALLO');stemma(g,392,290,'#a02420','TASSOROSSO');
-  g.fillStyle='#fff';g.fillRect(226,150,60,84);
-  g.strokeStyle='#c9b98a';g.lineWidth=3;g.strokeRect(226,150,60,84);
-  g.fillStyle='#8a6a1a';g.font='bold 10px Lexend';g.textAlign='center';
-  g.fillText('ALBO',256,168);g.fillText("D'ORO",256,180);
-  g.fillStyle='#555';for(let i=0;i<8;i++)g.fillRect(234,190+i*5,44,2);
-  return tex(c,false);})();
-function texScritta(righe,col,w,h,fp){
-  const c=mkCanvas(w,h),g=c.getContext('2d');
-  g.fillStyle=col;g.font='italic '+(fp||26)+'px Georgia, serif';g.textAlign='center';
-  righe.forEach((r,i)=>g.fillText(r,w/2,h/2+(i-(righe.length-1)/2)*(fp*1.35)));
-  return tex(c,false);}
-const texMorin=texScritta(['"È meglio una testa ben fatta','che una testa ben piena"','Edgar Morin'],'#4a3a10',512,160,24);
-const texCuore=texScritta(['"Non si vede bene che col cuore."'],'#4a453e',512,80,24);
-const texEducare=texScritta(['"Per poter educare, bisogna amare"'],'#5a4412',512,80,22);
-/* IMG_4982: in cima alla scala delle tabelline, sulla parete arancione */
-const texSogna=texScritta(['Solo chi sogna','può volare'],'#5A2A12',384,180,34);
-/* IMG_4977/4978: la citazione del Piccolo Principe, scritta a mano sul muro
-   chiaro dell'angolo, per intero e su quattro righe */
-const texPrincipe=texScritta(['"Non si vede bene','che col cuore.',
-  "L'essenziale è invisibile",'agli occhi"'],'#3a3630',512,260,26);
-function texLavori(n,fondo){
-  const c=mkCanvas(512,256),g=c.getContext('2d'),rnd=seme(n);
-  g.fillStyle=fondo||'#efe9dd';g.fillRect(0,0,512,256);
-  for(let i=0;i<30;i++){g.save();
-    g.translate(20+rnd()*460,20+rnd()*200);g.rotate((rnd()-0.5)*0.2);
-    g.fillStyle=['#fff','#cfe3f5','#f5e3a8','#cde8c0','#f2c7b8','#e2d4f0'][(rnd()*6)|0];
-    g.fillRect(-20,-14,40,28);g.strokeStyle='rgba(0,0,0,.18)';g.strokeRect(-20,-14,40,28);
-    g.fillStyle='rgba(60,60,80,.55)';for(let r=0;r<3;r++)g.fillRect(-15,-8+r*7,30,2);
-    g.restore();}
-  return tex(c,false);}
-function texQuadro(n){
-  const c=mkCanvas(128,160),g=c.getContext('2d'),rnd=seme(n);
-  g.fillStyle=['#e8e0d0','#dfe4ea','#efe5c8'][(rnd()*3)|0];g.fillRect(0,0,128,160);
-  for(let i=0;i<9;i++){g.fillStyle=['#c05a3a','#274b9f','#d8a02a','#4a6a3a','#8a4a6a','#333'][(rnd()*6)|0];
-    g.globalAlpha=0.85;g.fillRect(rnd()*90,rnd()*120,20+rnd()*30,20+rnd()*32);}
-  g.globalAlpha=1;g.strokeStyle='#4a4238';g.lineWidth=6;g.strokeRect(0,0,128,160);
-  return tex(c,false);}
-/* 4901: non un patchwork casuale, ma una COMPOSIZIONE ORDINATA su griglia
-   6x6, a rettangoli grandi di dimensioni diverse ma allineati, con pochi
-   colori pieni. I campi si fondono fra loro dove hanno lo stesso colore. */
-const texMondrian=(()=>{
-  const c=mkCanvas(600,600),g=c.getContext('2d');
-  const C={a:'#E4661E',b:'#9FC0DE',c:'#2F5FAE',d:'#E8E2D2',e:'#5F9E6A',
-           f:'#C0392B',g:'#E8B41E',h:'#1E2F5E',i:'#141414',j:'#D8843A'};
-  /* griglia 6x6: ogni cella porta la sua tinta; celle contigue uguali
-     formano i rettangoli grandi che si vedono nella foto */
-  const M=[['a','c','b','b','f','g'],
-           ['a','c','b','b','d','h'],
-           ['d','b','d','a','e','a'],
-           ['j','b','a','a','e','a'],
-           ['g','h','e','e','e','c'],
-           ['a','d','i','f','g','d']];
-  const p=100;
-  for(let r=0;r<6;r++) for(let k=0;k<6;k++){
-    g.fillStyle=C[M[r][k]]; g.fillRect(k*p,r*p,p+1,p+1);}
-  return tex(c,false);})();
-/* 4901/4902: ogni alzata porta una RIGA della tabellina — dieci quadretti
-   colorati coi risultati in bianco. La riga cambia salendo. */
-function texAlzataTab(riga){
-  const c=mkCanvas(320,34),g=c.getContext('2d');
-  const col=['#C0392B','#2F5FAE','#3F8F3A','#E8B41E','#D8752A',
-             '#7A4A9A','#1E9E9E','#C05080','#5F9E6A','#E8622A'];
-  g.fillStyle='#EFE9DD';g.fillRect(0,0,320,34);
-  for(let k=0;k<10;k++){
-    g.fillStyle=col[(riga+k)%10]; g.fillRect(k*32+2,3,28,28);
-    g.fillStyle='#fff';g.font='bold 15px Lexend, sans-serif';g.textAlign='center';
-    g.fillText(String(riga*(k+1)),k*32+16,23);}
-  return tex(c,false);}
-/* le PEDATE portano parole applicate in nero (4901) */
-function texPedata(parola){
-  const c=mkCanvas(512,64),g=c.getContext('2d');
-  g.fillStyle='#E6DCC8';g.fillRect(0,0,512,64);
-  g.fillStyle='#2a2a2a';g.font='bold 25px Lexend, sans-serif';g.textAlign='left';
-  g.fillText(parola,26,42);
-  return tex(c,false);}
-const texCartello=(()=>{const c=mkCanvas(256,144),g=c.getContext('2d');
-  [['Primaria','←'],['Direzione','→'],['Secondaria','→']].forEach((v,i)=>{
-    g.fillStyle='#1a4fae';g.fillRect(0,i*44+4,256,38);
-    g.fillStyle='#fff';g.font='bold 19px Lexend';g.textAlign='left';g.fillText(v[0],14,i*44+30);
-    g.font='bold 24px Lexend';g.textAlign='right';g.fillText(v[1],244,i*44+31);});
-  return tex(c,false);})();
-const texSalaIns=(()=>{const c=mkCanvas(256,128),g=c.getContext('2d');
-  g.fillStyle='#e8e4da';g.fillRect(0,0,256,128);
-  ['#c23a34','#e8b73a','#3a8a3a','#2255aa'].forEach((k,i)=>{g.fillStyle=k;g.fillRect(0,i*32,10,32);});
-  g.fillStyle='#123E90';g.fillRect(24,30,208,68);
-  g.fillStyle='#fff';g.font='bold 21px Lexend';g.textAlign='center';
-  g.fillText('Sala',128,58);g.fillText('insegnanti',128,84);
-  return tex(c,false);})();
-
-/* ==========================================================================
-   IL PRIMO PIANO, RIFONDATO SU PianoPrimo.pdf
-   --------------------------------------------------------------------------
-   Assi letti in tavola e portati in coordinate modello (X-8,6 · Z+4,5):
-
-   AULE SECONDARIA   z[-14.93,-6.31] (profondita' 8,60)
-        divisori a x = -15.80 · -9.34 · -2.98 · +3.38 · +9.93
-        4 aule da 6,36 x 8,60 = 50,68 mq — la quota scritta in tavola.
-   CORRIDOIO NORD    z[-6.31,-2.10] (largo 4,21) — "CORRIDOIO - LOCALE
-        POLIVALENTE mq 150,20, H corridoio 3,00". Vetrato sulla corte.
-   ZONA UFFICI       x[-36.7,-15.8] z[-14.93,-2.10] — uffici, disimpegno,
-        atrio uffici, servizi.
-   ALA EST           x[+14.19,+22.23] z[-16.5,+31.5] — corridoio e aule.
-   GRADINATA OBLIQUA nell'angolo fra i due corridoi: dritta, in diagonale a
-        30 gradi, quattro alzate, gradini che si accorciano salendo.
-   ALA OVEST (Primaria) x[-70.7,-54.4]: aule a ovest, salone sul lato del
-        cortile, divisori a z = +2.0 · +11.2 · +17.1 · +22.9 · +31.5.
-        In fondo al salone, la SCALA DELLE TABELLINE.
-   ========================================================================== */
-const P1Y=Q_BASSA;                 /* quota del solaio: 3,44 dal rilievo */
-/* ancore per le tappe della caccia al tesoro (riagganciate in fondo) */
+/* LE QUOTE DEL PRIMO PIANO, lette sulla tavola a 300 dpi: le quote di piano
+   ai due lati della gradinata sono +3,42 e +3,79, e "H corridoio 3,00" da'
+   il soffitto a 6,42. Stavano nel blocco svuotato, ma le usano anche la
+   palestra, il corpo sud e le tappe: qui non le puo' portare via nessuno.
+   Q_ALTA e Q_BASSA valgono lo stesso numero — il piano e' uno solo; il
+   dislivello dell'ala est lo gestisce p1QuotaSotto(). */
+const Q_BASSA=3.42, Q_ALTA=3.42, SOFF=6.42;
 let ancoraBiliardino=null, ancoraCase=null;
 
-/* guscio di un ambiente: pavimento, plafone, e il solaio sotto */
-/* Il soffitto NON e' lo stesso ovunque (correzione di Andrea, confermata
-   dalle foto): a QUADROTTI nelle aule e nel salone della Primaria
-   (4847/4851/4889), LISCIO bianco nei corridoi della Secondaria
-   (4874/4883/4884/4899) e nel vano scala (4880), a FASCE lisce nell'atrio
-   (4859/4901), TERRACOTTA liscio nel corridoio dei lavori (4855/4979). */
-function vano(g,x0,x1,z0,z1,mpav,q,rip,tipo){
-  const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),mpav);
-  p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,q,(z0+z1)/2);
-  p.receiveShadow=true;g.add(p);
-  box(g,x1-x0,0.34,z1-z0,lam(0xbdbab2),(x0+x1)/2,q-0.18,(z0+z1)/2,false);
-  const mat=(tipo==='liscio') ? lam(0xF4F2EC) : matSoffitto(rip||6,rip||6);
-  const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),mat);
-  s.rotation.x=Math.PI/2;s.position.set((x0+x1)/2,SOFF,(z0+z1)/2);g.add(s);
-  return p;
-}
-/* Tre tipi di lampada, come nelle foto:
-   'inc'  incassata nel controsoffitto a quadrotti (aule, salone)
-   'sosp' sospesa a due cavetti sotto il soffitto liscio (corridoi, atrio)
-   'app'  applicata a plafone, senza cavetti (corridoio dei lavori, scala) */
-function plafo(g,x,z,q,ry,tipo){
-  const y=(q||SOFF); const t=tipo||'inc';
-  if(t==='inc'){
-    const m=box(g,1.25,0.06,0.22,lam(0xF8F6EE),x,y-0.04,z,false);
-    if(ry) m.rotation.y=ry; return m;}
-  if(t==='app'){
-    const m=box(g,1.20,0.10,0.26,lam(0xF6F4EC),x,y-0.09,z,false);
-    if(ry) m.rotation.y=ry;
-    const c=box(g,1.24,0.04,0.30,lam(0xD8D5CC),x,y-0.02,z,false);
-    if(ry) c.rotation.y=ry; return m;}
-  /* sospesa */
-  const g2=new THREE.Group(); g2.position.set(x,0,z); if(ry) g2.rotation.y=ry;
-  [-0.45,0.45].forEach(o=>box(g2,0.015,0.34,0.015,lam(0xB0B4B8),o,y-0.17,0,false));
-  box(g2,1.30,0.09,0.16,lam(0xE8E6E0),0,y-0.38,0,false);
-  box(g2,1.22,0.03,0.13,lam(0xFAF8F0),0,y-0.43,0,false);
-  g.add(g2); return g2;
-}
-
-/* ==========================================================================
-   IL CORRIDOIO A U DEL PRIMO PIANO — RIFATTO DA ZERO SUL RILIEVO
-   --------------------------------------------------------------------------
-   Il vecchio codice portava in testa la conversione "rilievo -> modello:
-   X-8,6 · Z+4,5". E' FALSA, ed e' la radice di tutti gli errori di questo
-   piano: i tre bracci erano stati piazzati a mano, uno per uno, ognuno con
-   uno scarto diverso, e per questo il giro non chiudeva.
-
-   LA CONVERSIONE VERA, ricavata da tre riferimenti indipendenti:
-
-     X_modello = X_rilievo - 30,5      Z_modello = Z_rilievo - 0,93
-
-   1) i cinque divisori delle aule della Secondaria stanno in PianoPrimo.pdf
-      a X = 14,78 · 21,21 · 27,57 · 33,92 · 40,27 e nel modello a
-      -15,80 · -9,34 · -2,98 · +3,38 · +9,93 — scarto costante -30,5;
-   2) il braccio est del corridoio, misurato fra i muri X 40,86 e 45,48,
-      cade su x[10,4 · 15,0], dov'era gia';
-   3) il "VUOTO DI CORTILE" della tavola (X -24 .. +1) coincide con il
-      cortile dell'Infanzia del modello.
-
-   LA U, misurata sui muri e non sull'evidenziazione a pennarello (che e'
-   spessa 40 cm alla scala del disegno):
-
-     NORD   z[-5,40 · -0,50]  da x=-61,80 a x=+15,00   largo 4,90
-     OVEST  x[-61,80 · -55,50]  da z=-0,50 a z=+22,60  largo 6,30
-     EST    x[+10,40 · +15,00]  da z=-0,50 a z=+28,30  largo 4,60
-
-   La larghezza del braccio nord non e' stimata: la tavola scrive "CORRIDOIO
-   - LOCALE POLIVALENTE mq 150,20" su uno sviluppo di 30,7 m, e 150,20/30,7
-   fa 4,89. Il braccio est porta "mq 133,15", che su 4,60 di larghezza da'
-   28,9 m di sviluppo: sono i due numeri che chiudono il conto.
-
-   REGOLA CHE VALE PIU' DELLE MISURE (Andrea, due volte): il corridoio e'
-   una STRUTTURA SEMPLICE DI PASSAGGIO. Nessun setto trasversale, nessun
-   pannello appeso in mezzo, nessun ostacolo: si cammina dalla Primaria alla
-   Secondaria senza scarti. Le pareti stanno solo sui LATI LUNGHI.
-   ========================================================================== */
-const U_NZ0=-5.40, U_NZ1=-0.50;            /* braccio nord: le due quote Z  */
-const U_X0=-61.80, U_X1=15.00;             /* da ovest a est                */
-const U_OX0=-61.80, U_OX1=-55.50;          /* braccio ovest (Primaria)      */
-const U_EX0=10.40,  U_EX1=15.00;           /* braccio est  (Secondaria)     */
-const U_OZ1=22.60, U_EZ1=28.30;            /* i due fondi dei bracci        */
-const U_SOF=Q_ALTA+3.00;                   /* "H corridoio 3,00" in tavola  */
-/* QUOTE LETTE SULLA TAVOLA, a 300 dpi, non dedotte (Andrea: "hai la
-   planimetria con le quote! l'assonometria serve per capire COME e' fatto,
-   non per prendere le misure").
-     CORRIDOIO - LOCALE POLIVALENTE   mq 150,20 · H solaio 3,44 · H corr 3,00
-     tratto est                       mq  17,30 · H solaio 3,49 · H corr 3,00
-     quote di piano ai due lati della gradinata:  +3,42  e  +3,79
-   Quindi il salto e' 0,37 in TRE alzate da 12,3 cm — non 0,68 in quattro,
-   ne' 0,51. E il disegno mostra i gradini in DIAGONALE a ~30 gradi
-   sull'asse: quattro linee parallele oblique, con la freccia di salita che
-   le attraversa. L'avevo letto giusto la prima volta e poi l'ho scartato
-   guardando IMG_4879, dove sembra trasversale: quando la tavola quota una
-   cosa, la fotografia non la smentisce. */
-const U_ZGRAD=0.60, U_SALTO=0.37, U_ANGGRAD=-Math.PI/6;
-
-const matMuroSec=lam(0xF2F1ED);
-const matPianoSalvia=lam(0xA8C49A), matPortaSec=lam(0xE4E2DC);
-
 /* ##########################################################################
-   IL CORRIDOIO A U DEL PRIMO PIANO — UNA SOLA FUNZIONE, UNA SOLA VOLTA
+   IL PRIMO PIANO — da primopiano.html, in un file svuotato prima
    ##########################################################################
-   Prima stava in tre pezzi dentro tre IIFE diverse (corridoioNord,
-   alaEstInt, primaria), ognuna con le sue quote scritte a mano. E' per
-   questo che ogni correzione ne sistemava un terzo e rompeva gli altri due.
-   Qui il corridoio si costruisce IN UN POSTO SOLO, da queste costanti.
+   La fascia del primo piano e' stata svuotata per intero (1312 righe) e
+   verificata VUOTA con i raggi prima di scrivere qui: interni.children era
+   0. Le tre volte precedenti avevo tolto una parte e aggiunto sopra, e il
+   risultato era un albero in mezzo al corridoio e due piani sovrapposti.
 
-   ---- QUELLO CHE SO DI CERTO, con la fonte accanto ----------------------
-
-   GEOMETRIA — PianoPrimo.pdf, misurata sui muri (mai sull'evidenziazione a
-   pennarello, che alla scala del disegno e' spessa 40 cm):
-     conversione rilievo -> modello   X - 30,5   ·   Z - 0,93
-       (verificata su 3 riferimenti indipendenti: i cinque divisori delle
-        aule della Secondaria, i muri 40,86/45,48 del braccio est, e il
-        "VUOTO DI CORTILE" che cade sul cortile dell'Infanzia)
-     NORD    z[-5,40 · -0,50]   da x=-61,80 a +15,00     largo 4,90
-     OVEST   x[-61,80 · -55,50] da z=-0,50 a +22,60      largo 6,30
-     EST     x[+10,40 · +15,00] da z=-0,50 a +28,30      largo 4,60
-   Le larghezze non sono stimate: la tavola scrive "mq 150,20" sul braccio
-   nord, che su 30,7 m di sviluppo da' 4,89.
-
-   QUOTE — lette sulla tavola rasterizzata a 300 dpi (pdftotext non le
-   estrae, sono vettoriali):
-     "CORRIDOIO - LOCALE POLIVALENTE  mq 150,20 · H solaio 3,44 · H corr 3,00"
-     "tratto est                      mq  17,30 · H solaio 3,49 · H corr 3,00"
-     quote di piano ai lati della gradinata:  +3,42  e  +3,79
-   Da cui: pavimento 3,42 · soffitto 6,42 · tratto est 3,79. Il conto chiude
-   (3,42 + 0,37 = 3,79) e il solaio successivo cade a 6,88 = H_P1.
-
-   GRADINATA — disegnata in tavola: quattro linee parallele OBLIQUE a ~30
-   gradi con la freccia di salita che le attraversa = TRE gradini, salto
-   0,37 (3 x 12,3 cm). Sta NELL'ANGOLO NORD-EST, dove il tracciato gira
-   (assonometria annotata, etichetta "Scale 3 gradini").
-
-   ASPETTO — dalle fotografie, non dedotto:
-     SECONDARIA (nord + est) 4868/4874/4883/4884/4899: pareti BIANCHE senza
-       zoccolo · gres GRIGIO a grandi lastre · CONTROSOFFITTO A QUADROTTI con
-       plafoniere incassate · UNA sola asta portalavori a 1,40 · porte CHIARE
-       · vetrata CONTINUA E CHIUSA su parapetto basso, telai grigio chiaro,
-       campate ~1,5 m · tavoli gambe BLU e piano VERDE SALVIA appoggiati al
-       LATO NORD · Kallax bianchi · campiture GIALLO SENAPE piatte a muro.
-     PRIMARIA (ovest) 4854/4855/4856/4857: pareti ARANCIONE · pavimento a
-       SCACCHI · porte ROSSO CORALLO · controsoffitto a quadrotti · vetrata
-       chiusa con telai GRIGIO SCURO.
-
-   LA REGOLA CHE VALE PIU' DI TUTTE (Andrea, tre volte): il corridoio e' una
-   STRUTTURA SEMPLICE DI PASSAGGIO. Nessun setto trasversale, nessun
-   pannello a mezz'aria, nessun ostacolo. Le pareti stanno SOLO sui lati
-   lunghi. Si collauda camminando su TRE LINEE PARALLELE per braccio e
-   contando i punti bloccati con un test GEOMETRICO su tutte le mesh — non
-   con libero(), che vede solo gli ostacoli registrati e per questo mi ha
-   fatto dire "zero bloccati" mentre c'erano cinque muri in mezzo.
-
-   DUBBIO ANCORA APERTO, non risolto e non nascosto: in
-   primopiano_ricostruzione3d.png le corti sono DUE (Infanzia a ovest, campi
-   a est) e la U sembra girare attorno a UNA sola, mentre qui il braccio
-   nord le abbraccia entrambe (da -61,8 a +15,0). Va deciso sull'SVG QCAD.
-   ########################################################################## */
-/* ##########################################################################
-   IL PRIMO PIANO — TRAPIANTATO DA primopiano.html
-   ##########################################################################
-   Questo blocco SOSTITUISCE il vecchio primo piano di index: corridoioU,
-   auleSecondaria, auleAlaEst, primaria, atrio, corridoioLavori e
-   arrediRitrovati. Non si affianca — li rimpiazza. "Sommare le due
-   versioni" e' il nome dell'errore, e qui sarebbe due corridoi sovrapposti.
-
-   Viene da un file scritto da zero e verificato passo per passo con Andrea:
-   quote lette sulla tavola a 300 dpi (+3,42 e +3,79, H corridoio 3,00),
-   corridoio a U con le svolte APERTE, gradinata a tre gradini in diagonale,
-   ballatoio centrale con due passaggi, scala che scende fra ballatoio e
-   tabelline appoggiata al vetrocemento, porte misurate sugli archi blu.
-
-   Tutto quello che poteva collidere con index e' rinominato con prefisso
-   p1 (p1Box, p1Mat, p1Piano, p1Parete, p1Vetrata, p1Calpestio, p1Gres...):
-   in index esistevano gia' funzioni con quei nomi e firme diverse, e un
-   incollaggio diretto le avrebbe sovrascritte in silenzio.
-   Il gruppo P1 sta dentro `interni`, che e' dichiarato a riga 2268: piu'
-   in alto sarebbe TDZ e la scena non si costruirebbe affatto.
+   Del file originale NON entrano tre cose, che sono quelle che avevano
+   fatto danno: l'impianto Three (scena, camera, renderer, luci) perche'
+   index ha il suo; la NAVIGAZIONE (VISTE, vaiA, anima, pos) perche' i suoi
+   nomi qui non esistono e bastava il primo a fermare lo script; la passata
+   sRGB->lineare, perche' index ne ha gia' una e due conversioni rendono
+   ogni tinta due toni piu' scura; e la quinta "quello che si vede fuori",
+   che qui era un doppione del campus vero.
+   Tutto il resto e' rinominato col prefisso p1 per non sovrascrivere in
+   silenzio le funzioni omonime di index.
    ########################################################################## */
 const P1=new THREE.Group(); interni.add(P1);
 /* ---------------------------- quote ------------------------------------ */
@@ -2939,7 +2416,8 @@ const zSoglia = x => KGRAD - x;
    il cambio delle piastrelle */
 const XMEZZ = (-61.80 + 15.00) / 2;        /* -23,40 */
 
-
+/* L'impianto Three (scena, camera, renderer, luci) NON si trapianta:
+   index ha gia' il suo. Qui resta solo il gruppo P1, dentro `interni`. */
 
 /* ============================ utilita' ================================== */
 function p1Tela(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
@@ -2963,7 +2441,7 @@ function p1Piano(p,w,d,m,x,y,z,rx){
 }
 
 /* ---- ombra di contatto: senza, ogni oggetto galleggia ------------------ */
-const p1_texOmbra = (()=>{
+const p1Ombra = (()=>{
   const c=p1Tela(128,128), g=c.getContext('2d');
   const rg=g.createRadialGradient(64,64,4,64,64,62);
   rg.addColorStop(0,'rgba(0,0,0,.34)'); rg.addColorStop(1,'rgba(0,0,0,0)');
@@ -2971,7 +2449,7 @@ const p1_texOmbra = (()=>{
 })();
 function p1Contatto(p,x,y,z,w,d){
   const o=new THREE.Mesh(new THREE.PlaneGeometry(w,d),
-    new THREE.MeshBasicMaterial({map:p1_texOmbra,transparent:true,depthWrite:false}));
+    new THREE.MeshBasicMaterial({map:p1Ombra,transparent:true,depthWrite:false}));
   o.rotation.x=-Math.PI/2; o.position.set(x,y+0.004,z); p.add(o); return o;
 }
 
@@ -3113,48 +2591,6 @@ function p1Plafone(x,z,q,ry){
   if(ry) o.rotation.y=ry; return o;
 }
 
-/* ====================== QUELLO CHE SI VEDE FUORI ========================
-   IMG_4878: dal corridoio si vedono il campo da basket col canestro, il
-   campo verde con le porte, il filare di alberi e l'edificio di fronte.
-   Senza niente oltre il vetro la p1Vetrata sembrava tamponata: qui c'e' la
-   corte, semplificata ma nelle sue quote vere — il basket 28 x 15 con
-   l'angolo nord-ovest all'origine, il verde subito a sud. */
-(function corte(){
-  const g=new THREE.Group(); P1.add(g);
-  /* piazzale e prato */
-  p1Piano(g,150,150,p1Mat(0x8FA86A),-24,-0.02,26);
-  p1Piano(g,46,26,p1Mat(0xBFBBB0),-8.6,0.00,4.5);
-  /* campo da basket, bordeaux con le aree azzurre */
-  p1Piano(g,32,19,p1Mat(0x8FB6D8),-8.6,0.02,4.5);
-  p1Piano(g,28,15,p1Mat(0x9E4A38),-8.6,0.04,4.5);
-  const bianco=p1Mat(0xE8E6DE);
-  [[-8.6,-3.0,28,0.10],[-8.6,12.0,28,0.10]].forEach(q=>p1Piano(g,q[2],q[3],bianco,q[0],0.05,q[1]));
-  [[-22.6,4.5,0.10,15],[5.4,4.5,0.10,15],[-8.6,4.5,0.10,15]].forEach(q=>
-    p1Piano(g,q[2],q[3],bianco,q[0],0.05,q[1]));
-  /* il campo verde con le due porte, piu' a sud */
-  p1Piano(g,28,55,p1Mat(0x4E7A3E),-8.6,0.03,59.5);
-  [33.2,85.8].forEach(z=>{
-    p1Box(g,5.1,0.10,0.10,P1M.bianco,-8.6,2.0,z,false);
-    [-2.5,2.5].forEach(o=>p1Box(g,0.10,2.0,0.10,P1M.bianco,-8.6+o,1.0,z,false));
-  });
-  /* il filare di alberi che nella foto chiude l'orizzonte */
-  for(let i=0;i<9;i++){
-    const x=9.5, z=34+i*7.4;
-    p1Box(g,0.30,2.4,0.30,p1Mat(0x6E5A44),x,1.2,z,false);
-    const ch=new THREE.Mesh(new THREE.SphereGeometry(2.3,10,8),p1Mat(0x4A7A38));
-    ch.position.set(x,4.0,z); ch.scale.y=1.25; g.add(ch);
-  }
-  /* L'edificio di fronte, oltre la corte: solo la sua faccia. Era largo 80 m
-     centrato su x=-24, cioe' arrivava a +16 e ATTRAVERSAVA il braccio est
-     (che sta a x[10,40 · 15,00]): il collaudo l'ha trovato subito, larghezza
-     libera 0,00 a z=26,3. Ora si ferma prima dell'ala. */
-  p1Box(g,70,10.4,0.4,p1Mat(0xEDE9DF),-28,5.2,26.5,false);
-  for(let i=0;i<14;i++)
-    p1Box(g,2.0,1.5,0.10,p1Mat(0x6E7A82),-58+i*4.6,6.4,26.28,false);
-  /* il canestro a muro che si vede in fondo a sinistra nella foto */
-  p1Box(g,1.8,1.05,0.06,P1M.bianco,-21.0,3.05,-2.85,false);
-  p1Box(g,0.46,0.36,0.03,p1Mat(0xD8443A),-21.0,2.75,-2.80,false);
-})();
 
 /* ============================ IL CORRIDOIO ============================== */
 (function corridoio(){
@@ -3281,7 +2717,7 @@ function p1Plafone(x,z,q,ry){
    Dodici pedate a passo 0,30 fra X -51,9 e -55,5, larghe 2,40 su z=+3,5:
    sta sul FILO EST del braccio ovest e i gradini salgono LUNGO X. Sulle
    prime dieci alzate c'e' la tavola pitagorica a quadretti colorati. */
-function texAlzata(n){
+function p1Alzata(n){
   const c=p1Tela(512,64), g=c.getContext('2d');
   g.fillStyle='#f2efe8'; g.fillRect(0,0,512,64);
   const pal=['#2f6fb5','#3fa02a','#d8a02a','#c0453a','#7a5aa8',
@@ -3320,7 +2756,7 @@ function texAlzata(n){
     p1Box(mondo,ped,alz,W,P1M.travert,xx-ped/2,yy+alz/2,zC,true);
     if(i<nNum){
       const a=new THREE.Mesh(new THREE.PlaneGeometry(W,alz),
-        p1Mat(0xffffff,{map:texAlzata(i+1)}));
+        p1Mat(0xffffff,{map:p1Alzata(i+1)}));
       a.rotation.y=Math.PI/2; a.position.set(xx+0.004,yy+alz/2,zC); P1.add(a);
     }
   }
@@ -3596,64 +3032,402 @@ function p1Porta(x,y,z,ry,m){
     p1Porta(OX0+0.06,PAV,z-2.6,Math.PI/2,P1M.portaPrim));
 })();
 
-/* ===== una passata di sRGB->lineare sui soli color, a scena costruita ==== */
-scene.traverse(o=>{ if(o.isMesh && o.material && o.material.color && !o.material.__c){
-  o.material.color.convertSRGBToLinear(); o.material.__c=true; }});
 
-/* La NAVIGAZIONE non si trapianta: index ha gia' la sua (camera, tasti,
-   viste, loop di animazione). Qui erano finiti VISTE, vaiA, anima, pos,
-   cam, ren e scena di primopiano.html — riferimenti a oggetti che in
-   questo file si chiamano in un altro modo, e bastava il primo a fermare
-   lo script prima ancora della schermata di accesso. */
 
-/* le due ANCORE della caccia al tesoro vivevano dentro la vecchia
-   primaria(): il pannello delle Case e il biliardino del salone. Le
-   riaggancio qui, sulle coordinate nuove del braccio ovest. */
-ancoraCase=quadro(P1,texCase,3.4,2.55,-55.4,Q_ALTA+1.9,6.0,Math.PI/2);
-ancoraBiliardino=biliardino(P1,-58.6,6.0,0.04,lam(0xA8C49A),Q_ALTA);
+/* Le aule vengono dal backup e chiamano le costanti U_* del vecchio blocco.
+   Invece di riscriverle, le U_* diventano ALIAS di quelle nuove: cosi' le
+   aule si agganciano al corridoio di primopiano.html senza toccarne una
+   riga, e se domani cambia una quota cambia in un posto solo. */
+const U_NZ0=NZ0, U_NZ1=NZ1, U_X0=X0, U_X1=X1;
+const U_OX0=OX0, U_OX1=OX1, U_EX0=EX0, U_EX1=EX1;
+const U_OZ1=OZ1, U_EZ1=EZ1, U_SOF=SOF, U_SALTO=SALTO, U_ZGRAD=ZGRAD;
 
-(function laboratori(){
+function texScacchi(pal,n,celle){
+  const N=celle||8,c=mkCanvas(N*32,N*32),g=c.getContext('2d'),rnd=seme(n);
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    g.fillStyle=pal[(rnd()*pal.length)|0];g.fillRect(x*32,y*32,32,32);
+    g.strokeStyle='rgba(90,84,80,.5)';g.lineWidth=2;g.strokeRect(x*32,y*32,32,32);}
+  return c;}
+const texChiaro60=(()=>{const c=mkCanvas(256,256),g=c.getContext('2d'),rnd=seme(811);
+  g.fillStyle='#DCD6C8';g.fillRect(0,0,256,256);
+  for(let i=0;i<1600;i++){const x=rnd()*256,y=rnd()*256;
+    g.fillStyle='rgba('+(196+rnd()*36|0)+','+(190+rnd()*34|0)+','+(176+rnd()*32|0)+',0.5)';
+    g.fillRect(x,y,2.2,1.6);}
+  g.strokeStyle='#C6BFB0';g.lineWidth=2;g.strokeRect(0,0,256,256);
+  return tex(c,true);})();
+/* PAL3: la palette dei pavimenti a scacchi, da cui dipendono palPrimaria
+   e pav30. Il recupero automatico non l'aveva presa perche' e' una const
+   di array su piu' righe. */
+const PAL3=['#DCCFB2','#6E6B67','#C9A79E','#DCCFB2','#6E6B67','#C9A79E',
+            '#E2D6BA','#736F6B'];
+function pav30(w,d,seed){            /* 30 cm: texture da 4x4 celle = 1,20 m */
+  return matPav(PAL3, seed||107, Math.max(1,Math.round(w/1.2)),
+                Math.max(1,Math.round(d/1.2)), 4);}
+const palPrimaria=PAL3;
+function matSoffitto(rx,ry){const t=texSoff.clone();t.needsUpdate=true;t.repeat.set(rx,ry);
+  return lam(0xffffff,{map:t,side:THREE.DoubleSide});}
+
+const matGialloPrim=lam(0xE8620A), matArancioPrim=lam(0xB02418);
+const matGialloAula=lam(0xE8D89A), matFasciaVerde=lam(0x8FA08C);
+const matPortaRossa=lam(0xD9503F);
+const matLegno=lam(0xb9905e), matLegnoScuro=lam(0x7a5230), matGambeBlu=lam(0x2b5cae);
+
+const cGialla=lam(0xe8c020),cVerde=lam(0xA8C82E),cBluS=lam(0x2b3a6e),
+      cLime=lam(0xb8c832),cLegno=lam(0xc9a06a);
+const texCase=(()=>{const c=mkCanvas(512,384),g=c.getContext('2d');
+  g.fillStyle='#8fbcd8';g.fillRect(0,0,256,192);
+  g.fillStyle='#7fae70';g.fillRect(256,0,256,192);
+  g.fillStyle='#efe6a8';g.fillRect(0,192,256,192);
+  g.fillStyle='#c8402e';g.fillRect(256,192,256,192);
+  stemma(g,128,100,'#274b9f','AQUILABLU');stemma(g,384,100,'#2e6b34','QUERCIAVERDE');
+  stemma(g,128,292,'#d8a02a','CEROGIALLO');stemma(g,384,292,'#a02420','TASSOROSSO');
+  return tex(c,false);})();
+const texCuore=texScritta(['"Non si vede bene che col cuore."'],'#4a453e',512,80,24);
+const texSogna=texScritta(['Solo chi sogna','può volare'],'#5A2A12',384,180,34);
+
+
+function corridoioU(){
+  const g=new THREE.Group(); interni.add(g);
+  const YP=Q_ALTA, YS=U_SOF, HV=YS-0.30-(YP+0.90);   /* vetro fra parapetto e traverso */
+
+  /* --- il piano di calpestio di un braccio: pavimento, solaio, plafone --- */
+  function piano(x0,x1,z0,z1,q){
+    const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),pav60(x1-x0,z1-z0));
+    p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,q,(z0+z1)/2);
+    p.receiveShadow=true;g.add(p);
+    box(g,x1-x0,0.34,z1-z0,lam(0xbdbab2),(x0+x1)/2,q-0.18,(z0+z1)/2,false);
+    const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),
+      matSoffitto((x1-x0)/1.2,(z1-z0)/1.2));
+    s.rotation.x=Math.PI/2;s.position.set((x0+x1)/2,q+3.00,(z0+z1)/2);g.add(s);}
+
+  /* --- parete piena su un lato lungo ------------------------------------ */
+  function parete(x0,x1,z0,z1,q,mat){
+    const dx=x1-x0, dz=z1-z0;
+    box(g,dx||0.16,3.00,dz||0.16,mat,(x0+x1)/2,q+1.50,(z0+z1)/2,false);}
+
+  /* --- fronte vetrato CHIUSO: parapetto, lastra, montanti, traverso ------
+     un montante senza lastra non e' una finestra, e' un colonnato: e' cosi'
+     che il corridoio sembrava un ballatoio esterno. */
+  function vetrata(x0,x1,z0,z1,q,telaio){
+    const dx=x1-x0, dz=z1-z0, L=dx||dz, ry=dx?0:Math.PI/2;
+    box(g,dx||0.16,0.90,dz||0.16,matMuroSec,(x0+x1)/2,q+0.45,(z0+z1)/2,false);
+    box(g,dx||0.16,0.30,dz||0.16,matMuroSec,(x0+x1)/2,q+3.00-0.15,(z0+z1)/2,false);
+    const lastra=new THREE.Mesh(new THREE.PlaneGeometry(L,HV),matVetro);
+    lastra.rotation.y=ry;lastra.position.set((x0+x1)/2,q+0.90+HV/2,(z0+z1)/2);g.add(lastra);
+    const N=Math.round(L/1.5);
+    for(let i=0;i<=N;i++){
+      const t=i/N, mx=x0+(x1-x0)*t, mz=z0+(z1-z0)*t;
+      box(g,dx?0.09:0.14,HV,dx?0.14:0.09,lam(telaio||0xB9BEC3),mx,q+0.90+HV/2,mz,false);}
+    box(g,dx||0.14,0.09,dz||0.14,lam(telaio||0xB9BEC3),
+        (x0+x1)/2,q+0.90+HV*0.62,(z0+z1)/2,false);}
+
+  /* ===== BRACCIO NORD =================================================== */
+  piano(U_X0,U_X1,U_NZ0,U_NZ1,YP);
+  parete(U_X0,U_X1,U_NZ0,U_NZ0,YP,matMuroSec);          /* verso le aule    */
+  vetrata(U_X0,U_X1,U_NZ1,U_NZ1,YP);                    /* sulla corte      */
+  listello(g,U_X1-U_X0-1.0,(U_X0+U_X1)/2,YP+1.40,U_NZ0+0.09,0);
+  for(let i=0;i<13;i++) plafo(g,U_X0+3+i*6.0,(U_NZ0+U_NZ1)/2,YS,0,'inc');
+
+  /* ===== BRACCIO OVEST — la Primaria ==================================== */
+  piano(U_OX0,U_OX1,U_NZ1,U_OZ1,YP);
+  parete(U_OX0,U_OX0,U_NZ1,U_OZ1,YP,matGialloPrim);     /* verso le aule    */
+  vetrata(U_OX1,U_OX1,U_NZ1,U_OZ1,YP,0x4A4E52);         /* sulla corte      */
+  listello(g,U_OZ1-U_NZ1-1.0,U_OX0+0.09,YP+1.40,(U_NZ1+U_OZ1)/2,Math.PI/2);
+  for(let i=0;i<5;i++) plafo(g,(U_OX0+U_OX1)/2,U_NZ1+3+i*5.0,YS,Math.PI/2,'inc');
+
+  /* ===== BRACCIO EST — la Secondaria ====================================
+     due tratti a quote diverse, separati dalla gradinata nell'angolo. */
+  piano(U_EX0,U_EX1,U_NZ1,U_ZGRAD,YP);
+  piano(U_EX0,U_EX1,U_ZGRAD,U_EZ1,YP+U_SALTO);
+  parete(U_EX1,U_EX1,U_NZ1,U_EZ1,YP+U_SALTO/2,matMuroSec);
+  vetrata(U_EX0,U_EX0,U_NZ1,U_EZ1,YP+U_SALTO/2);
+  listello(g,U_EZ1-U_NZ1-1.0,U_EX1-0.09,YP+1.40+U_SALTO/2,(U_NZ1+U_EZ1)/2,Math.PI/2);
+  for(let i=0;i<6;i++) plafo(g,(U_EX0+U_EX1)/2,U_NZ1+4+i*5.0,YS+U_SALTO,Math.PI/2,'inc');
+
+  /* ===== LA GRADINATA: 3 alzate, obliqua a 30 gradi, nell'angolo NE ===== */
+  (function gradinata(){
+    const gres=lam(0x7E7A75), naso=lam(0xA8A49E);
+    const N=3, alz=U_SALTO/N, ped=0.46;
+    const cxm=(U_EX0+U_EX1)/2, L=(U_EX1-U_EX0)/Math.cos(U_ANGGRAD)+0.9;
+    const dirx=Math.sin(-U_ANGGRAD), dirz=Math.cos(U_ANGGRAD);
+    for(let i=0;i<N;i++){
+      const h=alz*(i+1), t=-(N-i)+0.5;
+      const cx=cxm+dirx*ped*t, cz=U_ZGRAD+dirz*ped*t;
+      const gr=box(g,L,h,ped,gres,cx,YP+h/2,cz,true); gr.rotation.y=U_ANGGRAD;
+      const ns=box(g,L,0.03,0.11,naso,cx-dirx*ped*0.45,YP+h+0.004,
+                   cz-dirz*ped*0.45,false); ns.rotation.y=U_ANGGRAD;}
+    contatto(g,cxm,YP+0.012,U_ZGRAD,L+1.0,ped*N+1.2,0.4);})();
+
+  /* ===== quello che sta NEL corridoio, sempre CONTRO la parete ==========
+     4874/4884/4899: le due file di tavoli stanno fra 0,05 e 1,65 m dalla
+     parete nord; davanti restano 3,25 m di passaggio netto sui 4,90. */
+  [-38,-26,-13,-1,8].forEach(x=>{
+    tavolo(g,x,U_NZ0+0.45,0,2.2,0.8,matPianoSalvia,YP,0.76,false);
+    tavolo(g,x,U_NZ0+1.25,0,2.2,0.8,matPianoSalvia,YP,0.76,false);
+    [-0.7,0.7].forEach(o=>sedia(g,x+o,U_NZ0+1.95,Math.PI,cLegno,YP));});
+  [-32,-19.5,-7,3.5].forEach(x=>{
+    box(g,0.78,0.78,0.40,lam(0xF4F3EF),x,YP+0.39,U_NZ0+0.28,true);
+    box(g,0.72,0.03,0.36,lam(0xD8D6D0),x,YP+0.39,U_NZ0+0.28,false);
+    box(g,0.03,0.72,0.36,lam(0xD8D6D0),x,YP+0.39,U_NZ0+0.28,false);});
+  [-50,-42,-34,-26,-18].forEach(x=>pannelloSenape(g,x,U_NZ0+0.06,2.5,0));
+  antincendio(g,-19.5,YP+1.5,U_NZ0+0.10,0);
+  estintore(g,-24.5,YP+0.9,U_NZ0+0.20);
+  quadro(g,texQuadro(151),0.9,1.1,-27.5,YP+1.65,U_NZ0+0.10,0);
+  quadro(g,texMorin,3.2,1.0,-6.0,YP+2.30,U_NZ0+0.10,0);
+  return g;
+}
+
+
+/* Le funzioni di supporto che le aule usano — vano, banco, sedia, tavolo,
+   listello, quadro, matPav, pavChiaro, texAlzataTab, biliardino — stavano
+   tutte nel blocco svuotato. Recuperate in un colpo solo, cercando nel
+   codice delle aule ogni nome chiamato e non piu' definito: andare a
+   tentativi, un ReferenceError alla volta, costava una ricarica per ognuna. */
+function vano(g,x0,x1,z0,z1,mpav,q,rip,tipo){
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),mpav);
+  p.rotation.x=-Math.PI/2;p.position.set((x0+x1)/2,q,(z0+z1)/2);
+  p.receiveShadow=true;g.add(p);
+  box(g,x1-x0,0.34,z1-z0,lam(0xbdbab2),(x0+x1)/2,q-0.18,(z0+z1)/2,false);
+  const mat=(tipo==='liscio') ? lam(0xF4F2EC) : matSoffitto(rip||6,rip||6);
+  const s=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),mat);
+  s.rotation.x=Math.PI/2;s.position.set((x0+x1)/2,SOFF,(z0+z1)/2);g.add(s);
+  return p;
+}
+function banco(p,x,z,ry,cTop,q){
+  const g=new THREE.Group();
+  const t=new THREE.Mesh(geoSmussata(1.3,0.05,0.6,0.015),cTop||lam(0xcfe0c8));
+  t.position.y=0.76;t.castShadow=true;g.add(t);
+  [[-.58,-.24],[.58,-.24],[-.58,.24],[.58,.24]].forEach(w=>{
+    const gm=new THREE.Mesh(new THREE.CylinderGeometry(0.024,0.02,0.74,8),matGambeBlu);
+    gm.position.set(w[0],0.37,w[1]);g.add(gm);});
+  /* traverse fra le gambe e cestello portalibri in filo metallico */
+  box(g,1.18,0.022,0.022,matGambeBlu,0,0.14,-0.24,false);
+  box(g,1.18,0.022,0.022,matGambeBlu,0,0.14, 0.24,false);
+  const fil=lam(0xa8adb4);
+  box(g,1.02,0.016,0.016,fil,0,0.50,-0.20,false);
+  box(g,1.02,0.016,0.016,fil,0,0.50, 0.20,false);
+  box(g,1.02,0.016,0.016,fil,0,0.34,-0.20,false);
+  box(g,1.02,0.016,0.016,fil,0,0.34, 0.20,false);
+  for(let i=0;i<9;i++) box(g,0.014,0.17,0.014,fil,-0.50+i*0.125,0.42,-0.20,false);
+  for(let i=0;i<9;i++) box(g,0.014,0.17,0.014,fil,-0.50+i*0.125,0.42, 0.20,false);
+  for(let i=0;i<5;i++) box(g,1.02,0.014,0.014,fil,0,0.335,-0.20+i*0.10,false);
+  g.position.set(x,q,z);g.rotation.y=ry||0;(p||interni).add(g);
+  contatto(p||interni,x,q+0.012,z,1.7,1.0,0.55);return g;}
+function sedia(p,x,z,ry,col,q){
+  const g=new THREE.Group();
+  const s=new THREE.Mesh(geoSmussata(0.42,0.04,0.42,0.03),col);
+  s.position.y=0.46;s.castShadow=true;g.add(s);
+  const sc=new THREE.Mesh(geoSmussata(0.42,0.4,0.035,0.03),col);
+  sc.position.set(0,0.72,-0.2);sc.rotation.x=-0.08;sc.castShadow=true;g.add(sc);
+  [[-.18,-.17],[.18,-.17],[-.18,.18],[.18,.18]].forEach(w=>{
+    const gm=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.015,0.46,6),lam(0x8a8f95));
+    gm.position.set(w[0],0.23,w[1]);g.add(gm);});
+  const tr=lam(0x8a8f95);
+  box(g,0.36,0.016,0.016,tr,0,0.16,-0.17,false);
+  box(g,0.36,0.016,0.016,tr,0,0.16, 0.18,false);
+  box(g,0.016,0.016,0.35,tr,-0.18,0.12,0.005,false);
+  box(g,0.016,0.016,0.35,tr, 0.18,0.12,0.005,false);
+  g.position.set(x,q,z);g.rotation.y=ry||0;(p||interni).add(g);
+  contatto(p||interni,x,q+0.01,z,0.7,0.7,0.45);return g;}
+function tavolo(p,x,z,ry,w,d,mt,q,hh,gambeNere){
+  const g=new THREE.Group(),h=hh||0.76;
+  const t=new THREE.Mesh(geoSmussata(w,0.05,d,0.015),mt);
+  t.position.y=h;t.castShadow=true;g.add(t);
+  const mg=gambeNere?lam(0x26262a):lam(0x4a4a4c);
+  [[-w/2+0.12,-d/2+0.1],[w/2-0.12,-d/2+0.1],[-w/2+0.12,d/2-0.1],[w/2-0.12,d/2-0.1]].forEach(q2=>
+    box(g,0.055,h-0.03,0.055,mg,q2[0],(h-0.03)/2,q2[1],false));
+  g.position.set(x,q,z);g.rotation.y=ry||0;(p||interni).add(g);
+  contatto(p||interni,x,q+0.012,z,w+0.4,d+0.4,0.55);return g;}
+function listello(p,len,x,y,z,ry){
+  const m=box(p,len,0.05,0.03,matLegno,x,y,z,false);m.rotation.y=ry||0;return m;}
+function quadro(p,t,w,h,x,y,z,ry){
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),lam(0xffffff,{map:t,transparent:true}));
+  m.position.set(x,y,z);m.rotation.y=ry||0;(p||interni).add(m);return m;}
+function matPav(pal,n,rx,ry,celle){
+  const t=tex(texScacchi(pal,n,celle),true);t.repeat.set(rx,ry);
+  return new THREE.MeshPhongMaterial({map:t,shininess:28,specular:0x2e2e2e,side:THREE.DoubleSide});}
+function pavChiaro(w,d){const t=texChiaro60.clone();t.needsUpdate=true;
+  t.repeat.set(Math.max(1,Math.round(w/0.6)),Math.max(1,Math.round(d/0.6)));
+  return lam(0xffffff,{map:t});}
+function texAlzataTab(riga){
+  const c=mkCanvas(320,34),g=c.getContext('2d');
+  const col=['#C0392B','#2F5FAE','#3F8F3A','#E8B41E','#D8752A',
+             '#7A4A9A','#1E9E9E','#C05080','#5F9E6A','#E8622A'];
+  g.fillStyle='#EFE9DD';g.fillRect(0,0,320,34);
+  for(let k=0;k<10;k++){
+    g.fillStyle=col[(riga+k)%10]; g.fillRect(k*32+2,3,28,28);
+    g.fillStyle='#fff';g.font='bold 15px Lexend, sans-serif';g.textAlign='center';
+    g.fillText(String(riga*(k+1)),k*32+16,23);}
+  return tex(c,false);}
+function biliardino(p,x,z,ry,col,q){
+  const g=new THREE.Group();
+  const c=new THREE.Mesh(geoSmussata(1.5,0.42,0.9,0.03),col);
+  c.position.y=0.85;c.castShadow=true;g.add(c);
+  box(g,1.34,0.02,0.74,lam(0x4a8a4a),0,1.07,0,false);
+  [[-.62,-.34],[.62,-.34],[-.62,.34],[.62,.34]].forEach(w=>
+    box(g,0.09,0.66,0.09,lam(0x333a40),w[0],0.33,w[1],false));
+  for(let i=0;i<6;i++){
+    const a=new THREE.Mesh(new THREE.CylinderGeometry(0.016,0.016,1.4,6),lam(0xc9ccd0));
+    a.rotation.z=Math.PI/2;a.position.set(0,1.13,-0.3+i*0.12);g.add(a);
+    const mn=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.12,6),lam((i%2)?0xc23a34:0x2b5cae));
+    mn.rotation.z=Math.PI/2;mn.position.set((i%2)?0.76:-0.76,1.13,-0.3+i*0.12);g.add(mn);}
+  g.position.set(x,q,z);g.rotation.y=ry||0;(p||interni).add(g);
+  contatto(p||interni,x,q+0.012,z,1.9,1.3,0.6);return g;}
+
+
+/* ================== LE AULE ============================================
+   primopiano.html conteneva SOLO il corridoio: le aule non c'erano mai
+   state. Tornano dal backup, sulle stesse coordinate del rilievo che usa
+   il corridoio nuovo — divisori a -15,72 · -9,29 · -2,93 · 3,42 · 9,77,
+   profondita' 8,08 — e sulle quote corrette (Q_ALTA = 3,42).
+   ====================================================================== */
+(function auleSecondaria(){
   const g=new THREE.Group();interni.add(g);
-  const zc0=30.9, zc1=32.6;                    /* il corridoio di servizio  */
-  vano(g,-52.0,-25.2,zc0,zc1,pav60(26.8,1.7),Q_ALTA,8,'liscio');
-  for(let i=0;i<5;i++) plafo(g,-50+i*6,(zc0+zc1)/2,SOFF,0,'sosp');
-  box(g,26.8,SOFF-Q_ALTA,0.16,matBiancoInt,-38.6,(SOFF+Q_ALTA)/2,zc1,false);
-  /* i due vani del laboratorio di informatica + l'aula di musica */
-  const AMB=[[-51.2,-44.2,'informatica'],[-44.2,-37.1,'informatica'],
-             [-37.1,-30.0,'musica']];
-  AMB.forEach((a,i)=>{
-    vano(g,a[0],a[1],25.0,zc0,pavChiaro(a[1]-a[0],zc0-25.0),Q_ALTA,4);
-    box(g,0.16,SOFF-Q_ALTA,zc0-25.0,matCrema,a[1],(SOFF+Q_ALTA)/2,(25.0+zc0)/2,false);
-    box(g,a[1]-a[0],1.05,0.10,matFasciaVerde,(a[0]+a[1])/2,Q_ALTA+0.52,25.09,false);
-    porta(g,matPortaRossa,(a[0]+a[1])/2,Q_ALTA,zc0-0.1,Math.PI,(i===0)?0.7:0);
-    box(g,3.0,1.10,0.05,lam(0xF6F5F0),(a[0]+a[1])/2,Q_ALTA+1.62,25.10,false);
-    for(let k=0;k<3;k++) plafo(g,a[0]+1.6+k*2.2,(25.0+zc0)/2,SOFF,Math.PI/2,'inc');
-    if(a[2]==='informatica'){
-      /* i banchi coi computer, in due file lungo le pareti */
-      for(let r=0;r<2;r++)for(let c=0;c<4;c++){
-        const bx=a[0]+1.2+c*1.5, bz=26.2+r*2.4;
-        tavolo(g,bx,bz,0,1.35,0.70,lam(0xE4E0D4),Q_ALTA,0.74,false);
-        box(g,0.40,0.30,0.04,lam(0x2A2C30),bx,Q_ALTA+0.92,bz-0.16,false);
-        box(g,0.14,0.03,0.10,lam(0x44464A),bx,Q_ALTA+0.76,bz+0.16,false);
-        sedia(g,bx,bz+0.72,Math.PI,(r+c)%2?cVerde:cBluS,Q_ALTA);}
-    } else {
-      /* l'aula di musica: sedie in semicerchio e il pianoforte verticale */
-      box(g,1.45,1.15,0.62,lam(0x3A2A22),(a[0]+a[1])/2,Q_ALTA+0.58,25.6,true);
-      box(g,1.30,0.06,0.16,lam(0xF2F0E8),(a[0]+a[1])/2,Q_ALTA+0.72,25.30,false);
-      for(let k=0;k<7;k++){
-        const ang=-0.9+k*0.3, R=2.7;
-        sedia(g,(a[0]+a[1])/2+Math.sin(ang)*R,26.4+Math.cos(ang)*R*0.55,
-              Math.PI+ang,(k%2)?cGialla:cVerde,Q_ALTA);}
-    }});
-  /* LABORATORIO DI SCIENZE, nel corpo che sporge a sud */
-  vano(g,-30.1,-24.2,32.8,39.0,pavChiaro(5.9,6.2),Q_ALTA,4);
-  for(let k=0;k<2;k++) plafo(g,-27.1,34.2+k*3,SOFF,0,'inc');
-  box(g,5.9,1.05,0.10,matFasciaVerde,-27.1,Q_ALTA+0.52,32.89,false);
-  for(let r=0;r<2;r++)for(let c=0;c<2;c++){
-    const bx=-29.0+c*2.4, bz=34.6+r*2.2;
-    tavolo(g,bx,bz,0,1.9,0.85,lam(0x3F4A44),Q_ALTA,0.86,false);
-    box(g,0.30,0.16,0.30,lam(0xD8D5CC),bx-0.5,Q_ALTA+0.94,bz,true);}
-  porta(g,matPortaRossa,-27.1,Q_ALTA,32.9,0,0);
+  const zc0=U_NZ0;
+  /* LE QUATTRO AULE. I divisori sono quelli della tavola, riportati con la
+     conversione vera: 14,78 · 21,21 · 27,57 · 33,92 · 40,27 meno 30,5.
+     La profondita' e' 8,08 (Z -12,553 .. -4,469), non 9,53: le avevo
+     allungate a occhio verso nord. Quattro aule da 6,4 x 8,1 = 51,8 mq,
+     che e' la quota "50,68 mq" scritta in tavola. */
+  const DIV=[-15.72,-9.29,-2.93,3.42,9.77], za0=-13.48;
+  for(let i=0;i<DIV.length-1;i++){
+    const ax0=DIV[i],ax1=DIV[i+1],acx=(ax0+ax1)/2;
+    vano(g,ax0,ax1,za0,zc0,pavChiaro(ax1-ax0,zc0-za0),Q_ALTA,4);
+    box(g,0.16,U_SOF-Q_ALTA,zc0-za0,matGialloAula,ax1,(U_SOF+Q_ALTA)/2,(za0+zc0)/2,false);
+    /* 4889/4891: crema sopra, fascia GRIGIO-VERDE sotto — e la fascia GIRA
+       su tutte le pareti, non solo su quella di fondo. */
+    box(g,ax1-ax0,1.05,0.10,matFasciaVerde,acx,Q_ALTA+0.52,za0+0.09,false);
+    box(g,ax1-ax0,1.05,0.10,matFasciaVerde,acx,Q_ALTA+0.52,zc0-0.09,false);
+    [ax0,ax1].forEach(px=>{
+      const f=box(g,zc0-za0,1.05,0.10,matFasciaVerde,px,Q_ALTA+0.52,(za0+zc0)/2,false);
+      f.rotation.y=Math.PI/2;});
+    /* 4883/4899: nella SECONDARIA le porte sono CHIARE a filo muro. Le
+       rosso corallo stanno nella Primaria, ed e' li' che le rimetto. */
+    porta(g,matPortaSec,acx+2.1,Q_ALTA,zc0-0.1,Math.PI,(i===1)?0.7:0);
+    /* 4889/4890/4892: la lavagna e' BIANCA (LIM) con la cornice chiara —
+       non la lavagna verde scuro che avevo messo. */
+    box(g,3.2,1.15,0.05,lam(0xF6F5F0),acx,Q_ALTA+1.62,za0+0.10,false);
+    box(g,3.34,1.29,0.03,lam(0xC8C4BA),acx,Q_ALTA+1.62,za0+0.08,false);
+    box(g,3.4,0.09,0.10,matLegno,acx,Q_ALTA+0.94,za0+0.14,false);
+    /* 4890: la TV a parete, di fianco alla lavagna */
+    box(g,1.05,0.62,0.07,lam(0x24262A),acx+2.4,Q_ALTA+1.75,za0+0.11,false);
+    /* 4890: il carrello metallico e i cestini della differenziata in fondo */
+    box(g,0.52,0.90,0.42,lam(0xBFC3C8),ax1-0.6,Q_ALTA+0.45,zc0-0.7,true);
+    [[0x2E8B57,0],[0x2B5CAE,0.42],[0xD8A02A,0.84]].forEach(q=>
+      box(g,0.34,0.44,0.30,lam(q[0]),ax0+0.5+q[1],Q_ALTA+0.22,zc0-0.55,true));
+    tavolo(g,acx,za0+1.5,0,1.5,0.7,matLegno,Q_ALTA,0.76,true);
+    sedia(g,acx,za0+2.2,Math.PI,cLegno,Q_ALTA);
+    /* i banchi: quattro file da tre, sedie lime e blu */
+    for(let r=0;r<4;r++)for(let c=0;c<3;c++){
+      const bx=ax0+1.5+c*1.75, bz=za0+3.2+r*1.5;
+      banco(g,bx,bz,0,lam(0xEDE8D8),Q_ALTA);
+      sedia(g,bx,bz+0.68,Math.PI,(r+c)%2?cVerde:cBluS,Q_ALTA);}
+    for(let k=0;k<3;k++) plafo(g,ax0+1.6+k*2.1,(za0+zc0)/2,U_SOF,Math.PI/2,'inc');
+    /* finestre sul fronte nord: qui c'e' il muro esterno del corpo */
+    box(g,ax1-ax0,0.95,0.14,matCrema,acx,Q_ALTA+0.48,za0,false);}
+})();
+
+(function auleAlaEst(){
+  const g=new THREE.Group();interni.add(g);
+  const cx1=U_EX1, x1=22.23, z0=U_NZ0;
+  /* aule sul lato est */
+  for(let i=0;i<4;i++){
+    const az0=z0+4.2+i*8.6, az1=az0+8.08, q=(az0<U_ZGRAD)?Q_ALTA:Q_ALTA+U_SALTO;
+    vano(g,cx1,x1,az0,az1,pavChiaro(x1-cx1,az1-az0),q,4);
+    box(g,x1-cx1,0.16,0.16,matCrema,(cx1+x1)/2,q+0.02,az1,false);
+    porta(g,matPortaSec,cx1+0.1,q,az0+1.6,Math.PI/2,0);}
+  /* le aste portalavori le posa corridoioU(): erano rimaste qui e usavano
+     una z1 che non esiste piu' — un solo ReferenceError e lo script muore
+     a meta', con Q_ALTA gia' definito e CORPI no. */
+})();
+
+(function primaria(){
+  const g=new THREE.Group();interni.add(g);
+  /* IL BRACCIO OVEST della U — x[-61,80 · -55,50], misurato fra i due muri
+     del rilievo (X -31,297 e -25,009, meno 30,5). Stava 3 m troppo a est.
+     Parte da z=-5,40, cioe' dal filo del braccio nord: cosi' l'angolo e'
+     un angolo vero e si gira senza incontrare niente.
+     Le porte delle aule cadono dove il muro X=-31,297 e' interrotto:
+     Z -4,16..-2,0 · 1,75..5,66 · 7,71..11,62 · 13,66..17,57 · 19,62..23,53. */
+  const z0=U_NZ0, z1=U_OZ1;
+  /* il CORRIDOIO (pavimento, vetrata sulla corte, plafone) lo costruisce
+     corridoioU(): qui restano le aule, gli arredi e la scala. */
+  const sx0=U_OX0, sx1=U_OX1;                   /* il corridoio-salone      */
+  const x0=-70.7;                               /* le aule, a ovest         */
+  /* LE AULE, coi divisori del rilievo: i setti stanno a Z 1,75 · 7,46 ·
+     13,41 · 19,37 (mezzeria dei due fili), che meno 0,93 danno queste. */
+  const DZ=[z0,0.82,6.53,12.48,18.44,z1];
+  for(let i=0;i<DZ.length-1;i++){
+    const az0=DZ[i],az1=DZ[i+1];
+    vano(g,x0,sx0,az0,az1,matPav(palPrimaria,3,(sx0-x0)/1.2,(az1-az0)/1.2,4),Q_ALTA,6);
+    box(g,sx0-x0,U_SOF-Q_ALTA,0.16,matGialloPrim,(x0+sx0)/2,(U_SOF+Q_ALTA)/2,az1,false);
+    /* stipiti ARANCIO e porte, come nel video */
+    box(g,1.55,2.4,0.24,matArancioPrim,sx0-0.85,Q_ALTA+1.2,az0+1.6,false);
+    porta(g,matPortaRossa,sx0-0.1,Q_ALTA,az0+1.6,-Math.PI/2,(i===2)?0.75:0);
+    box(g,3.0,1.1,0.06,lam(0x2E3A34),(x0+sx0)/2,Q_ALTA+1.55,az0+0.12,false);
+    for(let r=0;r<3;r++)for(let c=0;c<3;c++){
+      banco(g,x0+2.2+c*1.8,az0+2.6+r*1.5,0,lam(0xEDE8D8),Q_ALTA);
+      sedia(g,x0+2.2+c*1.8,az0+3.28+r*1.5,Math.PI,(r+c)%2?cGialla:cVerde,Q_ALTA);}}
+  /* parete del salone verso le aule: GIALLO/ARANCIO forte (dal video) */
+  box(g,0.16,U_SOF-Q_ALTA,z1-z0,matGialloPrim,sx0,(U_SOF+Q_ALTA)/2,(z0+z1)/2,false);
+  /* 4847/4848/4850/4856: sotto l'arancione corre una ZOCCOLATURA GIALLA
+     continua, alta un metro, su tutta la parete delle aule. */
+  box(g,0.10,1.02,z1-z0,lam(0xF0A81E),sx0+0.09,Q_ALTA+0.51,(z0+z1)/2,false);
+  box(g,0.12,0.05,z1-z0,lam(0xD98E12),sx0+0.10,Q_ALTA+1.04,(z0+z1)/2,false);
+  listello(g,30,sx0+0.09,Q_ALTA+1.55,3,Math.PI/2);
+  ancoraCase=quadro(g,texCase,3.4,2.55,sx0+0.1,Q_ALTA+1.9,6.0,Math.PI/2);
+  ancoraBiliardino=biliardino(g,-57.6,6.0,0.04,lam(0xA8C49A),Q_ALTA);
+  biliardino(g,-57.2,10.5,-0.10,lam(0xE8E6DE),Q_ALTA);
+  quadro(g,texCuore,2.6,0.42,sx0+0.1,Q_ALTA+2.5,15.0,Math.PI/2);
+  for(let i=0;i<6;i++) plafo(g,(sx0+sx1)/2,z0+3+i*5.6,U_SOF,Math.PI/2,'inc');
+  /* tavoli e sedie del salone */
+  for(let i=0;i<4;i++){
+    const z=-2+i*4.6;
+    tavolo(g,-57.0,z,0,2.2,0.85,lam(0xd9c39a),Q_ALTA,0.76,true);
+    sedia(g,-57.6,z-0.72,0,(i%2)?cGialla:cVerde,Q_ALTA);
+    sedia(g,-56.4,z+0.72,Math.PI,(i%2)?cVerde:cGialla,Q_ALTA);}
+  /* ===== SCALA DELLE TABELLINE (IMG_4982) ==============================
+     In fondo al salone, in vista, addossata alla parete grigio antracite.
+     Gradini in travertino chiaro, i quadretti numerati sulle prime dieci
+     alzate, corrimano inox sul muro, colonna tonda sul filo libero, e in
+     cima la parete arancio con la scritta "Solo chi sogna puo' volare". */
+  (function tabelline(){
+    /* POSIZIONE DALL'ASSONOMETRIA ANNOTATA (primopiano3d): l'etichetta
+       "Scala con tabelline" punta all'ANGOLO NORD-OVEST della U, dove il
+       braccio della Primaria incontra quello nord, sotto la palestra.
+       L'avevo messa prima in mezzo al braccio ovest col muro sulla mezzeria
+       (e la parete arancio di testata che tagliava il passaggio), poi 12 m
+       troppo a sud. Qui la rampa parte da z=+4,0 e sale verso nord fino a
+       z=-0,8, cioe' finisce nell'angolo. Resta addossata alla parete ovest
+       come in 4982: davanti restano 3,5 m di corridoio netto. */
+    const nNum=10,nTot=16,alz=0.19,ped=0.30,W=2.4;
+    const xC=-60.2, zIn=4.0, trav=lam(0xE8E2D4);
+    box(g,0.18,U_SOF-Q_ALTA,7.2,lam(0x4E5155),xC-W/2-0.12,(U_SOF+Q_ALTA)/2,zIn+2.6,false);
+    box(g,W+0.9,0.16,1.5,trav,xC,Q_ALTA+0.08,zIn+0.55,true);
+    for(let i=0;i<nTot;i++){
+      const zz=zIn-ped*i, yy=Q_ALTA+0.16+alz*i;
+      box(g,W,alz,ped,trav,xC,yy+alz/2,zz-ped/2,true);
+      if(i<nNum){
+        const a2=new THREE.Mesh(new THREE.PlaneGeometry(W,alz),
+          lam(0xffffff,{map:texAlzataTab(i+1)}));
+        a2.position.set(xC,yy+alz/2,zz+0.004);g.add(a2);}}
+    const zFin=zIn-ped*nTot;
+    box(g,W+0.6,U_SOF-Q_ALTA,0.18,lam(0xE8862A),xC,(U_SOF+Q_ALTA)/2,zFin-0.3,false);
+    quadro(g,texSogna,1.5,0.7,xC,Q_ALTA+1.9,zFin-0.2,0);
+    const inoxT=new THREE.MeshPhongMaterial({color:0xc6cad0,shininess:110,specular:0xffffff});
+    const ang=Math.atan2(alz,ped);
+    [[0,8],[8,nTot]].forEach(seg=>{
+      const L=ped*(seg[1]-seg[0]), zm=zIn-ped*(seg[0]+seg[1])/2;
+      const c=new THREE.Mesh(new THREE.CylinderGeometry(0.026,0.026,L+0.4,10),inoxT);
+      c.rotation.x=Math.PI/2-ang;
+      c.position.set(xC-W/2+0.12,Q_ALTA+0.16+alz*(seg[0]+seg[1])/2+0.95,zm);g.add(c);});
+    const col=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,U_SOF-Q_ALTA,12),inoxT);
+    col.position.set(xC+W/2+0.25,(U_SOF+Q_ALTA)/2,zIn-0.15);g.add(col);
+    const vano2=new THREE.Mesh(new THREE.BoxGeometry(W+0.4,1.8,ped*nTot+0.6),
+      new THREE.MeshBasicMaterial({color:0x1c1a18,side:THREE.BackSide}));
+    vano2.position.set(xC,U_SOF+0.02,(zIn+zFin)/2);g.add(vano2);
+    contatto(g,xC,Q_ALTA+0.012,(zIn+zFin)/2,W+1.4,ped*nTot+1.5,0.4);
+  })();
 })();
 
 /* ===================== CACCIA AL TESORO: le tappe ======================= */
@@ -4285,10 +4059,10 @@ const LUOGHI=[
   ['Vista dall\'alto',[30,46,64],[-25,0,0]],
   ['Ingresso Scuola',[-22.6,4,-33],[-22.6,3,-19]],
   ['Campo Basket',[-8.6,2.6,18],[-8.6,3.2,-2]],
-  ['Scuola Primaria',[-57.0,5.4,16],[-57.0,5.0,-6]],
-  ['Direzione',[-26.0,5.2,-7.0],[-26.2,4.9,-14.5]],
-  ['Corridoio del primo piano',[-30.0,5.2,-4.4],[10.0,4.9,-4.4]],
-  ['Scuola Secondaria',[16.4,5.4,14],[16.4,5.0,-6]],
+  ['Scuola Primaria',[-58.6,5.04,18],[-58.6,4.9,-4]],
+  ['Direzione',[-30.0,5.04,-2.95],[-20.0,4.9,-2.95]],
+  ['Corridoio del primo piano',[-40.0,5.04,-2.95],[12.0,4.9,-2.60]],
+  ['Scuola Secondaria',[12.7,5.04,22],[12.7,5.2,-4]],
   ['Campo Calcio',[-26,3,80],[-26,3,40]],
   ['Piscine Andreana',[58,18,34],[60,2,-8]],
   ['Portico e le due corti',[-28.1,2.6,26],[-28.1,2.2,-4]]
