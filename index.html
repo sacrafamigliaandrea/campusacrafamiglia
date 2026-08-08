@@ -491,6 +491,15 @@ function scava(x0,x1,z0,z1,y0,y1,m,omb){
     box(mondo,bx-ax,y1-y0,bz-az,m,(ax+bx)/2,(y0+y1)/2,(az+bz)/2,omb);
   }
 }
+/* IL TAGLIO NON VA MAI ALLA QUOTA DEL PAVIMENTO. Tagliando la massa
+   esattamente a PAV, la sua faccia superiore finisce COMPLANARE al pavimento
+   del corridoio: due superfici opache alla stessa profondita', e a ogni passo
+   il pavimento a scacchi si sfarina in strisce che cambiano a ogni fotogramma
+   (z-fighting). Misurato: due colpi a y=3.420 nello stesso punto, l'ocra
+   dell'ala ovest e gli scacchi. Il taglio sta 8 cm piu' in basso — sotto il
+   solaio del corridoio, che comincia a 3,07 — cosi' le due facce non si
+   incontrano mai. */
+const TAGLIO = 0.08;
 /* la massa di un corpo di fabbrica: piena sotto, scavata nella fascia del
    corridoio, piena di nuovo sopra il controsoffitto */
 function massa(x0,x1,z0,z1,h,col,omb){
@@ -498,9 +507,10 @@ function massa(x0,x1,z0,z1,h,col,omb){
   if(h<=PAV || !BRACCI_P1.some(a=>x1>a[0]&&x0<a[1]&&z1>a[2]&&z0<a[3])){
     box(mondo,w,h,d,m,cx,h/2,cz,omb); return;             /* non lo tocca */
   }
-  box(mondo,w,PAV,d,m,cx,PAV/2,cz,omb);                   /* sotto: pieno  */
-  scava(x0,x1,z0,z1,PAV,Math.min(SOF,h),m,omb);           /* la fascia     */
-  if(h>SOF) box(mondo,w,h-SOF,d,m,cx,(SOF+h)/2,cz,omb);   /* sopra: pieno  */
+  const y0=PAV-TAGLIO, y1=Math.min(SOF+TAGLIO,h);
+  box(mondo,w,y0,d,m,cx,y0/2,cz,omb);                     /* sotto: pieno  */
+  scava(x0,x1,z0,z1,y0,y1,m,omb);                         /* la fascia     */
+  if(h>y1) box(mondo,w,h-y1,d,m,cx,(y1+h)/2,cz,omb);      /* sopra: pieno  */
 }
 
 (function cielo(){
@@ -2468,6 +2478,18 @@ const M = {
   arancioF  : mat(0xE8862A),
   bianco    : mat(0xF6F4EE)
 };
+/* IL GRADINO PIU' ALTO DELLA GRADINATA E' COMPLANARE AL PAVIMENTO RIALZATO:
+   tutti e due stanno a PAV+SALTO, e il poligono del gradino — che e' l'area
+   OLTRE la sua retta — si estende fino in fondo al braccio est. Due superfici
+   opache alla stessa profondita' sfarinano in strisce che cambiano a ogni
+   fotogramma. La geometria non si tocca (quella gradinata e' costata cinque
+   tentativi): si dice al depth buffer chi sta dietro.
+   L'offset e' POSITIVO, cioe' spinge indietro i gradini: dove il gradino piu'
+   alto e il pavimento coincidono deve vincere IL PAVIMENTO, che porta la
+   texture del gres. Col segno opposto il fastidio spariva lo stesso, ma tutto
+   il tratto rialzato diventava una campitura grigia piatta. */
+M.gresGrad = mat(0x7E7A75,{polygonOffset:true,polygonOffsetFactor:2,
+                           polygonOffsetUnits:2});
 
 /* ====================== i pezzi del corridoio ===========================
    tre primitive, usate da tutti e tre i bracci: e' la ragione per cui qui
@@ -2648,7 +2670,7 @@ function plafone(x,z,q,ry){
     sh.lineTo(EX0, -EZ1);
     sh.closePath();
     const geo=new THREE.ExtrudeGeometry(sh,{depth:h,bevelEnabled:false});
-    const m=new THREE.Mesh(geo,M.gres);
+    const m=new THREE.Mesh(geo,M.gresGrad);
     m.rotation.x=-Math.PI/2; m.position.y=PAV;
     m.castShadow=true; m.receiveShadow=true; piano1.add(m);
     /* il naso: una riga chiara a filo dello spigolo, non un listello */
@@ -2779,17 +2801,12 @@ function texAlzata(n){
     const c=new THREE.Mesh(new THREE.CylinderGeometry(0.085,0.085,3.00,14),M.inox);
     c.position.set(q[0],PAV+1.50,q[1]); c.castShadow=true; g.add(c);
   });
-  /* IL TAVOLONE di legno scuro, accanto alla ringhiera */
-  (function tavolone(x,z){
-    boxP(g,3.6,0.09,0.95,mat(0x6B4A2E),x,PAV+0.76,z,true);
-    [[-1.6,-0.38],[1.6,-0.38],[-1.6,0.38],[1.6,0.38]].forEach(q=>
-      boxP(g,0.09,0.76,0.09,mat(0x5A3E26),x+q[0],PAV+0.38,z+q[1],false));
-    /* sedie solo alle TESTATE: sul lato corridoio ruberebbero il passaggio */
-    [-2.25,2.25].forEach(o=>{
-      boxP(g,0.42,0.05,0.44,mat(0x4E3623),x+o,PAV+0.46,z,true);
-      boxP(g,0.05,0.44,0.44,mat(0x4E3623),x+o+(o>0?0.2:-0.2),PAV+0.70,z,true); });
-    contattoP(g,x,PAV,z,5.2,1.8);
-  })(XMEZZ+5.6, (vz0+vz1)/2);   /* oltre la TESTATA del vano, in asse */
+  /* IL TAVOLONE di legno scuro e le sue due sedie SONO STATI TOLTI (Andrea).
+     Stavano a (XMEZZ+5,60 · in asse col vano), oltre la testata del ballatoio.
+     Era anche l'appoggio della Coppa delle Case, l'ultima tappa: la Coppa ha
+     un podio di pietra suo e adesso sta a terra, in mezzo al passaggio —
+     vedi TAPPE[9], dove l'indizio e' stato riscritto di conseguenza. Un
+     oggetto che sparisce si porta dietro tutto quello che ci stava sopra. */
   /* ===== LA SCALA CHE SCENDE AL PIANO TERRA ==========================
      In primopiano3d sta FRA IL BALLATOIO E LA SCALA DELLE TABELLINE, cioe'
      nel tratto ovest del braccio nord. Non e' la rampa dentro il vuoto:
@@ -2874,8 +2891,7 @@ function texAlzata(n){
     [-0.78,0.78].forEach(o=>boxP(g,0.08,0.44,0.44,mat(0x6E6A64),x+o,PAV+0.22,z+0.22,false));
     contattoP(g,x,PAV,z+0.2,2.2,1.0);
   })(XMEZZ-13.5, NZ0+0.45);
-  /* LA PORTA DEGLI UFFICI, davanti al tavolone: quello che c'e' dietro non
-     si costruisce. */
+  /* LA PORTA DEGLI UFFICI: quello che c'e' dietro non si costruisce. */
   /* LA PORTA DEGLI UFFICI (terza foto): non e' una porta chiara come quelle
      delle aule — e' un serramento in LEGNO SCURO con i VETRI, a doppio
      battente, dentro un vano con lo stipite scuro e il sopraluce. */
@@ -3576,9 +3592,11 @@ const TAPPE=[
     imparato:'Il giardino dell\'Infanzia è un cortile protetto da tutti i lati: i più piccoli possono uscire senza mai incrociare il traffico della scuola grande. A chiuderlo è il portico di collegamento, che non è una tettoia qualunque: sul disegno di rilievo è largo 3,60 m per quasi 25 di sviluppo, ha i pilastri su tutti e due i fili e il soffitto diviso in campate dipinte di verde, blu, arancio e rosso. È lui a dividere in due il cuore del campus.' },
 
   { titolo:'Il cuore della scuola',
-    indizio:'Torna al primo piano, esattamente a metà del corridoio lungo: c\'è un vuoto nel pavimento, con quattro colonne d\'acciaio e la ringhiera blu tutt\'intorno, e da lì si vede giù fino al piano terra. Poco più in là, verso ponente, il soffitto va a fasce celesti, salmone e gialle. Lì accanto, sul tavolone di legno scuro, ti aspetta la Coppa delle Case.',
-    pos:[-17.80,4.23,-2.95], da:[-13.0,5.04,-2.95],
-    zona:'Primo piano, il vano scala a metà del corridoio lungo: il tavolone di legno scuro.',
+    indizio:'Torna al primo piano, esattamente a metà del corridoio lungo: c\'è un vuoto nel pavimento, con quattro colonne d\'acciaio e la ringhiera blu tutt\'intorno, e da lì si vede giù fino al piano terra. Poco più in là, verso ponente, il soffitto va a fasce celesti, salmone e gialle. Appena passata la ringhiera, in mezzo al passaggio, ti aspetta la Coppa delle Case sul suo podio di pietra.',
+    /* stava sul tavolone di legno scuro, che Andrea ha fatto togliere: la
+       Coppa ha un podio suo e adesso poggia per terra (y = PAV). */
+    pos:[-17.80,3.42,-2.95], da:[-13.0,5.04,-2.95],
+    zona:'Primo piano, subito a levante della ringhiera blu del vano scala.',
     cosa:'La Coppa delle Case: un calice dorato su un podio di pietra, con quattro colonne di vetro coi colori delle Case.',
     zona3d:[-24,-13,-5.4,-0.5],
     imparato:'La Coppa delle Case si assegna alla Casa che nell\'anno ha raccolto più punti: Aquilablu, Querciaverde, Cerogiallo, Tassorosso. Ma la chiave del campus è un\'altra: saperlo attraversare. Ora sai da dove si entra, dove cambia quota il pavimento, perché le pareti cambiano colore e dove finisce la scuola.' }
@@ -3958,12 +3976,15 @@ function passabile(p){
 
 /* --- i luoghi della barra "Luoghi" ------------------------------------
    nomi come sulla mappa Campus_zone.png. Terzina: [nome, dove si sta,
-   dove si guarda]. Le sei voci del primo piano stanno all'altezza degli
-   occhi sul suo pavimento (3,42 + 1,62 = 5,04), cioe' ci si arriva A PIEDI:
-   e' il modo giusto di visitare un corridoio. */
-/* le mete a terra stanno all'ALTEZZA DEGLI OCCHI (1,62), non a tre o quattro
-   metri: cosi' si atterra e si prosegue a piedi. Restano in quota solo le due
-   viste d'insieme, che servono a guardare, non a camminare. */
+   dove si guarda].
+   Le voci del primo piano stanno all'altezza degli occhi sul suo pavimento
+   (3,42 + 1,62 = 5,04), cioe' ci si arriva A PIEDI: e' il modo giusto di
+   visitare un corridoio. Anche le mete a terra stanno a 1,62 e non a tre o
+   quattro metri, cosi' si atterra e si prosegue camminando; restano in quota
+   solo le due viste d'insieme, che servono a guardare, non a camminare.
+   "Primo piano · braccio nord" e' stato tolto (Andrea): il braccio nord si
+   attraversa comunque venendo da qualunque altra voce del piano, e in un
+   menu di dodici voci era una riga in piu' senza una meta sua. */
 const LUOGHI=[
   ['Vista dall\'alto',              [30,46,64],            [-25,0,0]],
   ['Ingresso Scuola',               [-22.6,1.62,-33],      [-22.6,2.6,-19]],
@@ -3971,7 +3992,6 @@ const LUOGHI=[
   ['Portico e le due corti',        [-28.1,1.62,26],       [-28.1,2.2,-4]],
   ['Campo Calcio',                  [-8.6,1.62,78],        [-8.6,2.5,40]],
   ['Piscine Andreana',              [58,18,34],            [60,2,-8]],
-  ['Primo piano · braccio nord',    [-40,5.04,-2.60],      [14,4.87,-2.45]],
   ['Primo piano · Primaria',        [-58.6,5.04,18.0],     [-58.6,4.72,-5.0]],
   ['Primo piano · Secondaria',      [12.7,5.41,24.0],      [12.7,5.24,-4.0]],
   ['Primo piano · la gradinata',    [12.7,5.04,6.20],      [12.7,4.52,-3.0]],
