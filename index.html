@@ -1031,8 +1031,13 @@ albero(-44,4,1.35);
   const cols=[0xd8d8d8,0x8a9098,0x2a2e34,0x4a5a78,0xb0b6bc,0x6a6e74,0xe8e8e8,0x3a4148];
   const rnd=seme(87);
   [-50.5,-44.5,-40.5,-34.5].forEach((z,k)=>{
-    for(let i=0;i<24;i++) if(rnd()<0.66)
-      auto(-34+i*5,z,(k%2)?Math.PI:0,cols[(rnd()*cols.length)|0]);});})();
+    for(let i=0;i<24;i++){ const px=-34+i*5;
+      /* LA CHIESA STA IN MEZZO AL PARCHEGGIO. Le quattro file partivano da
+         x=-34 e la prima auto finiva dentro la navata (x[-41,3 · -32,6]).
+         Il sagrato e i gradini vogliono il loro spazio: niente auto fra
+         -47 e -27. */
+      if(px>-47 && px<-27) continue;
+      if(rnd()<0.66) auto(px,z,(k%2)?Math.PI:0,cols[(rnd()*cols.length)|0]);}});})();
 /* NIENTE auto lungo il viale alberato dietro la scuola (correzione di Andrea):
    li' non c'e' parcheggio, e' solo la strada di servizio verso l'Arena. */
 /* FRUTTETO 80x60 oltre il parcheggio (§16): filari regolari di alberi bassi.
@@ -1968,87 +1973,313 @@ function faroLed(x,y,z,ry){
   contatto(mondo,bx,0.03,bz,bw+4,bd+4,0.5);
 })();
 
+/* ==========================================================================
+   LA CHIESA — rifatta sulle fotografie di "8. newfoto" (chiesa1/2/3)
+   --------------------------------------------------------------------------
+   QUELLA DI PRIMA ERA UN'ALTRA COSA: un volume in pietra con una LOGGIA AD
+   ARCONI davanti e un campanile sottinteso, dedotti da una ripresa obliqua e
+   da un'etichetta. Nelle tre fotografie non c'e' nessuna loggia e nessun
+   campanile. C'e' una chiesa degli anni Sessanta, e si legge tutta:
+
+   VOLUME (misurato sull'ortofoto zenitale `strumenti/campus_zen.png`,
+   0,20966 m/px, origine del modello a (1165,632) px):
+     navata  x[-41,3 · -32,6]  z[-49,8 · -19,1]   =  8,70 x 30,70
+     colmo in mezzeria, asse NORD-SUD, copertura in lamiera verde-grigia
+     (e' il #ABB6A3 che si legge sul satellite)
+     La FACCIATA sta a NORD, verso il piazzale, ed e' una LASTRA PIU' LARGA
+     della navata: in chiesa2 e chiesa3 il muro laterale rientra dietro la
+     lesena d'angolo in marmo. 12,40 di fronte su 8,70 di navata.
+   Il modello la teneva a (-51,5 · -34), cioe' 14 m piu' a ovest, sopra gli
+   alberi e il vialetto: la posizione veniva da una stima, non da una misura.
+
+   FACCIATA (chiesa1 frontale, chiesa3 d'angolo), dal basso in alto:
+     · zoccolo di intonaco chiaro;
+     · portale a DUE ANTE in legno scuro, a specchiature orizzontali, con
+       stipiti e architrave in marmo grigio;
+     · fascia di marmo con la scritta "1963 · I CENTENARIO DELLA CONGREGAZIONE";
+     · edicola: arco di mattoni attorno a una nicchia con il MOSAICO a fondo
+       oro (la Sacra Famiglia), incorniciato di pietra grigia;
+     · GRANDE ARCO CIECO in mattoni a corsi sottilissimi, che prende quasi
+       tutta la facciata; dentro l'arco e' mattone, fuori e' travertino chiaro;
+     · quattro FINESTRE ALTE E STRETTE a tutto sesto, due per lato: una sotto
+       l'anca dell'arco e una fuori, con mostre color crema e vetri grigi
+       divisi da traversi;
+     · LESENE D'ANGOLO in marmo grigio venato, a tutta altezza;
+     · TIMPANO a capanna in travertino, con cornicione scuro sporgente sui due
+       spioventi e una fascia ocra sul filo superiore;
+     · CROCE di ferro sul vertice;
+     · gradinata di pietra su tutto il fronte, con due corrimano neri.
+
+   FIANCHI (chiesa2): pannelli di intonaco VERDE-GRIGIO fra lesene di
+   mattoni, fascia di mattoni sotto la gronda, cornicione scuro sporgente,
+   pluviali scuri sulle lesene. Nessuna finestra sui fianchi visibile.
+   ========================================================================== */
 (function chiesa(){
-  const g=new THREE.Group();g.position.set(-51.5,0,-34);mondo.add(g);
-  const W=9.4, L=17, hM=7.2, alt=3.0;
-  const matMur=matPietra(3,3), matCorn=lam(0xcfc4ad);
-  /* navata: due muri lunghi e la testata sud */
-  solido(box(g,0.5,hM,L,matMur,-W/2,hM/2,2.5,true));
-  solido(box(g,0.5,hM,L,matMur, W/2,hM/2,2.5,true));
-  solido(box(g,W,hM,0.5,matMur,0,hM/2,11,true));
-  /* finestrelle alte sui fianchi */
-  for(let i=0;i<4;i++){[-W/2,W/2].forEach(px=>{
-    const f=box(g,0.1,1.5,0.7,lam(0x4a5560),px,4.9,-2+i*3.4,false);
-    box(g,0.12,1.7,0.9,matCorn,px+(px<0?0.03:-0.03),4.9,-2+i*3.4,false);
-    f.position.x=px+(px<0?0.06:-0.06);});}
-  /* FACCIATA a capanna, verso nord */
-  solido(box(g,W,hM,0.55,matMur,0,hM/2,-6,true));
-  const tim=new THREE.Shape();
-  tim.moveTo(-W/2,0);tim.lineTo(W/2,0);tim.lineTo(0,alt);tim.closePath();
-  const mt=new THREE.Mesh(new THREE.ShapeGeometry(tim),matMur);
-  mt.position.set(0,hM,-6.28);mt.rotation.y=Math.PI;g.add(mt);
-  /* cornice del timpano e marcapiano */
-  /* cornici inclinate del timpano: ruotate attorno al proprio centro, quindi
-     vanno posizionate a meta' dello spiovente, non all'angolo del muro */
-  [-1,1].forEach(sgn=>{
-    const lung=Math.hypot(W/2,alt)+0.25;
-    const c=box(g,lung,0.24,0.3,matCorn,sgn*W/4,hM+alt/2,-6.32,false);
-    c.rotation.z=-sgn*Math.atan2(alt,W/2);});
-  box(g,W+0.35,0.28,0.34,matCorn,0,hM-0.12,-6.32,false);
-  /* due finestre alte ad arco ai lati del portale */
-  [-2.55,2.55].forEach(px=>{
-    box(g,1.05,2.5,0.16,matCorn,px,4.5,-6.33,false);
-    const ac=new THREE.Mesh(new THREE.CylinderGeometry(0.525,0.525,0.16,14,1,false,0,Math.PI),matCorn);
-    ac.rotation.x=Math.PI/2;ac.rotation.y=-Math.PI/2;ac.position.set(px,5.75,-6.33);g.add(ac);
-    box(g,0.72,2.3,0.06,lam(0x3d4650),px,4.5,-6.42,false);
-    const av=new THREE.Mesh(new THREE.CylinderGeometry(0.36,0.36,0.06,14,1,false,0,Math.PI),lam(0x3d4650));
-    av.rotation.x=Math.PI/2;av.rotation.y=-Math.PI/2;av.position.set(px,5.75,-6.42);g.add(av);});
-  /* portale con archetto e gradini */
-  box(g,2.5,3.5,0.18,matCorn,0,1.75,-6.34,false);
-  const arp=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.25,0.18,16,1,false,0,Math.PI),matCorn);
-  arp.rotation.x=Math.PI/2;arp.rotation.y=-Math.PI/2;arp.position.set(0,3.5,-6.34);g.add(arp);
-  varco(box(g,1.9,3.15,0.1,lam(0x53381f),0,1.58,-6.44,false));
-  for(let i=0;i<3;i++) box(g,3.6-i*0.4,0.16,0.42,lam(0xc6bda7),0,0.08+i*0.16,-6.9-i*0.34,true);
-  /* tetto a due falde in coppi sulla navata */
-  /* la copertura della chiesa e' VERDE-GRIGIA (lamiera), non in coppi */
-  (function copertura(){
-    const sp=0.5, Le=L+2*sp, We=W+2*sp, hw=Le/2, hd=We/2, yt=hM+alt;
-    const mVerde=lam(0xA6BFA0);   /* verde chiaro, dalle viste 3D */
-    [[-1],[1]].forEach(q=>{
-      const f=new THREE.Mesh(new THREE.BoxGeometry(We/2+0.7,0.16,Le),mVerde);
-      /* la copertura era RIBALTATA (Andrea): le due falde scendevano dalla
-         parte sbagliata. Invertito il segno della pendenza. */
-      f.position.set(q[0]*W/4,hM+alt/2,2.5);
-      f.rotation.z=-q[0]*Math.atan2(alt,W/2);
-      f.castShadow=true;g.add(f);});
-    const cm=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,Le,8),lam(0x8CA886));
-    cm.rotation.x=Math.PI/2;cm.position.set(0,yt+0.05,2.5);g.add(cm);
-    const sh=new THREE.Shape();sh.moveTo(-W/2,0);sh.lineTo(W/2,0);sh.lineTo(0,alt);sh.closePath();
-    [[-6.28,Math.PI],[11.28,0]].forEach(t=>{
-      const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),lam(0xb3a894));
-      m.position.set(0,hM,t[0]);m.rotation.y=t[1];g.add(m);});
+  const W=8.70, L=30.70, WF=11.60, PF=1.20;      /* navata, fronte, spessore */
+  const H=11.00, ALT=1.70;                        /* gronda e monta del timpano */
+  const CX=-36.95, CZ=-34.45;                     /* centro, dall'ortofoto     */
+  const g=new THREE.Group(); g.position.set(CX,0,CZ); mondo.add(g);
+  const ZF=-L/2, ZR=L/2;                          /* filo facciata e testata   */
+
+  /* ------------------------------ materiali ----------------------------- */
+  /* mattoni a corsi SOTTILISSIMI: nelle foto il paramano e' fatto di mattoni
+     bassi e fitti, ed e' quello che da' alla facciata il suo "rigato" */
+  const texMattoni=(()=>{const c=mkCanvas(256,256),x=c.getContext('2d'),r=seme(1963);
+    x.fillStyle='#B9612E';x.fillRect(0,0,256,256);
+    for(let i=0;i<32;i++){const y=i*8;
+      x.fillStyle='#C9A98C';x.fillRect(0,y+6.4,256,1.6);          /* letto di malta */
+      for(let k=0;k<9;k++){const w=28.4,px=(k*28.4+(i%2?14:0))%256;
+        const t=r();
+        x.fillStyle=t<0.33?'#AE5628':(t<0.66?'#C2662F':'#B05A2A');
+        x.fillRect(px,y,w-1.2,6.4);}}
+    return tex(c,true);})();
+  const matMattoni=lam(0xffffff,{map:texMattoni});
+  function mattoni(rx,ry){const t=texMattoni.clone();t.needsUpdate=true;t.repeat.set(rx,ry);
+    return lam(0xffffff,{map:t});}
+  /* travertino chiaro dei pennacchi e del timpano: venature orizzontali */
+  const texTrav=(()=>{const c=mkCanvas(256,256),x=c.getContext('2d'),r=seme(77);
+    x.fillStyle='#DED4C0';x.fillRect(0,0,256,256);
+    for(let i=0;i<170;i++){x.fillStyle=r()<0.5?'rgba(190,180,158,.55)':'rgba(238,231,214,.5)';
+      x.fillRect(0,r()*256,256,0.7+r()*1.8);}
+    return tex(c,true);})();
+  function travertino(rx,ry){const t=texTrav.clone();t.needsUpdate=true;t.repeat.set(rx,ry);
+    return lam(0xffffff,{map:t});}
+  /* marmo grigio venato delle lesene d'angolo: venature VERTICALI */
+  const texMarmo=(()=>{const c=mkCanvas(256,256),x=c.getContext('2d'),r=seme(311);
+    x.fillStyle='#B7B9B6';x.fillRect(0,0,256,256);
+    for(let i=0;i<130;i++){x.fillStyle=r()<0.5?'rgba(140,142,142,.45)':'rgba(226,226,222,.5)';
+      x.fillRect(r()*256,0,0.8+r()*2.4,256);}
+    for(let i=0;i<10;i++){x.strokeStyle='rgba(120,124,126,.35)';x.lineWidth=1+r()*2;
+      x.beginPath();const px=r()*256;x.moveTo(px,0);
+      for(let y=0;y<256;y+=32)x.lineTo(px+(r()-0.5)*22,y);x.stroke();}
+    return tex(c,true);})();
+  function marmo(rx,ry){const t=texMarmo.clone();t.needsUpdate=true;t.repeat.set(rx,ry);
+    return lam(0xffffff,{map:t});}
+  const matVerde  = lam(0x8E948A);   /* i pannelli dei fianchi              */
+  const matCrema  = lam(0xEFE3C6);   /* le mostre delle finestre            */
+  const matCorn   = lam(0x565049);   /* il cornicione scuro                 */
+  const matOcra   = lam(0xE4CE96);   /* la fascia sul filo del timpano      */
+  const matPietra2= lam(0x9E9E97);   /* stipiti, architrave, fascia scritta */
+  const matLegno  = lam(0x5A3B27);   /* le due ante                         */
+  const matVetroC2= lam(0x93A0A6);   /* i vetri delle finestre alte         */
+  const matZocc   = lam(0xD6D2C8);   /* intonaco chiaro alla base           */
+  const matLamiera= lam(0xA6B0A2);   /* la copertura, verde-grigia          */
+  const matFerro  = lam(0x3A3632);
+
+  /* ---------------- forme: rettangolo con la testa a tutto sesto -------- */
+  function formaArco(w,h){                     /* origine in basso al centro */
+    const r=w/2, s=new THREE.Shape();
+    s.moveTo(-r,0); s.lineTo(-r,h-r);
+    s.absarc(0,h-r,r,Math.PI,0,true);
+    s.lineTo(r,0); s.closePath(); return s;
+  }
+  function estrudi(shape,sp,m,y,z,ry){
+    const o=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:sp,bevelEnabled:false}),m);
+    o.position.set(0,y,z); if(ry) o.rotation.y=ry; o.castShadow=true; g.add(o); return o;
+  }
+
+  /* ============================== LA NAVATA ============================= */
+  (function navata(){
+    const mFianco=mattoni(15,5);        /* box: piastrelle sull'intera faccia */
+    /* i due muri lunghi: pannelli verde-grigio fra lesene di mattoni */
+    [-1,1].forEach(s=>{
+      const px=s*W/2;
+      solido(box(g,0.36,H,L-PF,mFianco,px,H/2,(ZF+PF+ZR)/2,true));
+      /* i pannelli, appena rientrati */
+      const n=5, z0=ZF+PF+0.9, z1=ZR-0.9, passo=(z1-z0)/n;
+      for(let i=0;i<n;i++)
+        box(g,0.10,H-1.1-2.0,passo-0.9,matVerde,px+s*0.14,1.1+(H-1.1-2.0)/2,z0+passo*(i+0.5),false);
+      /* zoccolo di cemento e fascia di mattoni sotto la gronda: gia' nel
+         muro, qui solo lo zoccolo chiaro che nelle foto e' evidente */
+      box(g,0.13,1.10,L-PF,matZocc,px+s*0.13,0.55,(ZF+PF+ZR)/2,false);
+      /* pluviali scuri sulle lesene */
+      for(let i=1;i<n;i++){
+        const zz=z0+passo*i-0.45;
+        const t=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.075,H-0.2,8),matCorn);
+        t.position.set(px+s*0.22,(H-0.2)/2,zz); g.add(t);}
+    });
+    /* testata sud: la chiesa si appoggia al blocco della scuola */
+    solido(box(g,W,H,0.36,mFianco,0,H/2,ZR,true));
+    /* cornicione scuro sporgente su tutti e due i fianchi */
+    [-1,1].forEach(s=>box(g,0.46,0.42,L+0.3,matCorn,s*(W/2+0.10),H+0.06,(ZF+ZR)/2,false));
+    /* copertura a due falde in lamiera */
+    const half=Math.hypot(W/2+0.35,ALT);
+    [-1,1].forEach(s=>{
+      const f=box(g,half,0.16,L+0.5,matLamiera,s*(W/2+0.35)/2,H+ALT/2,(ZF+ZR)/2,true);
+      f.rotation.z=-s*Math.atan2(ALT,W/2+0.35);});
+    const cm=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,L+0.5,8),lam(0x8E988B));
+    cm.rotation.x=Math.PI/2; cm.position.set(0,H+ALT+0.06,(ZF+ZR)/2); g.add(cm);
+    /* i due timpani della falda, in mattoni */
+    const tim=new THREE.Shape();
+    tim.moveTo(-W/2,0); tim.lineTo(W/2,0); tim.lineTo(0,ALT); tim.closePath();
+    [[ZR-0.18,0],[ZF+PF,Math.PI]].forEach(q=>{
+      const m=new THREE.Mesh(new THREE.ShapeGeometry(tim),mFianco);
+      m.position.set(0,H,q[0]); m.rotation.y=q[1]; g.add(m);});
   })();
-  /* LA LOGGIA AD ARCONI sulla facciata: e' il segno per cui la chiesa si
-     riconosce in tutte le viste dall'alto, e mancava. */
-  (function loggia(){
-    const zf=-7.6, mAr=lam(0xDCD6C6), mOm=lam(0x5A5348);
-    for(let i=0;i<3;i++){
-      const px=-3.1+i*3.1;
-      box(g,2.5,3.0,0.20,mOm,px,1.5,zf+0.02,false);
-      const ar=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.25,0.20,18,1,false,0,Math.PI),mOm);
-      ar.rotation.x=Math.PI/2;ar.rotation.y=Math.PI/2;ar.position.set(px,3.0,zf+0.02);g.add(ar);
-      box(g,0.6,4.4,0.42,mAr,px-1.55,2.2,zf,false);}
-    box(g,0.6,4.4,0.42,mAr,4.45,2.2,zf,false);
-    box(g,W+0.9,0.42,0.52,mAr,0,4.55,zf,false);
-    box(g,W+1.4,0.24,0.62,lam(0xA6BFA0),0,4.85,zf-0.06,true);
-    contatto(mondo,-51.5,0.03,-41.6,11,3,0.45);})();
-  contatto(mondo,-51.5,0.03,-31.5,13,20,0.5);
-  /* cipressi ai lati della facciata */
-  [[-8.5,-5],[8.5,-5],[-8.5,4],[9,7]].forEach(q=>{
-    const c=new THREE.Mesh(new THREE.ConeGeometry(1.15,8.5,9),lam(0x33512f));
-    c.position.set(-51.5+q[0],4.25,-34+q[1]);c.castShadow=true;mondo.add(c);
-    contatto(mondo,-51.5+q[0],0.03,-34+q[1],3,3,0.5);});
+
+  /* ============================= LA FACCIATA ============================ */
+  (function facciata(){
+    const zf=ZF, sp=PF;                    /* la lastra: dal filo, spessa PF */
+    /* IL GRANDE ARCO PRENDE QUASI TUTTA LA FACCIATA: nelle foto arriva a
+       sfiorare le lesene d'angolo e sale fin sotto la cornice di gronda.
+       Era troppo piccolo, e sopra restava una fascia di travertino che
+       nella realta' non c'e'. */
+    const RA=4.35, YA=5.60;                /* arco: raggio esterno, imposta */
+    /* ATTENZIONE ALLE RIPETIZIONI. Su una ExtrudeGeometry l'UV che Three
+     genera E' LA COORDINATA DELLA SHAPE IN METRI: `repeat` vale allora
+     "quante volte per metro", cioe' 0,4 = una piastrella ogni 2,5 m. Su un
+     box l'UV va invece da 0 a 1 sulla faccia, e `repeat` e' il numero di
+     piastrelle sull'intera faccia. Con repeat(4,4) sull'estrusione i corsi
+     di mattoni venivano da 1,2 cm e la facciata usciva rigata di grigio. */
+  const mFacc=travertino(0.4,0.4), mArco=mattoni(0.5,0.5);
+
+    /* --- la lastra di travertino con il buco del grande arco ------------ */
+    const lastra=new THREE.Shape();
+    lastra.moveTo(-WF/2,0); lastra.lineTo(WF/2,0); lastra.lineTo(WF/2,H);
+    lastra.lineTo(-WF/2,H); lastra.closePath();
+    const buco=new THREE.Path();
+    buco.moveTo(-RA,0); buco.lineTo(-RA,YA);
+    buco.absarc(0,YA,RA,Math.PI,0,true);
+    buco.lineTo(RA,0); buco.lineTo(-RA,0);
+    lastra.holes.push(buco);
+    solido(estrudi(lastra,sp,mFacc,0,zf));
+
+    /* --- dentro il buco: il campo di mattoni, con l'archivolto ---------- */
+    const campo=formaArco(RA*2,YA+RA);
+    estrudi(campo,sp*0.72,mArco,0,zf+sp*0.14);
+
+    /* --- l'edicola del mosaico: arco di mattoni + nicchia --------------- */
+    const WE=2.20, YE=4.05, HE=4.85;       /* edicola: largh., quota, altezza */
+    const ed=formaArco(WE,HE);
+    const edB=new THREE.Path(); const rI=(WE-0.70)/2;
+    edB.moveTo(-rI,0); edB.lineTo(-rI,HE-0.35-rI);
+    edB.absarc(0,HE-0.35-rI,rI,Math.PI,0,true);
+    edB.lineTo(rI,0); edB.lineTo(-rI,0);
+    ed.holes.push(edB);
+    estrudi(ed,0.30,mArco,YE,zf-0.10);
+    /* la cornice di pietra della nicchia e il mosaico */
+    const nic=formaArco(WE-0.70,HE-0.35);
+    estrudi(nic,0.14,matPietra2,YE,zf-0.02);
+    (function mosaico(){
+      const c=mkCanvas(256,720),x=c.getContext('2d'),r=seme(1963);
+      /* il piano e' ruotato di PI per guardare a nord: se non si specchia
+         il disegno, le figure escono scambiate di lato */
+      x.translate(256,0); x.scale(-1,1);
+      const gr=x.createLinearGradient(0,0,0,720);
+      gr.addColorStop(0,'#E2C063');gr.addColorStop(.5,'#D8B44E');gr.addColorStop(1,'#C79E38');
+      x.fillStyle=gr;x.fillRect(0,0,256,720);
+      for(let i=0;i<2600;i++){x.fillStyle=r()<0.5?'rgba(255,240,190,.30)':'rgba(150,116,40,.22)';
+        x.fillRect((r()*32|0)*8,(r()*90|0)*8,7,7);}                 /* tessere */
+      /* le tre figure: al centro il piu' alto con le mani alzate, a sinistra
+         il manto verde e rosa, a destra il saio ocra (chiesa1) */
+      function figura(cx,cy,hh,ww,manto,veste,incarn,aureola){
+        if(aureola){x.fillStyle=aureola;x.beginPath();
+          x.arc(cx,cy-hh*0.46,ww*0.52,0,Math.PI*2);x.fill();}
+        x.fillStyle=veste;x.beginPath();
+        x.moveTo(cx-ww*0.34,cy+hh*0.5);x.lineTo(cx-ww*0.20,cy-hh*0.30);
+        x.lineTo(cx+ww*0.20,cy-hh*0.30);x.lineTo(cx+ww*0.34,cy+hh*0.5);x.closePath();x.fill();
+        x.fillStyle=manto;x.beginPath();
+        x.moveTo(cx-ww*0.46,cy+hh*0.5);x.lineTo(cx-ww*0.30,cy-hh*0.34);
+        x.lineTo(cx-ww*0.02,cy-hh*0.30);x.lineTo(cx-ww*0.06,cy+hh*0.5);x.closePath();x.fill();
+        x.fillStyle=incarn;x.beginPath();x.arc(cx,cy-hh*0.40,ww*0.20,0,Math.PI*2);x.fill();
+      }
+      figura(128,300,470,120,'#8C2F3A','#B23C46','#E0BB92','rgba(255,238,180,.85)');
+      figura( 84,430,360,100,'#2E5B3C','#C77A6A','#E5C49C','rgba(240,170,150,.75)');
+      figura(176,440,340, 96,'#8A6A2E','#C9A24E','#E0BB92','rgba(255,240,190,.75)');
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(WE-1.02,HE-0.72),
+        lam(0xffffff,{map:tex(c,false)}));
+      m.position.set(0,YE+(HE-0.72)/2+0.02,zf-0.06); m.rotation.y=Math.PI; g.add(m);
+    })();
+
+    /* --- la fascia con la scritta del 1963 ----------------------------- */
+    (function scritta(){
+      const c=mkCanvas(512,64),x=c.getContext('2d');
+      x.translate(512,0); x.scale(-1,1);   /* idem: qui e' scritta, e si leggerebbe al rovescio */
+      x.fillStyle='#A5A49C';x.fillRect(0,0,512,64);
+      x.fillStyle='#5E5C55';x.font='bold 22px Lexend, sans-serif';x.textAlign='center';
+      x.fillText('1963',256,24);
+      x.font='bold 17px Lexend, sans-serif';
+      x.fillText('I CENTENARIO DELLA CONGREGAZIONE',256,48);
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(2.55,0.34),
+        lam(0xffffff,{map:tex(c,false)}));
+      m.position.set(0,YE-0.20,zf-0.10); m.rotation.y=Math.PI; g.add(m);
+      box(g,2.75,0.40,0.16,matPietra2,0,YE-0.20,zf-0.02,false);
+    })();
+
+    /* --- il portale: stipiti di marmo e due ante di legno scuro --------- */
+    const HP=3.35, WP=2.30, Y0=0.42;
+    box(g,WP+0.56,0.26,0.22,matPietra2,0,Y0+HP+0.13,zf-0.06,false);       /* architrave */
+    [-1,1].forEach(s=>box(g,0.28,HP+0.26,0.22,matPietra2,s*(WP/2+0.14),Y0+(HP+0.26)/2,zf-0.06,false));
+    varco(box(g,WP,HP,0.09,matLegno,0,Y0+HP/2,zf-0.02,false));
+    for(let i=0;i<6;i++) box(g,WP-0.06,0.035,0.03,lam(0x462E1D),0,Y0+0.28+i*0.53,zf-0.07,false);
+    box(g,0.05,HP-0.10,0.04,lam(0x462E1D),0,Y0+HP/2,zf-0.07,false);       /* battuta   */
+    [-0.11,0.11].forEach(o=>{
+      const p=new THREE.Mesh(new THREE.SphereGeometry(0.055,10,8),lam(0xB09A54));
+      p.position.set(o,Y0+1.05,zf-0.09); g.add(p);});
+
+    /* --- quattro finestre alte a tutto sesto: due per lato ------------- */
+    /* una sotto l'anca dell'arco (dentro il mattone) e una fuori, nel
+       travertino: e' quello che si vede in chiesa1 e in chiesa3 */
+    /* TUTTE E QUATTRO stanno SOTTO l'arco, fra l'edicola e l'archivolto:
+       con l'arco largo 8,70 non c'e' piu' facciata libera ai lati. */
+    [-1,1].forEach(s=>[1.78,2.88].forEach(px=>{
+      const x=s*px, WV=0.66, HV=4.40, YV=2.05;
+      const mo=formaArco(WV+0.44,HV+0.22);
+      const mm=new THREE.Mesh(new THREE.ExtrudeGeometry(mo,{depth:0.14,bevelEnabled:false}),matCrema);
+      mm.position.set(x,YV-0.11,zf-0.12); g.add(mm);
+      const vt=formaArco(WV,HV);
+      const vv=new THREE.Mesh(new THREE.ExtrudeGeometry(vt,{depth:0.06,bevelEnabled:false}),matVetroC2);
+      vv.position.set(x,YV,zf-0.16); g.add(vv);
+      for(let i=1;i<5;i++) box(g,WV,0.05,0.05,matCrema,x,YV+i*(HV-WV/2)/5,zf-0.20,false);
+    }));
+
+    /* --- le lesene d'angolo in marmo grigio ---------------------------- */
+    [-1,1].forEach(s=>solido(box(g,1.00,H+0.10,PF+0.26,marmo(1,6),
+      s*(WF/2-0.50),(H+0.10)/2,zf+PF/2-0.13,true)));
+
+    /* --- il timpano a capanna, la cornice scura e la croce ------------- */
+    const tim=new THREE.Shape();
+    tim.moveTo(-WF/2,0); tim.lineTo(WF/2,0); tim.lineTo(0,ALT+0.9); tim.closePath();
+    estrudi(tim,PF,mFacc,H,zf);
+    const lung=Math.hypot(WF/2,ALT+0.9)+0.3;
+    [-1,1].forEach(s=>{
+      const c=box(g,lung,0.34,PF+0.42,matCorn,s*WF/4,H+(ALT+0.9)/2,zf+PF/2-0.21,false);
+      c.rotation.z=-s*Math.atan2(ALT+0.9,WF/2);
+      const o=box(g,lung,0.16,PF+0.30,matOcra,s*WF/4,H+(ALT+0.9)/2+0.24,zf+PF/2-0.15,false);
+      o.rotation.z=-s*Math.atan2(ALT+0.9,WF/2);});
+    box(g,WF+0.5,0.30,PF+0.44,matCorn,0,H-0.04,zf+PF/2-0.22,false);       /* cornice di gronda */
+    (function croce(){
+      const y=H+ALT+1.35;
+      box(g,0.09,1.35,0.09,matFerro,0,y,zf+0.30,false);
+      box(g,0.62,0.09,0.09,matFerro,0,y+0.30,zf+0.30,false);
+    })();
+
+    /* --- zoccolo di intonaco chiaro sul fronte ------------------------- */
+    box(g,WF-2.0,0.95,0.10,matZocc,0,0.475,zf-0.11,false);
+  })();
+
+  /* ====================== il sagrato e la gradinata ===================== */
+  (function sagrato(){
+    const p=new THREE.Mesh(new THREE.PlaneGeometry(WF+6,7.5),matCemento);
+    p.rotation.x=-Math.PI/2; p.position.set(0,0.03,ZF-4.6); p.receiveShadow=true; g.add(p);
+    for(let i=0;i<4;i++)
+      box(g,WF-1.2,0.14,0.36+i*0.05,lam(0xC2BDB2),0,0.42-i*0.14-0.07,ZF-0.42-i*0.36,true);
+    /* i due corrimano neri, uno per lato della rampa di gradini */
+    [-1,1].forEach(s=>{
+      const x=s*(WF/2-1.6);
+      [ZF-0.5,ZF-1.5].forEach(zz=>box(g,0.06,1.05,0.06,matFerro,x,0.55,zz,false));
+      box(g,0.06,0.06,1.2,matFerro,x,1.05,ZF-1.0,false);});
+    contatto(mondo,CX,0.04,CZ+ZF-3.0,WF+5,7,0.4);
+  })();
+  contatto(mondo,CX,0.04,CZ,W+3,L+2,0.5);
+
+  /* conifere e siepi attorno, come in chiesa2/chiesa3 — fuori dall'impronta */
+  [[-7.6,-9],[-7.2,2],[-7.8,12],[7.4,-6],[7.8,6]].forEach(q=>{
+    const c=new THREE.Mesh(new THREE.ConeGeometry(1.05,6.4,9),lam(0x33512F));
+    c.position.set(CX+q[0],3.2,CZ+q[1]); c.castShadow=true; mondo.add(c);
+    contatto(mondo,CX+q[0],0.03,CZ+q[1],2.6,2.6,0.5);});
 })();
+
 
 /* ===================== PISCINE ANDREANA ================================
    RIFATTE SULLE QUOTE DEL RILIEVO (VERIFICA-FOTOGRAFICA §16) e sull'aerea
