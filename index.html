@@ -243,6 +243,7 @@
   <button id="bStoria">La Fondatrice</button>
   <button id="bMappa">Luoghi</button>
   <button id="bRicomincia">Ricomincia</button>
+  <button id="bSotto">Sottosuolo</button>
   <div class="sep"></div>
   <button id="bAudio" title="Musica di sottofondo" aria-label="Attiva o spegni la musica">
     <svg id="icoAudio" width="17" height="17" viewBox="0 0 20 20" aria-hidden="true">
@@ -3068,6 +3069,116 @@ function faroLed(x,y,z,ry){
       c.rotation.z=v*Math.PI/3.6;});
     box(mondo,0.16,0.16,0.14,lam(0xB8B4AC),px,1.62,-2.26,false);}})();
 
+/* ===================== I TOMBINI DEL PIANO TERRA =======================
+   Quattro pozzetti di ispezione, uno per ciascun settore di SOTTOTRACCIA
+   (sottosuolo.html). Non sono decorazione: si guardano col mirino e si
+   aprono, e da lì si scende nella rete dei sottoservizi.
+
+   Le quattro posizioni sono state verificate coi raggi, non a occhio:
+   raggio verticale dall'alto (che cosa c'e' sotto quel punto) piu' il
+   controllo che nella fascia 0,30 - 2,40 m non ci sia niente, cioe' che
+   uno ci possa stare in piedi davanti.
+     basket   (-24,0 ·   8,0)  bordo del campo, sull'area azzurra
+     infanzia (-45,0 ·  12,0)  dentro il giardino, sul pavimento morbido
+     chiesa   (-30,5 · -30,0)  sul prato davanti al fronte della chiesa
+     piscine  ( 52,0 ·  -8,0)  sul piazzale di cotto, a ponente della vasca
+
+   Accanto a ogni tombino c'e' il PALETTO SEGNALATORE, quello vero che si
+   pianta sopra i sottoservizi: cappello del colore dell'impianto secondo
+   il codice UNI (azzurro acqua, giallo gas, rosso cavo elettrico). Serve
+   anche a far trovare il tombino senza mettere un cartello.
+   ==================================================================== */
+const TOMBINI=[];
+(function tombini(){
+  const mGhisa =lam(0x3A3F45), mBordo=lam(0x53585F), mOro=lam(0xB8860B);
+  const mPalo  =lam(0xE4E0D6);
+
+  function tombino(settore, x, z, y, colCappello, etichetta){
+    const g=new THREE.Group(); g.position.set(x,y,z); mondo.add(g);
+
+    /* Telaio e chiusino A FILO del terreno. La prima stesura li teneva
+       13 cm sopra e sembravano un basamento posato li': un tombino sporge
+       di quattro centimetri, non di quindici. Restano sopra il piano di
+       calpestio quanto basta a non finire in z-fighting con l'asfalto. */
+    box(g,0.96,0.05,0.96,mBordo,0,0.025,0,false);
+    const ch=new THREE.Mesh(new THREE.CylinderGeometry(0.39,0.39,0.045,20),mGhisa);
+    ch.position.y=0.052; ch.receiveShadow=true; g.add(ch);
+    /* le nervature del chiusino: sei raggi, come sui tombini veri */
+    for(let i=0;i<6;i++){
+      const n=box(g,0.58,0.012,0.05,mBordo,0,0.078,0,false);
+      n.rotation.y=i*Math.PI/6;}
+    /* anello d'oro appena accennato: dice "questo si apre", senza cartelli */
+    const an=new THREE.Mesh(new THREE.TorusGeometry(0.42,0.022,6,24),mOro);
+    an.rotation.x=-Math.PI/2; an.position.y=0.062; g.add(an);
+
+    /* paletto segnalatore, col cappello del colore dell'impianto */
+    box(g,0.06,0.92,0.06,mPalo,0.82,0.46,0.0,true);
+    const cap=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.11,0.16,12),lam(colCappello));
+    cap.position.set(0.82,0.99,0); cap.castShadow=true; g.add(cap);
+
+    contatto(g,0,0.012,0,2.2,2.2,0.34);
+
+    /* il bersaglio del mirino: un disco un filo piu' largo del chiusino,
+       invisibile, cosi' si aggancia anche puntando storto */
+    const b=new THREE.Mesh(new THREE.CylinderGeometry(0.72,0.72,0.5,12),
+      new THREE.MeshBasicMaterial({visible:false}));
+    b.position.y=0.25; g.add(b);
+    b.userData.settore=settore; b.userData.etichetta=etichetta;
+    b.userData.animato=true;              /* il gruppo non si muove, ma il
+                                             test del raycaster vuole le
+                                             matrici aggiornate */
+    TOMBINI.push(b);
+    return g;
+  }
+
+  tombino('basket',  -24.0,   8.0, 0.03, 0x29A3D6,
+    'Pozzetto del drenaggio, al bordo del campo');
+  tombino('infanzia',-45.0,  12.0, 0.06, 0xE8B21E,
+    'Pozzetto dell\'irrigazione, nel giardino dell\'Infanzia');
+  tombino('chiesa',  -30.5, -30.0, 0.01, 0xC0392B,
+    'Pozzetto della linea elettrica, davanti alla chiesa');
+  tombino('piscine',  52.0,  -8.0, 0.03, 0x29A3D6,
+    'Pozzetto del ricircolo, sul piazzale delle piscine');
+})();
+
+/* quando si aggancia un tombino col mirino si apre SOTTOTRACCIA, che e'
+   un file a se': index.html resta quello che e'. */
+function apriTombino(b){
+  const s=b.userData.settore;
+  const d=document.createElement('div');
+  d.style.cssText='position:fixed;inset:0;background:rgba(8,12,18,.88);z-index:90;'
+    +'display:flex;align-items:center;justify-content:center;padding:22px';
+  d.innerHTML='<div style="background:#18232F;border:1px solid #2C3D4F;border-radius:14px;'
+    +'padding:26px;max-width:520px;color:#E8EEF4;font-family:\'Atkinson Hyperlegible\',sans-serif">'
+    +'<div style="font-family:Lexend,sans-serif;font-size:.70rem;letter-spacing:.13em;'
+    +'text-transform:uppercase;color:#D4A017;margin-bottom:8px">'+b.userData.etichetta+'</div>'
+    +'<h2 style="font-family:Lexend,sans-serif;margin:0 0 10px;font-size:1.5rem">'
+    +'Il chiusino si solleva</h2>'
+    +'<p style="line-height:1.6">Sotto non c\'è il buio che ti aspettavi: c\'è una rete. '
+    +'Condotte che corrono, girano, finiscono contro una testata. E da qualche parte, '
+    +'là dentro, <b>un guasto</b> che nessuno ha ancora trovato.</p>'
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">'
+    +'<button id="tb-si" style="flex:1 1 180px;min-height:48px;border:0;border-radius:11px;'
+    +'background:#D4A017;color:#1a1206;font-weight:700;font-size:1rem;cursor:pointer;'
+    +'font-family:inherit">Scendi</button>'
+    +'<button id="tb-no" style="flex:1 1 120px;min-height:48px;border:1px solid #2C3D4F;'
+    +'border-radius:11px;background:#1F2D3C;color:#E8EEF4;font-weight:700;font-size:1rem;'
+    +'cursor:pointer;font-family:inherit">Rimetti il coperchio</button></div></div>';
+  document.body.appendChild(d);
+  d.querySelector('#tb-no').onclick=()=>d.remove();
+  d.querySelector('#tb-si').onclick=()=>{
+    location.href='sottosuolo.html?settore='+encodeURIComponent(s)+'&via=tombino';};
+  d.querySelector('#tb-no').focus();
+}
+
+/* La barra in basso apre SOTTOTRACCIA anche senza cercare un tombino:
+   Andrea lo vuole raggiungibile "in qualsiasi momento". Dal tombino si
+   entra nel settore che sta sotto i piedi; da qui si sceglie. */
+(function vociBarra(){
+  const b=document.getElementById('bSotto'); if(!b) return;
+  b.addEventListener('click',()=>{ location.href='sottosuolo.html'; });
+})();
+
 
 /* ==========================================================================
    IL PRIMO PIANO — il file `primopiano.html`, portato qui INTERO
@@ -4851,15 +4962,26 @@ canvas.addEventListener('click',()=>{
   provaMirino(); });
 
 const ray=new THREE.Raycaster();
-function provaMirino(){
-  if(!cassetta||velo.style.display==='flex') return;
-  ray.setFromCamera({x:0,y:0},camera);
-  if(ray.intersectObject(cassetta,true).length) trovata(); }
-function provaClic(cx,cy){
-  if(!cassetta||velo.style.display==='flex') return;
-  const m={x:(cx/window.innerWidth)*2-1, y:-(cy/window.innerHeight)*2+1};
+/* Il mirino aggancia due cose: la cassetta della tappa e i TOMBINI dei
+   sottoservizi. Vince il bersaglio piu' vicino. Il tombino si apre solo
+   standoci davanti (4,5 m): da mezzo campus si vedrebbe ma non si tocca. */
+const PORTATA_TOMBINO=4.5;
+function bersaglio(m){
   ray.setFromCamera(m,camera);
-  if(ray.intersectObject(cassetta,true).length) trovata(); }
+  const t=(typeof TOMBINI!=='undefined')
+    ? ray.intersectObjects(TOMBINI,false).filter(i=>i.distance<PORTATA_TOMBINO) : [];
+  const c=cassetta ? ray.intersectObject(cassetta,true) : [];
+  if(t.length && (!c.length || t[0].distance<c[0].distance)) return {tombino:t[0].object};
+  if(c.length) return {cassetta:true};
+  return null; }
+function agisci(m){
+  if(velo.style.display==='flex') return;
+  const b=bersaglio(m);
+  if(!b) return;
+  if(b.tombino) apriTombino(b.tombino); else trovata(); }
+function provaMirino(){ agisci({x:0,y:0}); }
+function provaClic(cx,cy){
+  agisci({x:(cx/window.innerWidth)*2-1, y:-(cy/window.innerHeight)*2+1}); }
 
 /* --- iPad: l'aula ha i tablet, non le tastiere (PROMPT-BASE-WEBAPP §5b) - */
 function joystick(el,cb){
@@ -5074,11 +5196,13 @@ function anima(){
       : cassetta.userData.y0+(vicinoOra?Math.sin(pulsa*2.6)*0.045:0);
     cassetta.rotation.y+=dt*(vicinoOra?0.55:0.18);
     vicino.style.display=(d<9)?'block':'none';
-    if(agganciato||TOCCO){
-      ray.setFromCamera({x:0,y:0},camera);
-      mirino.classList.toggle('su', ray.intersectObject(cassetta,true).length>0);
-    }
-  } else { vicino.style.display='none'; mirino.classList.remove('su'); }
+  } else { vicino.style.display='none'; }
+  /* Il mirino si accende sulla cassetta E sui tombini, quindi il test sta
+     FUORI dal ramo della cassetta: prima era dentro, e sui tombini non si
+     sarebbe mai acceso nelle tappe senza cassetta a vista. */
+  if(agganciato||TOCCO)
+    mirino.classList.toggle('su', !!bersaglio({x:0,y:0}));
+  else mirino.classList.remove('su');
 
   /* a piedi si legge la quota del PAVIMENTO (che e' il dato interessante:
      +3,42 nel corridoio, +3,79 oltre la gradinata); in volo si legge
