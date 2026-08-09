@@ -200,7 +200,9 @@ const STRATI=[
    ==================================================================== */
 const S={ seme:'', nick:'', rocce:[], gemme:[], sacca:{x:0,y:0}, x:0,y:0, dir:0,
   energia:130, tunnel:[], raccolte:0, colpi:0,
-  attiva:false, finita:false, vinta:false, msg:'', msgT:0, mira:null };
+  attiva:false, finita:false, vinta:false, msg:'', msgT:0, mira:null, tasto:0,
+  calore:0 };
+const MAXE=130;
 
 /* ====================================================================
    3. TELA — scala di profondità spezzata: i primi 3 m ingranditi,
@@ -242,7 +244,11 @@ function generaLivello(seme){
   const posto=POSTI_CENTRALE[Math.floor(r()*POSTI_CENTRALE.length)];
   CENTRALE={da:posto[0],a:posto[1]};
   const cx=(CENTRALE.da+CENTRALE.a)/2;
-  S.sacca={x:cx+(r()<0.5?-1:1)*(15+r()*15), y:29+r()*6};
+  /* la sacca non deve nascere addosso al bordo dello scavo: ORZO ci
+     sbatteva al primo secondo. Almeno otto metri di margine. */
+  let sx=cx+(r()<0.5?-1:1)*(15+r()*15);
+  sx=Math.max(X0+8,Math.min(X1-8,sx));
+  S.sacca={x:sx, y:29+r()*6};
   const via=[[S.sacca.x,S.sacca.y],
              [S.sacca.x+(cx-S.sacca.x)*0.45, 19+r()*4],
              [cx+(r()-0.5)*6, 8+r()*3],
@@ -259,15 +265,35 @@ function generaLivello(seme){
     if(distVia(x,y)<rr+2.4) continue;
     if(rocce.some(q=>Math.hypot(q.x-x,q.y-y)<q.r+rr+1.0)) continue;
     rocce.push({x:x,y:y,r:rr,f:r()*6.28});}
-  /* le gemme: lontano dalla via dritta, ma raggiungibili */
-  const gemme=[]; let t2=0;
-  while(gemme.length<7 && t2++<4000){
-    const x=X0+4+r()*(X1-X0-8), y=5+r()*(PROF-8);
-    const d=distVia(x,y);
-    if(d<4 || d>17) continue;
-    if(rocce.some(q=>Math.hypot(q.x-x,q.y-y)<q.r+1.4)) continue;
-    if(gemme.some(q=>Math.hypot(q.x-x,q.y-y)<6)) continue;
-    gemme.push({x:x,y:y,v:Math.round(12+r()*10),presa:false});}
+  /* LE SACCHE SI LEGGONO A COLPO D'OCCHIO: più sono profonde, più sono
+     GRANDI e più il loro colore va verso l'arancio. È la lezione della
+     geotermia detta senza numeri — il caldo sta in basso, e si vede
+     prima ancora di muoversi.
+     Le profonde sono POCHE e LONTANE fra loro, le superficiali piccole
+     ma sulla strada: così la domanda non è «le prendo tutte?» ma «quale
+     deviazione in profondità vale la pena?», che cambia a ogni livello. */
+  const gemme=[];
+  const BANDE=[{n:3,y0:5,  y1:12, r:2.2, v:8,  d0:3,  d1:9 },
+               {n:2,y0:13, y1:24, r:3.3, v:17, d0:5,  d1:15},
+               {n:2,y0:25, y1:PROF-3, r:4.6, v:32, d0:7, d1:20}];
+  BANDE.forEach(function(b){
+    let messe=0;
+    /* RIPIEGO PROGRESSIVO: si prova coi vincoli stretti, e se la banda
+       non si riempie li si allenta. Coi vincoli fissi ne entravano tre
+       su sette — le profonde non trovavano mai posto e la lezione
+       "il caldo sta in basso" spariva dallo schermo. */
+    for(let giro=0; giro<4 && messe<b.n; giro++){
+      const lasco=giro*0.35;
+      const d0=b.d0*(1-lasco), d1=b.d1*(1+lasco*1.6);
+      const minD=Math.max(5,((b.v>25)?16:7)*(1-lasco));
+      let t2=0;
+      while(messe<b.n && t2++<2500){
+        const x=X0+5+r()*(X1-X0-10), y=b.y0+r()*(b.y1-b.y0);
+        const d=distVia(x,y);
+        if(d<d0||d>d1) continue;
+        if(rocce.some(q=>Math.hypot(q.x-x,q.y-y)<q.r+b.r+0.6)) continue;
+        if(gemme.some(q=>Math.hypot(q.x-x,q.y-y)<minD)) continue;
+        gemme.push({x:x,y:y,r:b.r,v:b.v,presa:false}); messe++;}}});
   S.rocce=rocce; S.gemme=gemme;
 }
 function ostacoloA(x,y){
@@ -311,6 +337,7 @@ function cielo(){
   ctx.fillStyle=s; ctx.fillRect(0,0,LARG,SUOLO);
 }
 function fronteNord(){
+  _nFin=0;                       /* si ricontano a ogni fotogramma */
   const U=Math.min(15,SUOLO*.072);
   ctx.fillStyle='#5F8342'; ctx.fillRect(0,SUOLO-9,LARG,9);
   ctx.fillStyle='#8A7566'; ctx.fillRect(px(-18),SUOLO-7,px(19)-px(-18),7);
@@ -427,9 +454,23 @@ function corpoStorico(U){
   for(let yy=y-U*2.1;yy<SUOLO;yy+=Math.max(3,U*.28)){
     ctx.beginPath(); ctx.moveTo(lx-U*.62,yy); ctx.lineTo(lx+U*.62,yy); ctx.stroke();}
 }
+/* quante finestre sono accese: è il punteggio che un bambino legge in
+   mezzo secondo, ed è il significato vero della geotermia — la scuola è
+   calda senza bruciare niente. Nessun kW da nessuna parte. */
+let _nFin=0;
+const accesa=()=> (_nFin++/14) < S.calore;
 function finestra(cx,cy,U,grata){
   const w=U*1.25,h=U*1.7;
   ctx.fillStyle='#F6F4EE'; ctx.fillRect(cx-w/2-U*.18,cy-U*.18,w+U*.36,h+U*.36);
+  if(!grata && accesa()){
+    /* finestra calda: vetro arancione e un alone che esce sul muro */
+    const g2=ctx.createRadialGradient(cx,cy+h/2,1,cx,cy+h/2,w*1.9);
+    g2.addColorStop(0,'rgba(255,190,90,.55)'); g2.addColorStop(1,'rgba(255,180,80,0)');
+    ctx.fillStyle=g2; ctx.beginPath(); ctx.arc(cx,cy+h/2,w*1.9,0,6.29); ctx.fill();
+    ctx.fillStyle='#FFC257'; ctx.fillRect(cx-w/2,cy,w,h);
+    ctx.strokeStyle='rgba(255,255,255,.55)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx,cy+h); ctx.stroke();
+    return;}
   if(grata){
     ctx.fillStyle='#7C838A'; ctx.fillRect(cx-w/2,cy,w,h);
     ctx.strokeStyle='#B8BEC4'; ctx.lineWidth=1.1;
@@ -522,6 +563,18 @@ function centraleTermica(U){
   ctx.fillStyle='#B6AF9F'; ctx.fillRect(a-U*.25,y-U*.34,w+U*.5,U*.36);
   ctx.fillStyle='#9AA0A6'; ctx.fillRect(a+w*.66,y-U*3.4,U*.85,U*3.4);   /* camino */
   ctx.fillStyle='#7E858B'; ctx.fillRect(a+w*.66-U*.14,y-U*3.72,U*1.13,U*.36);
+  /* IL FUMO: c'è finché la caldaia a gas lavora, e si dirada man mano
+     che il calore della terra arriva. A calore pieno il camino è spento
+     — che è tutto quello che c'era da capire sulla geotermia. */
+  const fumo=1-Math.max(0,Math.min(1,S.calore));
+  if(fumo>0.04){
+    const tt=performance.now()*0.0007;
+    for(let k=0;k<4;k++){
+      const u=(tt+k*0.25)%1;
+      const cx2=a+w*.66+U*.42+Math.sin(u*5+k)*U*0.9;
+      const cy2=y-U*3.8-u*U*4.2;
+      ctx.fillStyle='rgba(190,190,186,'+(fumo*0.42*(1-u)).toFixed(3)+')';
+      ctx.beginPath(); ctx.arc(cx2,cy2,U*(0.35+u*0.85),0,6.29); ctx.fill();}}
   ctx.fillStyle='#3E4A56'; ctx.fillRect(a+w*.14,SUOLO-U*2.1,U*1.35,U*2.1);
   ctx.fillStyle='#123E90'; ctx.textAlign='center';
   ctx.font='700 '+Math.max(7,U*.48)+'px Lexend, sans-serif';
@@ -555,6 +608,14 @@ function terreno(){
     ctx.fillStyle='rgba(60,46,30,.28)'; ctx.beginPath(); ctx.arc(.7,.9,c.r*.8,0,6.29); ctx.fill();
     ctx.restore();});
   ctx.restore();
+  /* IL CALORE DEL TERRENO, in colore: scendendo si scalda. È la stessa
+     regola delle sacche, letta una seconda volta senza numeri. */
+  const cal=ctx.createLinearGradient(0,py(0),0,py(PROF));
+  cal.addColorStop(0,   'rgba(120,150,190,.17)');
+  cal.addColorStop(0.30,'rgba(150,140,140,.04)');
+  cal.addColorStop(0.65,'rgba(226,140,50,.10)');
+  cal.addColorStop(1,   'rgba(236,120,40,.26)');
+  ctx.fillStyle=cal; ctx.fillRect(0,py(0),LARG,ALT-py(0));
   ctx.fillStyle='rgba(122,122,118,.9)';
   EDIFICI.forEach(e=>{
     /* il pozzo della centrale è un vuoto nelle fondazioni: si disegna
@@ -597,17 +658,23 @@ function gemme(){
   S.gemme.forEach(g=>{
     if(g.presa) return;
     const X=px(g.x), Y=py(g.y), t=performance.now()*.003;
-    const R=Math.max(7,.85*MPX)*(1+.08*Math.sin(t+g.x));
-    const gr=ctx.createRadialGradient(X,Y,1,X,Y,R*2.4);
-    gr.addColorStop(0,'rgba(255,206,120,.9)'); gr.addColorStop(1,'rgba(226,138,48,0)');
-    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(X,Y,R*2.4,0,6.29); ctx.fill();
-    ctx.fillStyle='#F2B23C';
+    /* più è profonda, più è grande e più il colore va verso l'arancio */
+    const cal=Math.max(0,Math.min(1,(g.y-5)/28));
+    const cuore='rgb(255,'+Math.round(238-90*cal)+','+Math.round(190-140*cal)+')';
+    const orlo ='rgb('+Math.round(240-14*cal)+','+Math.round(190-70*cal)+','
+                 +Math.round(90-50*cal)+')';
+    const R=Math.max(6,g.r*MPX*0.62)*(1+.07*Math.sin(t+g.x));
+    const gr=ctx.createRadialGradient(X,Y,1,X,Y,R*2.6);
+    gr.addColorStop(0,'rgba(255,'+Math.round(210-70*cal)+',120,'+(0.55+0.35*cal)+')');
+    gr.addColorStop(1,'rgba(226,138,48,0)');
+    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(X,Y,R*2.6,0,6.29); ctx.fill();
+    ctx.fillStyle=orlo;
     ctx.beginPath();
     for(let k=0;k<6;k++){ const a=k/6*6.283-Math.PI/2;
       const P=[X+Math.cos(a)*R,Y+Math.sin(a)*R];
       k===0?ctx.moveTo(P[0],P[1]):ctx.lineTo(P[0],P[1]);}
     ctx.closePath(); ctx.fill();
-    ctx.strokeStyle='rgba(255,238,190,.8)'; ctx.lineWidth=1.4; ctx.stroke();});
+    ctx.strokeStyle=cuore; ctx.lineWidth=Math.max(1.4,R*0.14); ctx.stroke();});
 }
 function tubi(){
   /* CONDOTTI, non barre. Nei primi tre metri il disegno è ingrandito,
@@ -920,47 +987,79 @@ function segnaMusica(){
   b.setAttribute('aria-pressed',String(audioAcceso));
 }
 function passo(dt){
-  if(S.mira){
+  /* le frecce sterzano direttamente: è il comando più preciso su un
+     portatile, e non richiede di tenere premuto il tasto del trackpad */
+  if(S.tasto){
+    S.dir+=S.tasto*STERZO*dt;
+    consuma(STERZO*dt*6);
+  } else if(S.mira){
     const dx=S.mira[0]-S.x, dy=S.mira[1]-S.y;
     let d=Math.atan2(dx,-dy)-S.dir;
     while(d>Math.PI) d-=6.283; while(d<-Math.PI) d+=6.283;
     const max=STERZO*dt, g=Math.max(-max,Math.min(max,d));
     S.dir+=g; consuma(Math.abs(g)*6);
   }
-  S.dir=Math.max(-1.4,Math.min(1.4,S.dir));
+  /* La sterzata era limitata a ±1,4 rad: la talpa non poteva mai
+     puntare di lato o in leggera discesa, quindi incastrata sotto una
+     fondazione non aveva NESSUNA direzione di fuga. Ora arriva a ±2,0
+     (poco oltre l'orizzontale): risalire resta il modo naturale, ma
+     scansare un ostacolo è possibile. */
+  S.dir=Math.max(-2.6,Math.min(2.6,S.dir));
   const nx=S.x+Math.sin(S.dir)*VEL*dt, ny=S.y-Math.cos(S.dir)*VEL*dt;
-  consuma(VEL*dt*0.85);
+  /* IL CALORE È IL CARBURANTE. In profondità il terreno è caldo e ORZO
+     si ricarica; salendo si raffredda e il consumo cresce fino al triplo.
+     Non c'è nessun numero da leggere: si vede il termometro svuotarsi
+     in fretta quando si sale, e chi resta basso arriva con più calore. */
+  const freddo=1+2*Math.max(0,Math.min(1,(14-S.y)/14));
+  consuma(VEL*dt*0.85*freddo);
+  if(S.y>24) S.energia=Math.min(MAXE,S.energia+dt*6.5);
   if(nx<X0+1||nx>X1-1){ S.dir=-S.dir*.6; avvisa('Sei al bordo dello scavo.'); return; }
   const t=tuboA(nx,ny);
   if(t){ consuma(20); S.attiva=false;
     avvisa('Hai rotto: '+RETI[t.r].nome.toLowerCase()+'.'); finisci(false,'tubo'); return; }
   const o=ostacoloA(nx,ny);
   if(o){
-    /* SCIVOLA, non rimbalza sul posto. La prima stesura faceva
-       dir = -dir*0.5: con la talpa dritta (dir=0) resta 0, quindi
-       ritentava la stessa cella bloccata a ogni fotogramma — 5458 urti
-       e l'energia a meno quarantamila. Adesso si prende la NORMALE
-       dell'ostacolo e la si costeggia. */
+    /* SI CERCA UN VARCO, non si rimbalza sul posto. La versione prima
+       provava UNA sola direzione: se anche quella era bloccata la talpa
+       non si muoveva, e sotto una fondazione macinava urti all'infinito
+       — 1193, segnalati da Andrea. Adesso si prova un ventaglio di
+       direzioni in ordine (di lato verso la centrale, di lato dall'altra
+       parte, in leggera discesa) e si prende la prima libera. Se non ce
+       n'è nessuna si torna indietro di un passo lungo il tunnel già
+       scavato, che per costruzione è libero: da lì si esce sempre. */
     S.colpi++; consuma(6);
-    if(o.t==='roccia'){
-      const lato=(S.x-o.q.x)>=0?1:-1;
-      S.dir=Math.max(-1.4,Math.min(1.4,S.dir+lato*0.55));
-    }else{
-      const verso=((CENTRALE.da+CENTRALE.a)/2-S.x)>=0?1:-1;
-      S.dir=Math.max(-1.4,Math.min(1.4,S.dir+verso*0.6));
-    }
-    /* e si muove comunque un poco lungo la nuova direzione: se resta
-       ferma dentro l'ostacolo il ciclo non esce mai */
-    const sx=S.x+Math.sin(S.dir)*VEL*dt*0.7, sy=S.y-Math.cos(S.dir)*VEL*dt*0.7;
-    if(!ostacoloA(sx,sy)&&!tuboA(sx,sy)&&sx>X0+1&&sx<X1-1){ S.x=sx; S.y=sy; }
-    avvisa(o.t==='roccia'?'Roccia: la talpa la costeggia e perde energia.'
-                         :'Fondazione dell\'edificio: di qui non si passa.');
+    const vc=((CENTRALE.da+CENTRALE.a)/2-S.x)>=0?1:-1;
+    /* Le direzioni si provano dalla più utile alla più disperata, e
+       comprendono la DISCESA: sotto un solaio le vie di lato sono
+       ancora dentro la fondazione, e l'unica uscita è tornare giù.
+       Il passo di fuga è più lungo del passo normale, altrimenti non
+       basta a uscire dai cinque centimetri di massiccio. */
+    const prove=[vc*1.4,-vc*1.4, vc*1.9,-vc*1.9, vc*2.3,-vc*2.3, vc*2.6,-vc*2.6];
+    const passo=VEL*dt*3.0;
+    let fuga=null;
+    for(let k=0;k<prove.length;k++){
+      const d=prove[k];
+      const sx=S.x+Math.sin(d)*passo, sy=S.y-Math.cos(d)*passo;
+      if(sx>X0+1.2&&sx<X1-1.2&&sy<PROF-0.5&&sy>0.1
+         &&!ostacoloA(sx,sy)&&!tuboA(sx,sy)){ fuga={d:d,x:sx,y:sy}; break;}}
+    if(fuga){ S.dir=fuga.d; S.x=fuga.x; S.y=fuga.y;
+      const u=S.tunnel[S.tunnel.length-1];
+      if(!u||Math.hypot(S.x-u[0],S.y-u[1])>0.45) S.tunnel.push([S.x,S.y]);
+    }else if(S.tunnel.length>1){
+      /* ultima risorsa: si torna indietro nella galleria già scavata,
+         che per costruzione è libera. Di lì una via c'è sempre. */
+      S.tunnel.pop();
+      const q=S.tunnel[S.tunnel.length-1];
+      S.x=q[0]; S.y=q[1]; S.dir=vc*1.4;
+    }else{ S.y=Math.min(PROF-1,S.y+0.6); S.dir=vc*1.4; }
+    avvisa(o.t==='roccia'?'Roccia: ORZO la costeggia.'
+                         :'Fondazione: ORZO cerca un passaggio di lato.');
     return; }
   S.x=nx; S.y=ny;
   const u=S.tunnel[S.tunnel.length-1];
   if(!u||Math.hypot(S.x-u[0],S.y-u[1])>0.45) S.tunnel.push([S.x,S.y]);
-  S.gemme.forEach(g=>{ if(!g.presa && Math.hypot(g.x-S.x,g.y-S.y)<1.5){
-    g.presa=true; S.raccolte++; S.energia=Math.min(170,S.energia+g.v);
+  S.gemme.forEach(g=>{ if(!g.presa && Math.hypot(g.x-S.x,g.y-S.y)<(g.r||1.5)){
+    g.presa=true; S.raccolte++; S.energia=Math.min(MAXE,S.energia+g.v);
     avvisa('Sacca di calore: +'+g.v+' di energia.');}});
   if(S.y<=0.15){ S.attiva=false;
     const dentro=S.x>=CENTRALE.da&&S.x<=CENTRALE.a;
@@ -970,6 +1069,9 @@ function finisci(vinta,perche){
   if(S.finita) return;
   S.finita=true; S.vinta=vinta;
   const E=Math.max(0,Math.round(S.energia)), n=stelle(vinta,E);
+  /* il calore che è arrivato in centrale: da qui in poi la facciata lo
+     mostra da sola — finestre accese e camino che smette di fumare */
+  S.calore = vinta ? Math.max(0.25,Math.min(1,E/95)) : 0;
   const dist=Math.abs(S.x-(CENTRALE.da+CENTRALE.a)/2);
 
   /* UNA RIGA, non un paragrafo. Le card lunghe non le legge nessuno:
@@ -979,9 +1081,9 @@ function finisci(vinta,perche){
     : (perche==='tubo'?'Hai rotto un tubo.'
       :'Uscito fuori posto.');
   const riga = vinta
-    ? (n===3?'La scuola si scalda, e ti è avanzata energia.'
-      :n===2?'Con qualche virata in meno prendevi la terza stella.'
-      :'Ce l\'hai fatta, ma con il serbatoio quasi vuoto.')
+    ? (n===3?'Guarda la scuola: tutte le finestre sono calde e il camino ha smesso di fumare.'
+      :n===2?'Qualche aula è ancora fredda. Più calore porti su, più finestre si accendono.'
+      :'Sei arrivato quasi freddo: si è scaldata solo qualche aula.')
     : (perche==='tubo'?'Era disegnato: i tubi si vedono.'
       :'Sei uscito a '+dist.toFixed(0)+' m dalla centrale.');
 
@@ -1049,19 +1151,49 @@ function lung(){ let L=0;
    7. COMANDI — si tiene il dito dove si vuole andare. Nient'altro.
    ==================================================================== */
 (function comandi(){
+  /* TRE MODI DI GUIDARE, perché tre sono gli attrezzi dell'aula.
+     - TOCCO (iPad): si tiene il dito dove si vuole andare.
+     - MOUSE / TRACKPAD: NON serve tenere premuto. Si fa un clic per
+       partire, poi ORZO segue il puntatore da solo. Tenere il tasto
+       premuto e muovere insieme, su un trackpad, è scomodo — è il
+       motivo per cui era difficile manovrarlo.
+     - FRECCE (o A/D): sterzata continua, la più precisa su un portatile.
+       Basta premerle per partire. */
   function punto(e){ const r=tela.getBoundingClientRect();
     const p=(e.touches&&e.touches[0])?e.touches[0]:e;
     return [xDaPx((p.clientX-r.left)*(tela.width/r.width)),
             yDaPy((p.clientY-r.top)*(tela.height/r.height))]; }
-  function giu(e){ if(S.finita) return; S.attiva=true; S.mira=punto(e); e.preventDefault(); }
-  function muovi(e){ if(S.mira){ S.mira=punto(e); e.preventDefault(); } }
-  function su(){ S.mira=null; }
-  tela.addEventListener('mousedown',giu);
-  tela.addEventListener('mousemove',muovi);
-  addEventListener('mouseup',su);
-  tela.addEventListener('touchstart',giu,{passive:false});
-  tela.addEventListener('touchmove',muovi,{passive:false});
-  tela.addEventListener('touchend',su);
+
+  /* --- tocco: come prima --- */
+  tela.addEventListener('touchstart',function(e){ if(S.finita) return;
+    S.attiva=true; S.mira=punto(e); e.preventDefault(); },{passive:false});
+  tela.addEventListener('touchmove',function(e){ if(S.mira){ S.mira=punto(e);
+    e.preventDefault(); } },{passive:false});
+  tela.addEventListener('touchend',function(){ S.mira=null; });
+
+  /* --- mouse e trackpad: il clic fa partire, poi basta muovere --- */
+  tela.addEventListener('mousedown',function(e){ if(S.finita) return;
+    S.attiva=true; S.mira=punto(e); e.preventDefault(); });
+  tela.addEventListener('mousemove',function(e){
+    if(S.finita||!S.attiva) return;
+    if(S.tasto) return;                    /* le frecce hanno la precedenza */
+    S.mira=punto(e); });
+  tela.addEventListener('mouseleave',function(){ S.mira=null; });
+
+  /* --- frecce e A/D --- */
+  function giuTasto(e){
+    const k=e.key;
+    if(k==='ArrowLeft'||k==='a'||k==='A'){ S.tasto=-1; }
+    else if(k==='ArrowRight'||k==='d'||k==='D'){ S.tasto=1; }
+    else return;
+    if(!S.finita){ S.attiva=true; S.mira=null; }
+    e.preventDefault();}
+  function suTasto(e){
+    const k=e.key;
+    if(k==='ArrowLeft'||k==='a'||k==='A'||k==='ArrowRight'||k==='d'||k==='D') S.tasto=0;}
+  addEventListener('keydown',giuTasto);
+  addEventListener('keyup',suTasto);
+  addEventListener('blur',function(){ S.tasto=0; });
 })();
 
 /* ====================================================================
@@ -1069,9 +1201,19 @@ function lung(){ let L=0;
    ==================================================================== */
 const $=id=>document.getElementById(id);
 function contatori(){
+  /* IL TERMOMETRO, NON UN NUMERO. La barra si riempie e cambia colore:
+     arancio quando ORZO è carico di calore, grigio-azzurro quando si è
+     raffreddato. Il numero resta piccolo, per te e per i più grandi —
+     ma non è il canale: se lo togli, il gioco insegna lo stesso. */
+  const q=Math.max(0,Math.min(1,S.energia/MAXE));
+  const col='rgb('+Math.round(120+135*q)+','+Math.round(150+50*q)+','
+    +Math.round(190-140*q)+')';
   $('cont').innerHTML=
-    '<div class="c'+(S.energia<30?' ambra':' oro')+'"><b>'+Math.max(0,S.energia).toFixed(0)
-      +'</b><span>energia</span></div>'+
+    '<div class="c" style="min-width:136px;padding-top:7px">'
+      +'<div style="height:13px;border-radius:7px;background:#243140;overflow:hidden;'
+      +'border:1px solid var(--linea)"><div style="height:100%;width:'+(q*100).toFixed(0)
+      +'%;background:'+col+'"></div></div>'
+      +'<span style="margin-top:4px;display:block">calore</span></div>'+
     '<div class="c"><b>−'+S.y.toFixed(1).replace('.',',')+'</b><span>profondità</span></div>'+
     '<div class="c oro"><b>'+S.raccolte+'/'+S.gemme.length+'</b><span>sacche</span></div>'+
     '<div class="c'+(S.colpi?' ambra':'')+'"><b>'+S.colpi+'</b><span>urti</span></div>';
@@ -1086,7 +1228,8 @@ function legenda(){
     +'<span class="chip"><i style="background:#6E6A64"></i>Roccia</span>'
     +'<span class="chip"><i style="background:#F2B23C"></i>Sacche di calore</span>'
     +'<span style="flex:1 1 auto"></span>'
-    +'<span><b>Tieni premuto</b> dove vuoi andare · vira piano, non frena</span>';
+    +'<span><b>Clic per partire</b>, poi segui col puntatore · <b>← →</b> per '
+    +'sterzare · vira piano, non frena</span>';
 }
 function note(){}
 
@@ -1152,8 +1295,9 @@ function guida(){
    +'<p>Trenta metri sotto il cortile c\'è <b>roccia calda</b>. Se '+TALPA
    +' la porta su fino alla <b>centrale termica</b>, la scuola si scalda '
    +'senza bruciare gas.</p>'
-   +'<p><b>Tieni premuto dove vuoi andare.</b> '+TALPA+' punta lì, ma vira '
-   +'piano e non si ferma mai.</p>'
+   +'<p><b>Fai un clic per partire</b>, poi '+TALPA+' segue il puntatore: non '
+   +'serve tenere premuto. Con le <b>frecce ← →</b> sterzi più preciso. '
+   +'Su iPad tieni il dito dove vuoi andare.<br>Vira piano e non si ferma mai.</p>'
    +'<div class="avviso"><b>Non toccare i tubi</b> — acqua, gas, elettricità, '
    +'fognatura: sono disegnati. Le <b>rocce</b> fanno rimbalzare, e sotto gli '
    +'<b>edifici</b> non si passa.</div>'
@@ -1184,9 +1328,13 @@ function nuovo(seme){
   S.seme = seme || (Date.now().toString(36).slice(-4)
            +Math.floor(Math.random()*999)).toUpperCase();
   generaLivello(S.seme);
-  S.x=S.sacca.x; S.y=S.sacca.y; S.dir=0; S.energia=130;
+    /* SI PARTE A METÀ SERBATOIO, non pieno. Era questo il difetto della
+     taratura: partendo carichi al massimo non c'era NIENTE da guadagnare
+     restando in basso, e il gioco premiava chi scappava in superficie —
+     l'opposto della lezione. Adesso il calore va preso dove sta. */
+  S.x=S.sacca.x; S.y=S.sacca.y; S.dir=0; S.energia=58;
   S.tunnel=[[S.x,S.y]]; S.raccolte=0; S.colpi=0;
-  S.attiva=false; S.finita=false; S.vinta=false; S.mira=null; S.msg='';
+  S.attiva=false; S.finita=false; S.vinta=false; S.mira=null; S.msg=''; S.calore=0;
   /* prima si riempiono intestazione e striscia, POI si misura lo spazio
      che resta: misurare prima dava una tela più alta del contenitore. */
   legenda(); note(); contatori(); dimensiona();

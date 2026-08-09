@@ -4899,7 +4899,8 @@ const curvaOcchio=new THREE.CatmullRomCurve3(GIRO.map(q=>V(q[0],q[1],q[2])),true
 const curvaMira  =new THREE.CatmullRomCurve3(GIRO.map(q=>V(q[3],q[4],q[5])),true,'centripetal');
 const LGIRO=curvaOcchio.getLength();
 let giroAttivo=false, giroU=0;
-function fermaGiro(){ if(giroAttivo){ giroAttivo=false; verificaAppoggio(); } }
+function fermaGiro(){ if(giroAttivo){ giroAttivo=false; verificaAppoggio();
+  if(typeof segnaVista==='function') segnaVista(); } }
 
 let voloDa=null, voloA=null, voloT=1;
 const mira=new THREE.Vector3();
@@ -4916,7 +4917,8 @@ function verificaAppoggio(){
 }
 window.vaiA=function(i){
   const m=LUOGHI[i]; if(!m) return;
-  if(i===0){ giroAttivo=true; inVolo=true; voloT=1; return; }  /* il giro */
+  if(i===0){ giroAttivo=true; inVolo=true; voloT=1;
+    if(typeof segnaVista==='function') segnaVista(); return; }  /* il giro */
   giroAttivo=false;
   voloDa=pos.clone(); voloA=V(m[1][0],m[1][1],m[1][2]);
   mira.set(m[2][0],m[2][1],m[2][2]); voloT=0;
@@ -4936,10 +4938,17 @@ window.addEventListener('wheel',  e=>{ velBase=Math.max(3,Math.min(60,velBase*(e
 
 let agganciato=false;
 const mirino=$('mirino'), avvisoMouse=$('avviso');
+const carta=$('carta');
+/* DURANTE IL GIRO DEL CAMPUS LA VISUALE RESTA LIBERA (Andrea). La carta
+   della tappa e l'avviso del mouse coprivano proprio quello che il volo
+   serve a far vedere. Si torna alla caccia al tesoro con "Ricomincia" o
+   dal menu "Luoghi": il volo non ha bisogno di istruzioni sopra. */
 function segnaVista(){
   const inGioco = velo.style.display!=='flex';
-  mirino.style.display      = (agganciato||TOCCO) && inGioco ? 'block':'none';
-  avvisoMouse.style.display = (!agganciato && !TOCCO && inGioco) ? 'block':'none';
+  const volando = (typeof giroAttivo!=='undefined') && giroAttivo;
+  mirino.style.display      = (agganciato||TOCCO) && inGioco && !volando ? 'block':'none';
+  avvisoMouse.style.display = 'none';
+  if(carta) carta.style.display = volando ? 'none' : '';
 }
 document.addEventListener('pointerlockchange',()=>{
   agganciato=(document.pointerLockElement===canvas); segnaVista(); });
