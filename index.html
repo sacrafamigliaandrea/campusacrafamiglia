@@ -297,6 +297,11 @@ const scene=new THREE.Scene();
 scene.fog=new THREE.Fog(0xe6ecef,300,1100);
 const camera=new THREE.PerspectiveCamera(62,window.innerWidth/window.innerHeight,0.1,2400);
 
+/* Le cose che si muovono da sole (per ora: i battenti del portone) si
+   iscrivono qui e il ciclo le chiama a ogni fotogramma. Serve perche' chi le
+   costruisce sta nella sezione degli esterni, molto prima di `anima()`. */
+const AGGIORNA=[];
+
 /* ===================== utilita' e collisioni ===================== */
 /* ===================== utilita' ===================== */
 function mkCanvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
@@ -954,23 +959,42 @@ const mondo=new THREE.Group(); scene.add(mondo);
      lungo tutto il fronte, fra la scuola e la strada, con le auto a pettine su
      file doppie. Il blocco 70x40 del rilievo corrisponde alla porzione piu'
      larga davanti alle piscine. */
-  tappeto(matAsfalto,166,11,-1,-29.5,0.02);        /* piazzale lungo il fronte */
-  tappeto(matAsfalto,124,20,16,-45,0.02);          /* striscia del parcheggio  */
+  /* NIENTE PARCHEGGIO A PONENTE DELLA ROTATORIA (Andrea, IMG_5001): da
+     li' fino alla chiesa e' tutto PRATO, e sull'ortofoto si legge verde su
+     tutti e due i fianchi della navata. Le due strisce d'asfalto passavano
+     DENTRO la chiesa (che sta a x[-41,3 · -32,6]) e coprivano tutto il
+     prato fino alla rotatoria. Adesso cominciano a x=-13, dove toccano
+     l'anello della rotatoria; il verde e' quello del prato di base, che
+     c'era gia' sotto. */
+  tappeto(matAsfalto,95,11,34.5,-29.5,0.02);       /* piazzale lungo il fronte */
+  tappeto(matAsfalto,91,20,32.5,-45,0.02);         /* striscia del parcheggio  */
   tappeto(matAsfalto,6,190,-82,10,0.02);
   tappeto(matAsfalto,5,32,-41,45,0.02);
-  tappeto(matGhiaia,156,3.4,0,-25.4,0.03);
+  tappeto(matGhiaia,91,3.4,32.5,-25.4,0.03);      /* anche la ghiaia si ferma */
   /* ROTONDA — sta ESATTAMENTE IN ASSE COL PORTONE D'INGRESSO della scuola
      (Andrea). Il portale ad arco e' a x=-22,6 (muroPietra largo 13 centrato
      li', con portale:0.5): la rotonda era a x=-56, cioe' 33 m piu' a ovest,
      davanti alla CHIESA. Il commento diceva "il portale sta a x=-36,5", ed
      era falso: il numero non l'aveva mai verificato nessuno. */
+  /* LA ROTATORIA E' PIU' A EST (Andrea). Misurata sull'ortofoto zenitale:
+     l'aiuola col cordolo bianco e' un ovale di circa 16 x 15,7 m centrato in
+     (-0,3 · -53,4), e l'anello asfaltato le sta attorno per una dozzina di
+     metri. Il modello la teneva in asse col portone a x=-22,6: era una
+     correzione fatta quando il fronte stava in un altro posto, e da allora
+     nessuno l'ha piu' misurata. */
+  const XROT=-0.3, ZROT=-53.4;
+  const rot=new THREE.Mesh(new THREE.CircleGeometry(13.5,40),matAsfalto);
+  rot.rotation.x=-Math.PI/2;rot.position.set(XROT,0.021,ZROT);mondo.add(rot);
+  const rv=new THREE.Mesh(new THREE.CircleGeometry(8.0,32),matPrato);
+  rv.rotation.x=-Math.PI/2;rv.position.set(XROT,0.045,ZROT);mondo.add(rv);
+  /* il cordolo bianco, che sull'ortofoto e' il segno per cui la si riconosce */
+  const cor=new THREE.Mesh(new THREE.RingGeometry(8.0,8.45,40),lam(0xE8E4DA));
+  cor.rotation.x=-Math.PI/2;cor.position.set(XROT,0.05,ZROT);mondo.add(cor);
   const XPORT=-22.6;
-  const rot=new THREE.Mesh(new THREE.CircleGeometry(19,40),matAsfalto);
-  rot.rotation.x=-Math.PI/2;rot.position.set(XPORT,0.021,-52);mondo.add(rot);
-  const rv=new THREE.Mesh(new THREE.CircleGeometry(10,32),matPrato);
-  rv.rotation.x=-Math.PI/2;rv.position.set(XPORT,0.045,-52);mondo.add(rv);
-  tappeto(matAsfalto,9,30,XPORT,-74,0.021);        /* driveway verso la strada */
-  tappeto(matAsfalto,9,22,XPORT,-38,0.021);        /* raccordo verso il portone */
+  tappeto(matAsfalto,9,30,XROT,-74,0.021);         /* driveway verso la strada */
+  /* IL RACCORDO VERSO IL PORTONE NON ESISTE PIU': era una striscia
+     d'asfalto larga 9 m che tagliava in due il prato fra la chiesa e la
+     rotatoria. Al portone ci si arriva dal selciato di porfido. */
   const cs=mkCanvas(512,128),gg=cs.getContext('2d');
   gg.strokeStyle='rgba(255,255,255,.8)';gg.lineWidth=4;
   for(let i=0;i<18;i++){gg.beginPath();gg.moveTo(i*28+8,4);gg.lineTo(i*28+8,60);gg.stroke();
@@ -1032,11 +1056,13 @@ albero(-44,4,1.35);
   const rnd=seme(87);
   [-50.5,-44.5,-40.5,-34.5].forEach((z,k)=>{
     for(let i=0;i<24;i++){ const px=-34+i*5;
-      /* LA CHIESA STA IN MEZZO AL PARCHEGGIO. Le quattro file partivano da
-         x=-34 e la prima auto finiva dentro la navata (x[-41,3 · -32,6]).
-         Il sagrato e i gradini vogliono il loro spazio: niente auto fra
-         -47 e -27. */
-      if(px>-47 && px<-27) continue;
+      /* NIENTE AUTO A PONENTE DELLA ROTATORIA (Andrea, IMG_5001): da li' fino
+         alla chiesa e' tutto prato, e la prima auto della fila finiva
+         addirittura dentro la navata (x[-41,3 · -32,6]). L'asfalto comincia
+         a x=-13, dove tocca l'anello della rotatoria. */
+      if(px<-13) continue;
+      /* e nemmeno dentro la rotatoria, che adesso sta qui in mezzo */
+      if(Math.hypot(px-(-0.3),z-(-53.4))<15) continue;
       if(rnd()<0.66) auto(px,z,(k%2)?Math.PI:0,cols[(rnd()*cols.length)|0]);}});})();
 /* NIENTE auto lungo il viale alberato dietro la scuola (correzione di Andrea):
    li' non c'e' parcheggio, e' solo la strada di servizio verso l'Arena. */
@@ -1621,14 +1647,19 @@ function faroLed(x,y,z,ry){
 (function corpoNord(){
   const x0=-36.0,x1=14.3,z0=-18.1,z1=-2.4,h=H_P1;      /* due livelli */
   const bianco=0xF2F0EA;
-  corpo({x0:x0,x1:x1,z0:z0,z1:z1,h:h,col:bianco,alt:2.4,tetto:false,
-    finN:(()=>{const f=[];for(let i=0;i<14;i++){
-      f.push({fx:0.035+i*0.0715,fy:4.9,fw:1.6,fh:1.5});
-      f.push({fx:0.035+i*0.0715,fy:1.6,fw:1.6,fh:1.5});}return f;})()});
+  /* NIENTE `finN`: le quattordici finestre uguali distribuite per frazione
+     erano una griglia inventata. Il fronte lo disegna `fronteNord()` qui
+     sotto, finestra per finestra, sulle fotografie. */
+  corpo({x0:x0,x1:x1,z0:z0,z1:z1,h:h,col:bianco,alt:2.4,tetto:false});
   /* (1) I tetti veri sono a FALDE SPIOVENTI IN COPPI, non piatti
      (correzione di Andrea sulla vista dall'alto). */
-  tetto(mondo,(x0+x1)/2,(z0+z1)/2,x1-x0,z1-z0,h,2.9,{pluviali:0,
-    comignoli:[[-24,0,1.5],[-4,0,1.4],[8,0,1.4]]});
+  /* IL TETTO NON E' TUTTO IN COPPI. In facciata3 si vede il giunto: a
+     ponente della lesena di mattoni c'e' il corpo storico con le falde in
+     coppi, a levante l'ala a TETTO PIATTO con la sua cornice sottile. */
+  const XLES=-14.0;
+  tetto(mondo,(x0+XLES)/2,(z0+z1)/2,XLES-x0,z1-z0,h,2.9,{pluviali:0,
+    comignoli:[[-2,0,1.5],[8,0,1.4]]});
+  tettoPiano(null,(XLES+x1)/2,(z0+z1)/2,x1-XLES,z1-z0,h,0xE8E5DC);
   /* --- il fronte sulla corte: PT tutto vetrato, P1 a nastro ------------- */
   vetrataTerra(x0+0.6,x1-0.6,z1,0);
   /* IL NASTRO DEL PRIMO PIANO NON VA PIU' QUI. Era la vetrata del corridoio
@@ -1659,17 +1690,257 @@ function faroLed(x,y,z,ry){
      ci passa davanti tutti i giorni.
      Sta sul fronte nord, in asse con l'ATRIO D'INGRESSO della planimetria,
      verso la rotonda e il parcheggio. */
-  muroPietra(null,13.0,h,
-    [{fx:0.14,fy:5.30,fw:1.35,fh:1.55},{fx:0.86,fy:5.30,fw:1.35,fh:1.55},
-     {fx:0.14,fy:2.05,fw:1.35,fh:1.55},{fx:0.86,fy:2.05,fw:1.35,fh:1.55}],
-    -22.6,0,z0-0.20,Math.PI,{portale:0.5});
-  /* i tre gradini di soglia e le due lanterne ai lati */
-  for(let i=0;i<3;i++)
-    box(mondo,5.0-i*0.5,0.16,0.42+i*0.42,lam(0xD8D2C4),-22.6,0.08-i*0.16,z0-0.62-i*0.42,true);
-  [-2.15,2.15].forEach(o=>{
-    box(mondo,0.16,1.05,0.16,lam(0x4A4640),-22.6+o,0.52,z0-0.55,false);
-    box(mondo,0.26,0.30,0.26,lam(0xF2EFE2),-22.6+o,1.20,z0-0.55,false);});
-  contatto(mondo,-22.6,0.03,z0-1.4,7.5,3.2,0.45);
+  /* ========================================================================
+     IL FRONTE NORD — rifatto sulle fotografie di "8. newfoto"
+     (facciata1, facciata2, facciata3, rotatoria, IMG_5001)
+     ------------------------------------------------------------------------
+     ERA UN MURO DI PIETRA A VISTA con un portale ad arco rustico, sporgente
+     dal filo. Nelle fotografie non c'e' un solo concio: il fronte e'
+     INTONACATO, e si legge cosi', da ovest a est:
+
+       · un'ala a TETTO PIATTO, intonaco CREMA sopra e BIANCO al piano terra,
+         con una fila di finestre rettangolari a telaio scuro (facciata3);
+       · una LESENA DI MATTONI a tutta altezza, che segna il giunto fra
+         l'ala nuova e il corpo storico (facciata2 e facciata3: e' il
+         particolare che divide in due la facciata);
+       · il CORPO STORICO in intonaco GRIGIO-BEIGE con il tetto in coppi,
+         due file di finestre rettangolari con mostra chiara — al piano terra
+         con le grate, al primo con gli scuri scuri — e uno ZOCCOLO BIANCO
+         alto poco piu' di un metro;
+       · il PORTALE: due ante di legno scuro a specchiature, con la LUNETTA
+         A RAGGIERA sopra, dentro una semplice mostra di pietra BIANCA. Non
+         e' un arco rustico: e' una cornice liscia e sottile.
+
+     Davanti al portale: il selciato di PORFIDO a cubetti con le righe bianche
+     dei posti auto, due fioriere, una CROCE DI FERRO alta e isolata sul
+     piazzale e un lampione nero.
+
+     Sulla rotonda in asse: il MEDAGLIONE di pietra e le lettere metalliche
+     "CONGREGAZIONE SACRA FAMIGLIA" (rotatoria.png).
+     ======================================================================== */
+  (function fronteNord(){
+    const ZP=-18.28;                       /* il filo del rivestimento       */
+    const XA=-36.0, XB=14.3, HH=H_P1;      /* gli stessi estremi del corpo   */
+    /* LA LESENA STA A LEVANTE DEL PORTALE, non a ponente. Guardando il
+       fronte da nord — cioe' come le fotografie — lo schermo ha l'EST a
+       sinistra: nella foto la lesena e lo striscione sono a sinistra del
+       portone, quindi a est. Misurata sui vani in facciata2: circa 8,5 m
+       dall'asse del portale. */
+    const XL=-14.0;                        /* la lesena di mattoni           */
+    const XP=-22.6;                        /* l'asse del portale             */
+    const gf=new THREE.Group(); mondo.add(gf);
+
+    const mGreige = lam(0xB6B2A7);   /* il corpo storico                     */
+    const mCrema2 = lam(0xE3D3AF);   /* l'ala a tetto piatto, sopra          */
+    const mBianco2= lam(0xE8E5DC);   /* zoccolo e piano terra dell'ala       */
+    const mMostra = lam(0xF2EFE6);   /* le mostre delle finestre e del portale */
+    const mScuro2 = lam(0x4E5257);   /* scuri, grate, telai                  */
+    const mLegno3 = lam(0x5B3B26);   /* le ante del portone                  */
+    const mFerro2 = lam(0x2E2B28);
+
+    /* --- mattoni della lesena: gli stessi corsi sottili della chiesa ----- */
+    const texLes=(()=>{const c=mkCanvas(128,128),x=c.getContext('2d'),r=seme(451);
+      x.fillStyle='#A85228';x.fillRect(0,0,128,128);
+      for(let i=0;i<16;i++){const y=i*8;
+        x.fillStyle='#C4A88C';x.fillRect(0,y+6.4,128,1.6);
+        for(let k=0;k<5;k++){const px=(k*25.6+(i%2?12.8:0))%128;
+          x.fillStyle=r()<0.5?'#9E4C24':'#B35A2A';x.fillRect(px,y,24.4,6.4);}}
+      const t=tex(c,true);t.repeat.set(1,6);return t;})();
+
+    /* --- il rivestimento: zoccolo, corpo, ala di ponente ---------------- */
+    /* IL RIVESTIMENTO HA IL BUCO DEL PORTALE. Prima era una lastra continua
+       anche davanti al portone: aprendo i battenti si vedeva il muro pieno
+       invece dell'ingresso. Zoccolo e intonaco si spezzano ai due lati e si
+       richiudono sopra l'arco. */
+    const XW=1.58;                       /* mezza luce del vano + la mostra  */
+    [[XA,XP-XW],[XP+XW,XB]].forEach(q=>
+      box(gf,q[1]-q[0],1.15,0.20,mBianco2,(q[0]+q[1])/2,0.575,ZP-0.02,false));
+    [[XA,XP-XW],[XP+XW,XL]].forEach(q=>
+      box(gf,q[1]-q[0],HH-1.15,0.16,mGreige,(q[0]+q[1])/2,1.15+(HH-1.15)/2,ZP,false));
+    box(gf,XW*2,HH-4.66,0.16,mGreige,XP,4.66+(HH-4.66)/2,ZP,false);   /* sopra l'arco */
+    box(gf,XB-XL,HH-3.30,0.16,mCrema2,(XL+XB)/2,3.30+(HH-3.30)/2,ZP,false);
+    box(gf,XB-XL,3.30-1.15,0.16,mBianco2,(XL+XB)/2,1.15+(3.30-1.15)/2,ZP,false);
+    /* la cornice sottile del tetto piatto dell'ala di levante */
+    box(gf,XB-XL+0.3,0.28,0.46,mBianco2,(XL+XB)/2,HH+0.10,ZP-0.10,false);
+    /* la lesena di mattoni, a tutta altezza e leggermente sporgente */
+    box(gf,1.35,HH+0.45,0.34,lam(0xffffff,{map:texLes}),XL,(HH+0.45)/2,ZP-0.10,true);
+
+    /* --- le finestre ---------------------------------------------------- */
+    function finestra(x,y,w,h,grata){
+      box(gf,w+0.26,h+0.26,0.10,mMostra,x,y,ZP-0.10,false);          /* mostra  */
+      box(gf,w,h,0.05,lam(0x37414A),x,y,ZP-0.15,false);              /* vetro   */
+      box(gf,w+0.34,0.08,0.20,mMostra,x,y-h/2-0.15,ZP-0.14,false);   /* davanzale */
+      if(grata){ for(let i=0;i<5;i++)
+          box(gf,0.035,h,0.03,mScuro2,x-w/2+ (i+0.5)*w/5,y,ZP-0.19,false); }
+      else box(gf,w,h,0.04,mScuro2,x,y,ZP-0.18,false);               /* scuro   */
+    }
+    /* corpo storico (a ponente della lesena): due file, saltando la fascia
+       del portale, che ha un disegno suo */
+    for(let x=XA+2.0; x<XL-1.4; x+=3.55){
+      if(Math.abs(x-XP)<4.7) continue;
+      finestra(x,4.95,1.30,1.45,false);
+      finestra(x,2.15,1.20,1.30,true);
+    }
+    /* SOPRA IL PORTONE LE FINESTRE SONO TRE (Andrea): una in asse col
+       portale e due ai lati. Al piano terra, sotto di loro, non ce n'e'
+       nessuna: c'e' il portale. */
+    [-3.35,0,3.35].forEach(o=>finestra(XP+o,4.95,1.30,1.45,false));
+    /* ala di levante, a tetto piatto: una fila sola, alta, a telaio scuro */
+    for(let x=XL+1.9; x<XB-1.2; x+=3.2) finestra(x,4.60,1.55,1.30,false);
+
+    /* --- IL PORTALE: ante di legno e lunetta a raggiera ----------------- */
+    (function portale(){
+      const W=2.60, HP=3.05, R=W/2;              /* imposta a 3,05, poi l'arco */
+      /* mostra di pietra bianca, sottile, che segue l'arco */
+      const mo=new THREE.Shape();
+      mo.moveTo(-R-0.28,0); mo.lineTo(-R-0.28,HP);
+      mo.absarc(0,HP,R+0.28,Math.PI,0,true); mo.lineTo(R+0.28,0);
+      mo.closePath();
+      const bu=new THREE.Path();
+      bu.moveTo(-R,0); bu.lineTo(-R,HP); bu.absarc(0,HP,R,Math.PI,0,true);
+      bu.lineTo(R,0); bu.lineTo(-R,0); mo.holes.push(bu);
+      const mm=new THREE.Mesh(new THREE.ExtrudeGeometry(mo,{depth:0.16,bevelEnabled:false}),mMostra);
+      mm.position.set(XP,0,ZP-0.20); gf.add(mm);
+      /* LE DUE ANTE SI APRONO VERSO L'INTERNO quando ci si avvicina, e
+         dietro compare la BUSSOLA A VETRI (Andrea).
+         Ogni anta e' un GRUPPO INCERNIERATO SUL SUO STIPITE, col pannello
+         spostato di mezza larghezza dal perno: cosi' ruotando resta attaccata
+         al muro invece di traslare. Il verso si ricava, non si indovina —
+         una rotazione di `a` attorno a Y porta il punto (x,0,0) in
+         (x·cos a, 0, −x·sin a): perche' il bordo libero vada verso SUD
+         (dentro) l'anta di ponente vuole `a` NEGATIVO e quella di levante
+         `a` positivo. */
+      const ante=[-1,1].map(s=>{
+        const p=new THREE.Group();
+        p.position.set(XP+s*W/2, 0, ZP-0.12); gf.add(p);
+        const cx=-s*W/4;
+        box(p,W/2,HP,0.10,mLegno3,cx,HP/2,0,false);
+        for(let i=0;i<5;i++)
+          box(p,W/2-0.10,0.05,0.03,lam(0x452C1B),cx,0.42+i*0.55,-0.06,false);
+        box(p,0.05,HP-0.12,0.035,lam(0x452C1B),cx,HP/2,-0.06,false);
+        const mn=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.30,8),lam(0xB09A54));
+        mn.position.set(-s*0.14,1.05,-0.09); p.add(mn);
+        return p;});
+      varco(box(gf,W,HP,0.06,mLegno3,XP,HP/2,ZP+0.30,false)).visible=false;
+
+      /* LA BUSSOLA A VETRI, mezzo metro piu' dentro */
+      (function bussola(){
+        /* la bussola sta subito dietro le ante: piu' indietro finirebbe
+           DENTRO la massa del corpo di fabbrica, che comincia a z=-18,10, e
+           non si vedrebbe. Dietro di lei un piano scuro fa da atrio. */
+        const zb=ZP+0.06, tel=lam(0xB4B8BC);
+        box(gf,W+0.30,HP+0.30,0.05,lam(0x2A2622),XP,(HP+0.30)/2,ZP+0.19,false);
+        const vetro=new THREE.MeshPhongMaterial({color:0xBFD2DC,transparent:true,
+          opacity:0.30,shininess:130,specular:0xffffff,side:THREE.DoubleSide,
+          depthWrite:false});
+        box(gf,W+0.30,0.13,0.16,tel,XP,HP+0.10,zb,false);            /* traverso  */
+        [-1,1].forEach(s=>box(gf,0.12,HP+0.16,0.16,tel,XP+s*(W/2+0.09),(HP+0.16)/2,zb,false));
+        [-1,1].forEach(s=>{
+          const x=XP+s*W/4;
+          const v=new THREE.Mesh(new THREE.PlaneGeometry(W/2-0.14,HP-0.30),vetro);
+          v.position.set(x,HP/2,zb-0.02); gf.add(v);
+          box(gf,W/2-0.10,0.07,0.08,tel,x,HP-0.10,zb,false);
+          box(gf,W/2-0.10,0.07,0.08,tel,x,0.22,zb,false);
+          box(gf,0.06,HP-0.24,0.08,tel,x-s*(W/4-0.05),HP/2,zb,false);
+          const mn=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.85,8),
+            new THREE.MeshPhongMaterial({color:0xC6CAD0,shininess:120,specular:0xffffff}));
+          mn.position.set(x+s*(W/4-0.14),1.05,zb-0.09); gf.add(mn);});
+      })();
+
+      /* --- l'apertura: si spalanca arrivando davanti, si richiude andando via */
+      let apert=0;
+      AGGIORNA.push(dt=>{
+        const dx=pos.x-XP, dz=pos.z-ZP;
+        const davanti = (dz<0 && dz>-10 && Math.abs(dx)<5.0);
+        apert += ((davanti?1:0)-apert)*Math.min(1,dt*2.8);
+        ante[0].rotation.y = -apert*1.30;
+        ante[1].rotation.y =  apert*1.30;
+      });
+      /* LA LUNETTA A RAGGIERA: nelle foto e' il segno del portone */
+      const lu=new THREE.Mesh(new THREE.CylinderGeometry(R,R,0.09,24,1,false,0,Math.PI),mLegno3);
+      lu.rotation.x=Math.PI/2; lu.rotation.y=Math.PI/2;
+      lu.position.set(XP,HP,ZP-0.12); gf.add(lu);
+      for(let i=0;i<7;i++){
+        const a=Math.PI*(i+1)/8;
+        const rg=box(gf,0.055,R-0.10,0.04,lam(0x452C1B),
+          XP+Math.cos(a)*(R-0.10)/2, HP+Math.sin(a)*(R-0.10)/2, ZP-0.18,false);
+        rg.rotation.z=a-Math.PI/2;}
+      box(gf,W+0.10,0.07,0.05,lam(0x452C1B),XP,HP,ZP-0.18,false);   /* traversa */
+      /* le due fioriere quadrate ai lati */
+      [-1,1].forEach(s=>{
+        const x=XP+s*2.35;
+        box(gf,0.62,0.78,0.62,lam(0x8E8A82),x,0.39,ZP-0.55,true);
+        const f=new THREE.Mesh(new THREE.SphereGeometry(0.34,10,8),lam(0xB03A4A));
+        f.position.set(x,0.92,ZP-0.55); gf.add(f);
+        contatto(mondo,x,0.04,ZP-0.55,1.4,1.4,0.5);});
+      /* NIENTE STRISCIONE (Andrea): il cartellone "GIOCO ESTATE ·
+         BENVENUTI" e' stato tolto. */
+    })();
+
+    /* --- il selciato di porfido davanti al portale ---------------------- */
+    (function selciato(){
+      const c=mkCanvas(128,128),x=c.getContext('2d'),r=seme(909);
+      x.fillStyle='#8E8A90';x.fillRect(0,0,128,128);
+      for(let i=0;i<16;i++)for(let k=0;k<16;k++){
+        const t=r();
+        x.fillStyle=t<0.33?'#847F88':(t<0.66?'#96919A':'#7C7880');
+        x.fillRect(k*8+0.6,i*8+0.6,6.8,6.8);}
+      const t=tex(c,true); t.repeat.set(26,9);
+      const p=new THREE.Mesh(new THREE.PlaneGeometry(26,9),lam(0xffffff,{map:t}));
+      p.rotation.x=-Math.PI/2; p.position.set(XP-2,0.035,ZP-4.6);
+      p.receiveShadow=true; mondo.add(p);
+      /* le righe bianche dei posti auto, dipinte sul selciato */
+      for(let i=0;i<7;i++) box(mondo,0.10,0.02,4.4,lam(0xE8E6DE),
+        XP-12+i*3.4,0.05,ZP-6.6,false);
+    })();
+
+    /* --- la croce di ferro isolata sul piazzale ------------------------- */
+    (function croceSagrato(x,z){
+      box(mondo,0.70,0.24,0.70,lam(0x8A8680),x,0.12,z,true);
+      box(mondo,0.17,4.30,0.17,mFerro2,x,2.27,z,true);
+      box(mondo,1.35,0.17,0.17,mFerro2,x,3.55,z,true);
+      contatto(mondo,x,0.04,z,1.8,1.8,0.55);
+    })(XP-4.9,ZP-3.4);
+    /* --- il lampione nero --------------------------------------------- */
+    (function lampione(x,z){
+      const p=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.13,4.1,10),mFerro2);
+      p.position.set(x,2.05,z); p.castShadow=true; mondo.add(p);
+      box(mondo,0.34,0.30,0.34,mFerro2,x,4.28,z,false);
+      box(mondo,0.26,0.10,0.26,lam(0xF2EAC8),x,4.10,z,false);
+      contatto(mondo,x,0.04,z,0.9,0.9,0.5);
+    })(XP-6.6,ZP-4.4);
+  })();
+
+  /* --- la rotonda: il medaglione e le lettere ------------------------- */
+  (function insegnaRotonda(){
+    /* LA ROTATORIA E' PIU' A EST (Andrea). Misurata sull'ortofoto zenitale:
+       l'aiuola col cordolo bianco e' un ovale di ~16 x 15,7 m centrato in
+       (-0,3 · -53,4). Il modello la teneva in asse col portone (-22,6), per
+       una correzione di due mesi fa: era in asse col portone di un fronte
+       che allora stava in un altro posto. */
+    const XR=-0.3, ZR=-53.4;
+    /* il disco di pietra, in piedi sull'aiuola */
+    const d=new THREE.Mesh(new THREE.CylinderGeometry(1.55,1.55,0.26,28),lam(0x9E9585));
+    d.rotation.x=Math.PI/2; d.position.set(XR-3.2,1.60,ZR+1.2);
+    d.castShadow=true; mondo.add(d);
+    const dd=new THREE.Mesh(new THREE.CylinderGeometry(1.28,1.28,0.30,28),lam(0x8C8375));
+    dd.rotation.x=Math.PI/2; dd.position.set(XR-3.2,1.60,ZR+1.19); mondo.add(dd);
+    box(mondo,1.1,1.6,0.7,lam(0x8A8175),XR-3.2,0.8,ZR+1.2,true);
+    /* le lettere metalliche, su un basso profilo */
+    (function lettere(){
+      const c=mkCanvas(1024,96),x=c.getContext('2d');
+      x.clearRect(0,0,1024,96);
+      x.fillStyle='#C7A94E';x.font='bold 62px Lexend, sans-serif';x.textAlign='center';
+      x.fillText('CONGREGAZIONE  SACRA  FAMIGLIA',512,70);
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(15.5,1.45),
+        new THREE.MeshLambertMaterial({map:tex(c,false),transparent:true}));
+      m.position.set(XR+4.6,0.86,ZR+1.4); mondo.add(m);
+      for(let i=0;i<9;i++) box(mondo,0.05,0.30,0.05,lam(0x8E8A82),
+        XR-2.4+i*1.8,0.15,ZR+1.4,false);
+    })();
+  })();
+
+  contatto(mondo,-22.6,0.03,z0-4.6,26,9,0.40);
 })();
 
 /* ===================== ALA EST — Secondaria ==============================
@@ -2364,6 +2635,29 @@ function faroLed(x,y,z,ry){
      Tutte le altre vasche sono a cielo aperto — il secondo capannone non
      esiste. Resta la vasca, con il solo bordo piastrellato e le scalette. */
   capannone(98.5,-6.5,40,25,5.4,2.0);
+  /* ===== LA STRUTTURA SU CUI SCORRE LA COPERTURA ======================
+     Nel parcheggio (parcheggio.png, IMG_5006) c'e' un lungo colonnato di
+     pilastri quadrati intonacati che regge due travi parallele: sono le
+     ROTAIE su cui la copertura della vasca scivola quando la si apre. Il
+     tetto blu del capannone continua per un tratto sopra le rotaie — e'
+     la parte gia' scorsa fuori — e poi le travi proseguono nude sopra
+     l'asfalto. Non e' una pensilina del parcheggio: e' il binario. */
+  (function binariCopertura(){
+    const XA=88, XB=97, Z0=-19.2, Z1=-50.0;      /* due rotaie, 9 m fra loro */
+    const mPil=lam(0xE0D8BE), mTrave=lam(0xD8D2C2), mBlu=lam(0x2E5F94);
+    [XA,XB].forEach(px=>{
+      for(let z=Z0;z>=Z1;z-=3.6){
+        box(g,0.55,3.55,0.55,mPil,px,1.775,z,true);
+        contatto(g,px,0.03,z,1.3,1.3,0.45);}
+      box(g,0.66,0.92,Z0-Z1,mTrave,px,4.02,(Z0+Z1)/2,true);   /* la trave */
+      box(g,0.78,0.14,Z0-Z1,lam(0xC6BFAD),px,4.55,(Z0+Z1)/2,false); /* la rotaia */
+    });
+    /* il tratto di copertura gia' scorso fuori, in lamiera blu */
+    box(g,XB-XA+1.6,0.24,12.0,mBlu,(XA+XB)/2,4.74,Z0-6.4,true);
+    for(let k=0;k<7;k++)
+      box(g,XB-XA+1.5,0.07,0.12,lam(0x24507E),(XA+XB)/2,4.88,Z0-1.2-k*1.7,false);
+    box(g,XB-XA+1.8,0.16,0.20,lam(0x1E4570),(XA+XB)/2,4.66,Z0-12.5,false);
+  })();
   vascaRett(124,-26,17,7,4,false,0);
   (function bordoVascaNord(){
     const cx=124,cz=-26;
@@ -4477,6 +4771,8 @@ function anima(){
       pos.y=quotaSotto(pos.x,pos.z)+ALTEZZA;
     }
   }
+
+  for(const f of AGGIORNA) f(dt);      /* i battenti del portone, e simili */
 
   camera.position.copy(pos);
   camera.rotation.order='YXZ';
