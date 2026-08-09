@@ -652,9 +652,16 @@ function tetto(p,cx,cz,Lx,Lz,y0,alt,o){
   fasce.forEach(f=>box(g,f[0]+0.1,0.2,0.12,matGronda,0,yb-0.1,f[2],false));
   box(g,0.12,0.2,We+0.1,matGronda,-hw,yb-0.1,0,false);
   box(g,0.12,0.2,We+0.1,matGronda, hw,yb-0.1,0,false);
+  /* IL CANALE DI GRONDA ERA RUOTATO UNA VOLTA DI TROPPO. Con
+     rotation.z=PI/2 l'asse del cilindro finisce gia' lungo X, che e' il
+     verso giusto nel sistema locale del tetto; il rotation.y=PI/2 in piu'
+     lo rimetteva lungo Z, e siccome il gruppo e' a sua volta ruotato per
+     gli edifici piu' lunghi in Z, la gronda usciva ATTRAVERSO il campus:
+     un tubo grigio da cinquanta metri sospeso a quota 7, con i comignoli
+     che sembravano appoggiati sopra. Segnalato da Andrea. */
   [[-hd,0],[hd,0]].forEach(q=>{
     const cn=new THREE.Mesh(new THREE.CylinderGeometry(0.085,0.085,Le,8,1,false,0,Math.PI),matLattoneria);
-    cn.rotation.z=Math.PI/2; cn.rotation.y=Math.PI/2;
+    cn.rotation.z=Math.PI/2;
     cn.position.set(0,yb-0.2,q[0]); g.add(cn);
   });
   /* pluviali agli angoli, fino a terra se richiesto */
@@ -670,12 +677,17 @@ function tetto(p,cx,cz,Lx,Lz,y0,alt,o){
     });
   }
   /* comignoli */
+  /* I COMIGNOLI SI PIANTANO SULLA FALDA, non a mezz'aria. La quota
+     giusta e' quella del piano inclinato in quel punto — yb + alt*(1 -
+     |z|/hd) — non il colmo diminuito di una frazione arbitraria, che li
+     lasciava sospesi sopra la falda. Si affondano di 20 cm nel tetto,
+     cosi' il piede non si vede staccato. */
   (o.comignoli||[]).forEach(q=>{
     const h=q[2]||1.5, xx=q[0], zz=q[1];
-    const yBase=yt-Math.abs(zz)/hd*alt*0.5;
-    box(g,0.75,h,0.75,lam(0xc4b8a2),xx,yBase+h/2-0.3,zz,true);
-    box(g,1.0,0.14,1.0,lam(0x9c9080),xx,yBase+h-0.25,zz,true);
-    box(g,0.5,0.2,0.5,lam(0x8a7f70),xx,yBase+h-0.06,zz,true);
+    const yFalda=yb+alt*Math.max(0,1-Math.abs(zz)/hd);
+    box(g,0.75,h,0.75,lam(0xc4b8a2),xx,yFalda-0.2+h/2,zz,true);
+    box(g,1.0,0.14,1.0,lam(0x9c9080),xx,yFalda-0.2+h+0.05,zz,true);
+    box(g,0.5,0.2,0.5,lam(0x8a7f70),xx,yFalda-0.2+h+0.20,zz,true);
   });
   /* per le collisioni conta solo il volume delle falde: un proxy invisibile
      da y0 a y0+alt. Registrare l'intero gruppo includerebbe i pluviali, che
