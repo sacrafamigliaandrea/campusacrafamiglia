@@ -682,12 +682,33 @@ function tetto(p,cx,cz,Lx,Lz,y0,alt,o){
      |z|/hd) — non il colmo diminuito di una frazione arbitraria, che li
      lasciava sospesi sopra la falda. Si affondano di 20 cm nel tetto,
      cosi' il piede non si vede staccato. */
+  /* I COMIGNOLI SI PIANTANO SULLA FALDA, SEMPRE.
+     Nei tetti piu' lunghi in Z il gruppo e' ruotato di 90 gradi, e le
+     coordinate scritte dal chiamante finivano interpretate nel sistema
+     LOCALE ruotato: un comignolo dato a z=-14 usciva dall'impronta del
+     tetto e restava per aria, con sette metri di vuoto sotto. Erano i
+     quattro camini volanti sull'asse est-ovest segnalati da Andrea.
+     Invece di indovinare in quale sistema il chiamante ha scritto le
+     coordinate, le si RIPORTA DENTRO l'impronta: qualunque cosa arrivi,
+     il comignolo finisce sul tetto. Chi le aveva scritte bene non se ne
+     accorge, perche' il taglio e' proporzionale. */
   (o.comignoli||[]).forEach(q=>{
-    const h=q[2]||1.5, xx=q[0], zz=q[1];
-    const yFalda=yb+alt*Math.max(0,1-Math.abs(zz)/hd);
-    box(g,0.75,h,0.75,lam(0xc4b8a2),xx,yFalda-0.2+h/2,zz,true);
-    box(g,1.0,0.14,1.0,lam(0x9c9080),xx,yFalda-0.2+h+0.05,zz,true);
-    box(g,0.5,0.2,0.5,lam(0x8a7f70),xx,yFalda-0.2+h+0.20,zz,true);
+    const h=q[2]||1.5;
+    const xx=Math.max(-hw*0.75,Math.min(hw*0.75,q[0]));
+    const zz=Math.max(-hd*0.60,Math.min(hd*0.60,q[1]));
+    /* La quota della falda scende lungo Z sui due spioventi lunghi, ma su
+       un tetto A PADIGLIONE scende ANCHE lungo X sui due fianchi a
+       displuvio: guardando solo Z, un comignolo vicino alla testata
+       restava per aria di un metro e mezzo. Si prende la piu' bassa
+       delle due pendenze. */
+    const rl=Math.max(0.05,(Le-We)/2);
+    let f=1-Math.abs(zz)/hd;
+    if(o.tipo!=='capanna' && Math.abs(xx)>rl)
+      f=Math.min(f,(hw-Math.abs(xx))/Math.max(0.05,hw-rl));
+    const yFalda=yb+alt*Math.max(0,f);
+    box(g,0.75,h,0.75,lam(0xc4b8a2),xx,yFalda-0.25+h/2,zz,true);
+    box(g,1.0,0.14,1.0,lam(0x9c9080),xx,yFalda-0.25+h+0.05,zz,true);
+    box(g,0.5,0.2,0.5,lam(0x8a7f70),xx,yFalda-0.25+h+0.20,zz,true);
   });
   /* per le collisioni conta solo il volume delle falde: un proxy invisibile
      da y0 a y0+alt. Registrare l'intero gruppo includerebbe i pluviali, che
