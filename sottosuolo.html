@@ -196,19 +196,12 @@ ul.reg-lista li{margin-bottom:5px}
   <div class="pann">
     <div class="occhiello">Sotto il campus</div>
     <h1 style="font-size:1.9rem;margin-bottom:10px">C'è un guasto, e nessuno sa dove</h1>
-    <p style="max-width:70ch">Da qualche giorno qualcosa non torna: un contatore che gira
-    anche di notte, una chiazza che non asciuga, una luce che cala quando parte la pompa.
-    Il guasto è là sotto, sepolto sotto un metro di terra — e <b>scavare a caso costa più
-    di tutto il resto</b>.</p>
-    <p style="max-width:70ch">Per questo esiste il <b>georadar</b>. Da un pozzetto mandi un
-    impulso: attraversa il terreno, si tinge del colore delle condotte che incontra, gira di
-    novanta gradi sui gomiti, torna indietro sulle testate, e riemerge da un altro pozzetto.
-    Tu non vedi il percorso. Vedi solo <b>da dove esce e di che colore</b>. Se ha attraversato
-    la condotta rotta, esce <b>attenuato</b>.</p>
-    <p style="max-width:70ch">Il resto è deduzione. E la domanda difficile non è dove sondare:
-    è <b>quando smettere di sondare e dire «è qui»</b>.</p>
-  </div>
-
+    <p style="max-width:70ch">Il guasto è là sotto, sepolto sotto un metro di terra, e
+    <b>scavare a caso costa più di tutto il resto</b>. Per questo esiste il
+    <b>georadar</b>: da un pozzetto mandi un impulso e vedi <b>da dove riesce</b> e
+    <b>di che colore</b>. Il percorso non lo vedi. Il resto è deduzione.</p>
+    <p style="max-width:70ch">Quattro pozzetti, quattro impianti. <b>Ognuno aggiunge una
+    regola sola</b>: comincia dal campo da basket, dove l'impulso va sempre dritto.</p>
   <div class="pann">
     <div class="occhiello">1 · Scegli il pozzetto da cui scendere</div>
     <div class="settori" id="lista-settori"></div>
@@ -337,7 +330,10 @@ function impulso(cfg,iPoz){
     const pz=pezzi.find(q=>q.x===x&&q.y===y);
     if(!pz) continue;
     const t=TIPI[pz.t];
-    if(t.c){col|=t.c; if(guasto===pz.t) att=true;}
+    /* SENZA mescolanza l'impulso prende SOLO il colore della PRIMA
+       condotta che incontra: e' la semplificazione che toglie di mezzo la
+       tabella delle otto combinazioni nei primi tre settori. */
+    if(t.c){ if(cfg.mescola||col===0) col|=t.c; if(guasto===pz.t) att=true; }
     else if(t.dev) d=GIRA[t.dev][d];
     else if(t.rifl) d=OPP[d];
   }
@@ -383,13 +379,14 @@ function varianti(cfg){
 function firma(cfg){const n=2*(cfg.W+cfg.H),o=[];
   for(let i=0;i<n;i++)o.push(rispostaDi(cfg,i));return o.join('|');}
 
-function genera(W,H,lista,seme){
+function genera(W,H,lista,seme,mescola){
   const r=mulberry32(cyrb53(seme));
   for(let tent=0;tent<400;tent++){
     const pezzi=generaGrezza(W,H,lista,r);
     if(!pezzi)continue;
     const cond=pezzi.filter(p=>TIPI[p.t].c);
-    const cfg={W:W,H:H,pezzi:pezzi,guasto:cond[rint(0,cond.length-1,r)].t};
+    const cfg={W:W,H:H,mescola:!!mescola,pezzi:pezzi,
+               guasto:cond[rint(0,cond.length-1,r)].t};
     const tocc=new Set(); const n=2*(W+H);
     for(let i=0;i<n;i++)impulso(cfg,i).scia.forEach(s=>tocc.add(s));
     if(pezzi.some(p=>!tocc.has(p.x+','+p.y)))continue;
@@ -401,21 +398,31 @@ function genera(W,H,lista,seme){
 /* ====================================================================
    2. I QUATTRO SETTORI — i pozzetti del piano terra del campus
    ==================================================================== */
-const L5=['ACQUA','GAS','ELET','GOMITO_DX','TESTATA'];
-const L6=['ACQUA','GAS','ELET','GOMITO_DX','GOMITO_SX','TESTATA'];
+/* ====================================================================
+   2. I QUATTRO SETTORI — UNA REGOLA NUOVA PER TOMBINO
+   La prima stesura metteva tutto insieme dal primo minuto: tre colori che
+   si mescolano in otto combinazioni, due gomiti e una testata. Troppo.
+   Adesso ogni tombino aggiunge UNA COSA SOLA, e le altre restano quelle
+   che si sanno gia'. Numeri tarati col prototipo (scratchpad/taratura2.js):
+   fra parentesi le sonde che servono a chi ragiona, mediana e p90.
+   ==================================================================== */
 const SETTORI={
   basket:{ nome:'Sotto il campo da basket', impianto:'Drenaggio e acque piovane',
-    W:8,H:8,lista:L5,gettoni:14,
-    intro:'Dopo un temporale il campo resta bagnato a mezzogiorno, e a fine campo l\'acqua ristagna. Sotto corrono le caditoie del drenaggio, un tratto di gas per la caldaia della palestra e un cavidotto.'},
+    W:6,H:6,lista:['ACQUA','GAS','ELET'],mescola:false,gettoni:15,
+    novita:'L\'impulso va sempre dritto e torna col colore della prima condotta che incontra.',
+    intro:'Dopo un temporale il campo resta bagnato a mezzogiorno. Sotto corrono tre linee: acqua, gas e un cavidotto.'},
   infanzia:{ nome:'Sotto il giardino dell\'Infanzia', impianto:'Irrigazione e gas della cucina',
-    W:9,H:9,lista:L5,gettoni:14,
-    intro:'L\'irrigazione dei prati parte da sola anche quando piove, e in cucina la fiamma cala quando si accende il forno. Due sintomi, un impianto solo là sotto.'},
+    W:7,H:7,lista:['ACQUA','GAS','ELET','TESTATA'],mescola:false,gettoni:14,
+    novita:'Qui c\'è anche una TESTATA CIECA: se l\'impulso la colpisce torna indietro e riesce dal pozzetto da cui era partito.',
+    intro:'L\'irrigazione parte da sola anche quando piove, e in cucina la fiamma cala quando si accende il forno.'},
   piscine:{ nome:'Sotto le piscine', impianto:'Ricircolo e riscaldamento delle vasche',
-    W:10,H:10,lista:L6,gettoni:16,
-    intro:'La vasca a corsie perde due centimetri a notte, e non è evaporazione. Sotto il piazzale corrono il ricircolo, la mandata calda e la linea che alimenta le pompe.'},
+    W:8,H:8,lista:['ACQUA','GAS','ELET','TESTATA','GOMITO_DX'],mescola:false,gettoni:13,
+    novita:'Si aggiunge un GOMITO: fa girare l\'impulso di novanta gradi, e non sai da che parte finché non lo vedi uscire.',
+    intro:'La vasca a corsie perde due centimetri a notte, e non è evaporazione.'},
   chiesa:{ nome:'Sotto la chiesa', impianto:'La linea elettrica più vecchia del campus',
-    W:10,H:10,lista:L6,gettoni:16,
-    intro:'Quando si accende l\'organo, in sacrestia le luci calano. È l\'impianto più vecchio del campus: nessuno ha più il disegno di come passa.'}
+    W:9,H:9,lista:['ACQUA','GAS','ELET','TESTATA','GOMITO_DX','GOMITO_SX'],mescola:true,gettoni:12,
+    novita:'Due gomiti invece di uno, e soprattutto: se l\'impulso attraversa PIÙ condotte i colori SI MESCOLANO — azzurro+giallo dà verde, azzurro+rosso viola, giallo+rosso arancio.',
+    intro:'Quando si accende l\'organo, in sacrestia le luci calano. È l\'impianto più vecchio del campus: nessuno ha più il disegno.'}
 };
 
 /* ====================================================================
@@ -551,7 +558,9 @@ function bottoneCella(x,y){
 }
 
 function renderAttrezzi(){
-  const el=['ACQUA','GAS','ELET','GOMITO_DX','GOMITO_SX','TESTATA','VUOTO'];
+  /* Solo i segni che servono in QUESTO settore: nel primo sono quattro,
+     non sette. Un attrezzo per una cosa che non puo' esistere e' rumore. */
+  const el=[...new Set(SETTORI[S.settore].lista)].concat('VUOTO');
   $('attrezzi').innerHTML=el.map(t=>
     '<button class="att'+(S.attrezzo===t?' sel':'')+'" data-att="'+t+'" '+
     'aria-label="'+(t==='VUOTO'?'niente':TIPI[t].nome)+'" '+
@@ -573,17 +582,34 @@ function renderRegistro(){
 }
 
 function renderLegenda(){
-  $('legenda').innerHTML=
-    '<div style="display:flex;flex-direction:column;gap:9px">'+
-    ['ACQUA','GAS','ELET'].map(t=>'<div style="display:flex;gap:9px;align-items:center">'
-      +iconaTipo(t,20)+'<span class="piccolo">'+TIPI[t].nome+' — <b>tinge</b> l\'impulso</span></div>').join('')+
-    '<div style="display:flex;gap:9px;align-items:center">'+iconaTipo('GOMITO_DX',20)+
-      '<span class="piccolo">Gomito — <b>gira di 90°</b></span></div>'+
-    '<div style="display:flex;gap:9px;align-items:center">'+iconaTipo('TESTATA',20)+
-      '<span class="piccolo">Testata cieca — <b>rimanda indietro</b></span></div>'+
-    '<div style="display:flex;gap:9px;align-items:center"><span class="pallino att"></span>'+
-      '<span class="piccolo"><b>Attenuato</b> (anello tratteggiato): ha attraversato la condotta rotta</span></div>'+
-    '</div>';
+  /* Si elencano SOLO le regole che valgono in questo settore, e la novita'
+     e' in evidenza: e' l'unica cosa nuova da imparare qui. */
+  const st=SETTORI[S.settore], ha=t=>st.lista.indexOf(t)>=0;
+  let h='<div style="display:flex;flex-direction:column;gap:9px">';
+  ['ACQUA','GAS','ELET'].forEach(t=>{ if(ha(t))
+    h+='<div style="display:flex;gap:9px;align-items:center">'+iconaTipo(t,20)
+      +'<span class="piccolo">'+TIPI[t].nome+' — <b>tinge</b> l\'impulso</span></div>';});
+  if(ha('TESTATA'))
+    h+='<div style="display:flex;gap:9px;align-items:center">'+iconaTipo('TESTATA',20)
+      +'<span class="piccolo">Testata cieca — <b>rimanda indietro</b></span></div>';
+  if(ha('GOMITO_DX')||ha('GOMITO_SX'))
+    h+='<div style="display:flex;gap:9px;align-items:center">'+iconaTipo('GOMITO_DX',20)
+      +'<span class="piccolo">Gomito — <b>gira di 90°</b></span></div>';
+  h+='<div style="display:flex;gap:9px;align-items:center"><span class="pallino att"></span>'
+    +'<span class="piccolo"><b>Attenuato</b> (anello tratteggiato): ha attraversato la '
+    +'condotta rotta</span></div>';
+  if(st.mescola)
+    h+='<div style="display:flex;gap:9px;align-items:center">'
+      +'<span class="pallino" style="background:#2E9E5B"></span>'
+      +'<span class="piccolo"><b>Colori mescolati</b>: verde = acqua+gas · viola = acqua+elettrico '
+      +'· arancio = gas+elettrico</span></div>';
+  else
+    h+='<div style="display:flex;gap:9px;align-items:center">'
+      +'<span class="pallino" style="background:#DDE3EA"></span>'
+      +'<span class="piccolo">Il colore è quello della <b>prima</b> condotta incontrata. '
+      +'Bianco = non ne ha incontrata nessuna.</span></div>';
+  h+='</div>';
+  $('legenda').innerHTML=h;
 }
 
 function renderTutto(){renderContatori();renderGriglia();renderRegistro();renderAzioni();}
@@ -746,6 +772,13 @@ function finisci(vinta){
   $('btn-torna').onclick =()=>{S.cfg=null;renderContatori();mostra('sc-avvio');};
   $('btn-campus').onclick=()=>{location.href='index.html';};
 
+  /* i codici gia' chiusi: servono ad avvisare chi rigioca la stessa rete */
+  try{
+    const g=JSON.parse(localStorage.getItem('st-fatti')||'[]');
+    if(g.indexOf(S.settore+'|'+S.codice)<0){ g.push(S.settore+'|'+S.codice);
+      localStorage.setItem('st-fatti',JSON.stringify(g.slice(-60))); }
+  }catch(e){}
+
   /* telemetria formativa in locale (RIGIOCABILITA §6) */
   try{
     const log=JSON.parse(localStorage.getItem('st-runs')||'[]');
@@ -854,7 +887,9 @@ function renderSettori(){
     return '<button class="settore" data-set="'+k+'">'
       +'<h3>'+s.nome+'</h3><div class="imp">'+s.impianto+'</div>'
       +'<div class="det">griglia '+s.W+'×'+s.H+' · '+s.lista.length+' tratti sepolti · '
-      +s.gettoni+' gettoni</div></button>';}).join('');
+      +s.gettoni+' gettoni</div>'
+      +'<div class="det" style="color:var(--oro);margin-top:6px">'+s.novita+'</div></button>';})
+    .join('');
   $('lista-settori').querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{
     $('lista-settori').querySelectorAll('.settore').forEach(x=>x.classList.remove('sel'));
     b.classList.add('sel');
@@ -864,7 +899,7 @@ function renderSettori(){
 
 function avvia(settore,codice,nick){
   const s=SETTORI[settore];
-  const cfg=genera(s.W,s.H,s.lista,settore+'|'+codice);
+  const cfg=genera(s.W,s.H,s.lista,settore+'|'+codice,s.mescola);
   if(!cfg){avvisa('Non sono riuscito a generare una rete leggibile con questo codice. Provane un altro.');return;}
   S.settore=settore; S.codice=codice; S.cfg=cfg; S.nick=(nick||'').trim().slice(0,14);
   S.gettoni=s.gettoni; S.spesi=0; S.colpi=[]; S.note={}; S.carotate={};
@@ -873,9 +908,54 @@ function avvia(settore,codice,nick){
   $('tit-settore').textContent=s.nome+' — '+s.impianto;
   renderAttrezzi(); renderLegenda(); renderTutto();
   mostra('sc-gioco');
-  avvisa('<b>'+s.nome+'</b><br>'+s.intro+'<br><br>Hai <b>'+s.gettoni+' gettoni</b>. '
-    +'Un impulso ne costa 1, aprire una casella col carotaggio ne costa 4, '
-    +'e dichiarare il guasto nel posto sbagliato ne costa 5.');
+  /* APERTURA GUIDATA IN TRE PASSI (contesto → obiettivo → la regola
+     nuova), non un muro di testo. Il primo modale diceva tutto insieme e
+     nessuno lo leggeva fino in fondo. */
+  let gia=false;
+  try{ gia=JSON.parse(localStorage.getItem('st-fatti')||'[]')
+        .indexOf(settore+'|'+codice)>=0; }catch(e){}
+  const passi=[
+    {t:'Che cosa succede quassù',
+     c:s.intro+'<br><br>Il guasto è là sotto, e <b>scavare a caso costa</b>. '
+      +'Hai il georadar: da un pozzetto mandi un impulso e vedi <b>da dove riesce</b> '
+      +'e <b>di che colore</b>. Il percorso non lo vedi mai.'},
+    {t:'Che cosa devi fare',
+     c:'Dire <b>in quale casella</b> è il guasto. Non serve ricostruire tutta la rete: '
+      +'basta quella casella.<br><br>Hai <b>'+s.gettoni+' gettoni</b>. Un impulso ne costa '
+      +'<b>1</b>. Aprire una casella col carotaggio ne costa <b>4</b>. Dichiarare nel posto '
+      +'sbagliato ne costa <b>5</b> — ma la partita continua, non si perde.'
+      +'<br><br>L\'impulso che ha attraversato la condotta rotta esce <b>attenuato</b>: '
+      +'lo riconosci dall\'anello tratteggiato.'},
+    {t:'La novità di questo settore',
+     c:s.novita+(gia?'<br><br><span style="color:var(--ambra)">Questa rete l\'hai già '
+      +'chiusa: è la stessa di prima, guasto compreso. Puoi rigiocarla per provare '
+      +'un\'altra strada, ma nella sfida conta il primo tentativo.</span>':'')}
+  ];
+  guida(passi);
+}
+
+/* modale a passi: uno per volta, con l'avanzamento visibile */
+function guida(passi){
+  let i=0;
+  const d=document.createElement('div');
+  d.className='pieno-schermo';
+  document.body.appendChild(d);
+  function dipingi(){
+    const p=passi[i];
+    d.innerHTML='<div class="modale">'
+      +'<div class="occhiello">passo '+(i+1)+' di '+passi.length+'</div>'
+      +'<h2 style="font-size:1.4rem;margin-bottom:10px">'+p.t+'</h2>'
+      +'<p style="margin-top:0">'+p.c+'</p>'
+      +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">'
+      +(i>0?'<button class="btn" style="flex:0 0 auto">Indietro</button>':'')
+      +'<button class="btn oro" style="flex:1 1 160px">'
+      +(i<passi.length-1?'Avanti':'Comincia')+'</button></div></div>';
+    const b=d.querySelectorAll('button');
+    if(i>0) b[0].onclick=()=>{i--;dipingi();};
+    b[b.length-1].onclick=()=>{ if(i<passi.length-1){i++;dipingi();} else d.remove(); };
+    b[b.length-1].focus();
+  }
+  dipingi();
 }
 
 /* parametri per il docente: settore, codice, e le leve di difficolta' */
