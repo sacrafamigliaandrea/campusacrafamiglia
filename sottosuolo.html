@@ -673,24 +673,127 @@ function arrivo(){
   ctx.strokeRect(a,py(0),b-a,py(3.4)-py(0)); ctx.setLineDash([]);
 }
 function talpa(){
+  /* la sacca da cui è partita, che resta accesa in fondo */
   const sg=ctx.createRadialGradient(px(S.sacca.x),py(S.sacca.y),2,
                                     px(S.sacca.x),py(S.sacca.y),48);
   sg.addColorStop(0,'rgba(255,196,92,.8)'); sg.addColorStop(1,'rgba(226,138,48,0)');
   ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(px(S.sacca.x),py(S.sacca.y),48,0,6.29); ctx.fill();
+
+  /* ================= ORZO, DI PROFILO ==============================
+     Prima l'avevo disegnato DI FACCIA — due occhi affiancati e la bocca —
+     in una scena vista di LATO: veniva uno smile. Da questa inquadratura
+     si vede il profilo: la trivella che punta avanti, UN occhio solo,
+     l'elmetto sul dorso e le ZAMPE sotto, che remano nella terra.
+     Il disegno è in coordinate locali con la punta verso -Y; quando ORZO
+     punta a sinistra si specchia, così il dorso resta sempre in alto.  */
   const X=px(S.x), Y=py(S.y);
-  ctx.save(); ctx.translate(X,Y); ctx.rotate(S.dir);
-  const L=Math.max(15,1.6*MPX), W=Math.max(9,1.0*MPX);
-  ctx.fillStyle='#C9B08A'; ctx.fillRect(-W/2,0,W,L*.72);
-  ctx.fillStyle='#8E7A5E'; ctx.fillRect(-W/2,L*.28,W,L*.1);
-  ctx.fillStyle='#A8B0B8';
-  ctx.beginPath(); ctx.moveTo(-W*.62,0); ctx.lineTo(W*.62,0); ctx.lineTo(0,-L*.6);
+  const L=Math.max(32,3.4*MPX), W=Math.max(20,2.2*MPX);
+  const t=performance.now()*0.004;
+  const verso=(Math.sin(S.dir)>=0)?1:-1;      /* dorso sempre dalla stessa parte */
+  ctx.save(); ctx.translate(X,Y); ctx.rotate(S.dir); ctx.scale(verso,1);
+
+  /* --- il fascio della lampada, davanti alla punta ------------------ */
+  const fascio=ctx.createRadialGradient(0,-L*0.6,2,0,-L*1.5,L*2.2);
+  fascio.addColorStop(0,'rgba(255,244,196,.55)');
+  fascio.addColorStop(1,'rgba(255,236,170,0)');
+  ctx.fillStyle=fascio;
+  ctx.beginPath(); ctx.moveTo(-W*0.20,-L*0.55);
+  ctx.lineTo(-W*1.5,-L*2.4); ctx.lineTo(W*1.5,-L*2.4); ctx.lineTo(W*0.20,-L*0.55);
   ctx.closePath(); ctx.fill();
-  const t=performance.now()*.012;
-  ctx.strokeStyle='#6E767E'; ctx.lineWidth=1.5;
-  for(let k=0;k<3;k++){ const a=t+k*2.1;
-    ctx.beginPath(); ctx.moveTo(Math.cos(a)*W*.42,-L*.12-k*L*.13);
-    ctx.lineTo(-Math.cos(a)*W*.42,-L*.05-k*L*.13); ctx.stroke();}
+
+  /* --- LE ZAMPE, che remano: due davanti e due dietro --------------- */
+  function zampa(base,fase,lung,gross){
+    const a=0.55+Math.sin(t*5.5+fase)*0.62;    /* la bracciata */
+    ctx.save(); ctx.translate(W*0.30,base); ctx.rotate(a);
+    ctx.strokeStyle='#8A6A34'; ctx.lineCap='round';
+    ctx.lineWidth=Math.max(2,W*gross);
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,lung); ctx.stroke();
+    ctx.strokeStyle='#C9A45C'; ctx.lineWidth=Math.max(1,W*gross*0.45);
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,lung*0.75); ctx.stroke();
+    /* gli artigli */
+    ctx.strokeStyle='#DDE2E6'; ctx.lineWidth=Math.max(1,W*0.055);
+    for(let k=-1;k<=1;k++){
+      ctx.beginPath(); ctx.moveTo(0,lung);
+      ctx.lineTo(k*W*0.13,lung+W*0.16); ctx.stroke();}
+    ctx.restore();}
+  zampa( L*0.30, 2.4,  L*0.24, 0.10);          /* la posteriore, dietro il corpo */
+
+  /* --- il corpo di profilo: testa affusolata e groppa --------------- */
+  const corpo=ctx.createLinearGradient(-W*0.55,0,W*0.55,0);
+  corpo.addColorStop(0,'#E6C079'); corpo.addColorStop(0.42,'#B98B45');
+  corpo.addColorStop(1,'#6B4A21');
+  ctx.fillStyle=corpo;
+  ctx.beginPath();
+  ctx.moveTo(-W*0.16,-L*0.30);                        /* attacco del muso */
+  ctx.quadraticCurveTo(-W*0.56,-L*0.10,-W*0.50,L*0.22);
+  ctx.quadraticCurveTo(-W*0.42,L*0.62,0,L*0.62);      /* la coda          */
+  ctx.quadraticCurveTo(W*0.46,L*0.60,W*0.50,L*0.18);
+  ctx.quadraticCurveTo(W*0.50,-L*0.14,W*0.16,-L*0.30);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='rgba(70,46,18,.7)'; ctx.lineWidth=1.2; ctx.stroke();
+  /* rivetti lungo il dorso */
+  ctx.fillStyle='rgba(255,232,180,.7)';
+  for(let k=0;k<4;k++){
+    ctx.beginPath(); ctx.arc(-W*0.34,-L*0.08+k*L*0.17,Math.max(0.8,W*0.05),0,6.29);
+    ctx.fill();}
+  /* l'ingranaggio sul fianco, che gira */
+  ctx.save(); ctx.translate(W*0.06,L*0.26); ctx.rotate(t*1.6);
+  ctx.fillStyle='#C99A42';
+  for(let k=0;k<8;k++){ const a=k/8*6.283;
+    ctx.fillRect(Math.cos(a)*W*0.17-W*0.05,Math.sin(a)*W*0.17-W*0.05,W*0.10,W*0.10);}
+  ctx.beginPath(); ctx.arc(0,0,W*0.16,0,6.29); ctx.fill();
+  ctx.fillStyle='#6E4E23'; ctx.beginPath(); ctx.arc(0,0,W*0.055,0,6.29); ctx.fill();
   ctx.restore();
+
+  /* le zampe anteriori passano DAVANTI al corpo: sono quelle che si
+     vedono di profilo, e sono le più grosse — è una talpa che scava */
+  zampa(-L*0.04, 0,   L*0.32, 0.15);
+  zampa( L*0.12, 1.1, L*0.27, 0.12);
+
+  /* --- LA TRIVELLA: un cono grosso ad anelli, non uno spillo. Prima
+     partiva da W*0,34 e si stringeva dell'82%: veniva un ago di due
+     pixel. Adesso parte larga quanto il muso e resta piena fino quasi
+     in punta, come nella foto. --------------------------------------- */
+  for(let k=0;k<7;k++){
+    const u=k/7, r=W*0.44*(1-u*0.60), yy=-L*0.26-u*L*0.46;
+    const sf=ctx.createLinearGradient(-r,0,r,0);
+    sf.addColorStop(0,'#7C8085'); sf.addColorStop(0.38,'#E8EDF1');
+    sf.addColorStop(0.72,'#AFB5BA'); sf.addColorStop(1,'#5E6166');
+    ctx.fillStyle=sf;
+    const off=Math.sin(t*3+k*0.85)*r*0.14;
+    ctx.beginPath();
+    ctx.ellipse(off*0.28,yy,r,Math.max(2,L*0.075),0,0,6.29); ctx.fill();
+    ctx.strokeStyle='rgba(40,44,48,.45)'; ctx.lineWidth=1; ctx.stroke();}
+  ctx.fillStyle='#B8BFC5';
+  ctx.beginPath(); ctx.moveTo(-W*0.10,-L*0.70); ctx.lineTo(W*0.10,-L*0.70);
+  ctx.lineTo(0,-L*0.84); ctx.closePath(); ctx.fill();
+
+  /* --- l'elmetto sul dorso, con la lampada accesa in avanti ---------- */
+  ctx.save(); ctx.translate(-W*0.06,-L*0.18); ctx.rotate(-0.30);
+  ctx.fillStyle='#C08B3E';
+  ctx.beginPath(); ctx.ellipse(0,0,W*0.34,L*0.17,0,Math.PI,0); ctx.fill();
+  ctx.fillStyle='#8E6428'; ctx.fillRect(-W*0.40,0,W*0.80,Math.max(1.6,L*0.045));
+  const lampG=ctx.createRadialGradient(-W*0.16,-L*0.05,0.5,-W*0.16,-L*0.05,W*0.16);
+  lampG.addColorStop(0,'#FFF8DC'); lampG.addColorStop(1,'#E8B21E');
+  ctx.fillStyle=lampG;
+  ctx.beginPath(); ctx.arc(-W*0.16,-L*0.05,W*0.13,0,6.29); ctx.fill();
+  ctx.restore();
+
+  /* --- UN occhio solo, di profilo, con la sopracciglia --------------- */
+  const ox=-W*0.02, oy=-L*0.14;
+  ctx.fillStyle='#FFB020';
+  ctx.beginPath(); ctx.arc(ox,oy,Math.max(2,W*0.15),0,6.29); ctx.fill();
+  ctx.fillStyle='#3A2408';
+  ctx.beginPath(); ctx.arc(ox-W*0.03,oy-L*0.01,Math.max(1,W*0.07),0,6.29); ctx.fill();
+  ctx.fillStyle='#FFF3D0';
+  ctx.beginPath(); ctx.arc(ox-W*0.06,oy-L*0.03,Math.max(0.6,W*0.04),0,6.29); ctx.fill();
+  ctx.save(); ctx.translate(ox,oy-L*0.10); ctx.rotate(-0.42);
+  ctx.fillStyle='#7E858B'; ctx.fillRect(-W*0.16,-W*0.05,W*0.32,Math.max(1.4,W*0.085));
+  ctx.restore();
+
+  ctx.restore();
+
+  /* la mira: dove sta puntando */
   if(S.mira&&S.attiva){
     ctx.strokeStyle='rgba(212,160,23,.5)'; ctx.lineWidth=1.6; ctx.setLineDash([4,5]);
     ctx.beginPath(); ctx.moveTo(X,Y); ctx.lineTo(px(S.mira[0]),py(S.mira[1])); ctx.stroke();
@@ -774,6 +877,9 @@ function fresa(accesa){
    YouTube in un iframe invisibile, coi parametri di casa:
    rel=0 · playsinline=1 · enablejsapi=1. Si rimette in moto da sola a
    fine video, così non serve un file audio nel progetto. */
+/* IL NOME DELLA TALPA. Sta in una costante sola: cambiarlo qui lo
+   cambia in tutta l'app, titolo compreso. */
+const TALPA='ORZO';
 const VIDEO_MUSICA='QBp3ggb8QB0';
 let yt=null;
 function avviaMusica(){
@@ -869,7 +975,7 @@ function finisci(vinta,perche){
   /* UNA RIGA, non un paragrafo. Le card lunghe non le legge nessuno:
      il verdetto sta nelle stelle, il perché in una frase sola. */
   const verdetto = vinta
-    ? (n===3?'Strada pulita.':n===2?'Sei arrivato.':'Arrivato per un soffio.')
+    ? 'Livello superato'
     : (perche==='tubo'?'Hai rotto un tubo.'
       :'Uscito fuori posto.');
   const riga = vinta
@@ -880,6 +986,12 @@ function finisci(vinta,perche){
       :'Sei uscito a '+dist.toFixed(0)+' m dalla centrale.');
 
   let h='<div class="esito">';
+  /* il ritratto della talpa: quadrato, ha gia' la sua cornice dorata,
+     quindi niente bordo aggiunto. Se il file manca la card regge lo
+     stesso — l'immagine si toglie da sola. */
+  h+='<img src="talpa2.jpg" alt="La talpa" style="width:104px;height:104px;'
+    +'object-fit:cover;border-radius:14px;display:block;margin:0 auto 4px" '
+    +'onerror="this.remove()">';
   h+='<div class="stelle" id="stelle">'+STELLA+STELLA+STELLA+'</div>';
   h+='<div class="verdetto" style="color:'+(vinta?'var(--oro)':'var(--ambra)')+'">'
     +verdetto+'</div>';
@@ -1029,28 +1141,32 @@ const Bacheca={
 function modale(h){ $('modale').innerHTML=h; $('velo').classList.add('on'); }
 function chiudi(){ $('velo').classList.remove('on'); }
 function guida(){
-  modale('<div class="occ">Il calore sotto il campus</div>'
-   +'<h2>Trenta metri sotto il cortile c\'è una sacca calda</h2>'
-   +'<p>Basterebbe a spegnere la caldaia a gas. Il problema è portarla su: scavare '
-   +'dall\'alto vorrebbe dire aprire il cortile per trenta metri. Quindi si fa il '
-   +'contrario — si cala una <b>talpa meccanica</b> nella sacca e la si guida <b>dal basso '
-   +'verso l\'alto</b>, fino alla <b>centrale termica</b>.</p>'
-   +'<p><b>Come si guida:</b> tieni premuto il dito dove vuoi che vada. La talpa punta lì, '
-   +'ma <b>vira piano</b> e <b>non si ferma mai</b>. La galleria che scava resta: a fine '
-   +'partita si vede la strada che hai fatto.</p>'
-   +'<div class="avviso">Le <b>rocce</b> la fanno rimbalzare, sotto gli edifici ci sono le '
-   +'<b>fondazioni</b>, e nei primi due metri corrono acqua, gas, elettricità e fognatura: '
-   +'<b>romperne uno ferma tutto</b>. Sono disegnati — guardali prima di partire.</div>'
-   +'<div style="margin-top:16px"><label for="nick" style="font-size:.78rem;'
-   +'letter-spacing:.08em;text-transform:uppercase;color:var(--muto)">Come ti firmi '
+  /* TESTO CORTO. La versione prima erano tre paragrafi e un riquadro:
+     a dieci anni non si leggono. Qui: una riga di storia, una di
+     comandi, tre divieti in fila. */
+  modale('<img src="talpa.jpg" alt="'+TALPA+'" '
+   +'style="width:100%;height:140px;object-fit:cover;object-position:center 42%;'
+   +'border-radius:12px;display:block;margin-bottom:12px">'
+   +'<div class="occ">Il calore sotto il campus</div>'
+   +'<h2>Porta il calore alla scuola</h2>'
+   +'<p>Trenta metri sotto il cortile c\'è <b>roccia calda</b>. Se '+TALPA
+   +' la porta su fino alla <b>centrale termica</b>, la scuola si scalda '
+   +'senza bruciare gas.</p>'
+   +'<p><b>Tieni premuto dove vuoi andare.</b> '+TALPA+' punta lì, ma vira '
+   +'piano e non si ferma mai.</p>'
+   +'<div class="avviso"><b>Non toccare i tubi</b> — acqua, gas, elettricità, '
+   +'fognatura: sono disegnati. Le <b>rocce</b> fanno rimbalzare, e sotto gli '
+   +'<b>edifici</b> non si passa.</div>'
+   +'<div style="margin-top:14px"><label for="nick" style="font-size:.78rem;'
+   +'letter-spacing:.08em;text-transform:uppercase;color:var(--muto)">Il tuo nome '
    +'sulla bacheca di oggi</label><br><input id="nick" maxlength="14" '
    +'placeholder="es. 4A-Giulia" autocomplete="off" style="width:100%;margin-top:5px;'
    +'font-family:inherit;font-size:17px;padding:11px 13px;border-radius:10px;'
    +'background:var(--pann2);border:1px solid var(--linea);color:var(--testo)">'
    +'<div style="font-size:.78rem;color:var(--muto);margin-top:5px">Solo un '
-   +'soprannome: niente cognome, niente dati di altri.</div></div>'
+   +'soprannome.</div></div>'
    +'<div class="passi"><button class="btn oro" style="flex:1 1 200px" id="bVia">'
-   +'Accendi la talpa</button></div>');
+   +'Accendi '+TALPA+'</button></div>');
   const inp=document.getElementById('nick');
   if(inp) inp.value=localStorage.getItem('talpa-nick')||'';
   $('bVia').onclick=function(){
@@ -1061,7 +1177,6 @@ function guida(){
     avviaAudio(); avviaMusica();
     chiudi();};
 }
-
 /* ====================================================================
    9. AVVIO
    ==================================================================== */
