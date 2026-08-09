@@ -3,284 +3,116 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sottotraccia — trova il guasto sotto il campus</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23123E90'/%3E%3Cpath d='M4 12h9l5 8h10' fill='none' stroke='%23D4A017' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='13' cy='12' r='2.6' fill='%23fff'/%3E%3C/svg%3E">
+<title>La talpa — porta il calore alla scuola</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23123E90'/%3E%3Cpath d='M16 27V9' stroke='%23D4A017' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M11 10h10l-5-6z' fill='%23D4A017'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="campus-icona.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
 /* ====================================================================
-   SOTTOTRACCIA — Campus Sacra Famiglia
-   Meccanica: deduzione a sonda (black box), ispirata a "La Miniera di
-   Orapa" (Ghenos Games, Junghee Choi & Wanjin Gill). Qui non si cercano
-   diamanti: si cerca il GUASTO nella rete dei sottoservizi del campus.
-   Codice colore delle condotte secondo le norme UNI 9165/9860/10576:
-   AZZURRO acqua · GIALLO gas · ROSSO cavo elettrico.
-   Il rosso e' colore di CONTENUTO (il cavo), mai feedback d'errore:
-   avvisi e penalita' sono in ambra.
+   LA TALPA — Campus Sacra Famiglia
+   Sezione verticale sul FRONTE NORD: chiesa con l'arco cieco di mattoni,
+   portale con la lunetta a raggiera, lesena di mattoni, ala a tetto
+   piatto. Sotto: strati, rocce, fondazioni e le quattro reti di
+   sottoservizi (codice colore UNI 9165/9860/10576).
+   Non si scava dall'alto: si parte DALLA SACCA GEOTERMICA e si risale
+   guidando la talpa, che si porta dietro il tunnel che ha scavato.
+   Il rosso è colore di CONTENUTO (il cavo elettrico), mai errore: i
+   danni sono in ambra.
    ==================================================================== */
 :root{
-  --fondo:#101821; --pann:#18232F; --pann2:#1F2D3C; --linea:#2C3D4F;
-  --testo:#E8EEF4; --muto:#9BB0C4; --tenue:#6B8299;
-  --blu:#123E90;   --blu2:#5B8AE0; --bluL:rgba(91,138,224,.12);
-  --oro:#D4A017;   --oroD:#B8860B; --oroL:rgba(212,160,23,.12);
-  --ambra:#E0A52B; --ambraL:rgba(224,165,43,.14);
-  --verde:#3FA86B;
-  --acqua:#29A3D6; --gas:#E8B21E; --elet:#C0392B;
+  --pann:#141E28; --pann2:#1D2A38; --linea:#2C3D4F;
+  --testo:#EAF0F6; --muto:#93A9BE;
+  --blu:#123E90; --blu2:#5B8AE0; --oro:#D4A017; --ambra:#E0A52B;
   --body:'Atkinson Hyperlegible',Helvetica,Arial,sans-serif;
   --head:'Lexend',sans-serif;
-  --r:14px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0}
-body{
-  background:var(--fondo); color:var(--testo);
-  font-family:var(--body); font-size:18px; line-height:1.6;
-  min-height:100vh;
-  background-image:
-    radial-gradient(1100px 520px at 12% -8%, rgba(18,62,144,.30), transparent 65%),
-    radial-gradient(760px 420px at 96% 108%, rgba(212,160,23,.10), transparent 62%);
-  background-attachment:fixed;
-}
-h1,h2,h3{font-family:var(--head);font-weight:600;line-height:1.25;margin:0}
-button{font-family:var(--body);font-size:1rem;cursor:pointer;border:0;background:none;color:inherit}
-.wrap{max-width:1440px;margin:0 auto;padding:18px 20px 40px}
-
-/* ---------- intestazione ---------- */
-header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
-  padding:12px 16px;background:var(--pann);border:1px solid var(--linea);
-  border-radius:var(--r);margin-bottom:18px}
-.marchio{display:flex;align-items:center;gap:11px;min-width:0}
-.marchio svg{flex:0 0 auto}
-.marchio b{font-family:var(--head);font-weight:700;letter-spacing:.04em;font-size:1.02rem}
-.marchio span{display:block;color:var(--muto);font-size:.74rem;letter-spacing:.10em;
-  text-transform:uppercase;line-height:1.2}
+html,body{margin:0;min-height:100%;background:#0B1118;color:var(--testo);
+  font-family:var(--body);font-size:17px}
+h1,h2,h3{font-family:var(--head);margin:0;line-height:1.22}
+button{font-family:var(--body);font-size:1rem;color:inherit;cursor:pointer;border:0;background:none}
+.wrap{max-width:1280px;margin:0 auto;padding:12px 14px 26px}
+header{display:flex;align-items:center;gap:13px;flex-wrap:wrap;padding:10px 15px;
+  background:var(--pann);border:1px solid var(--linea);border-radius:13px;margin-bottom:11px}
+header b{font-family:var(--head);font-weight:700;letter-spacing:.045em}
+.occ{font-family:var(--head);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--oro)}
+header .occ{display:block;color:var(--muto)}
 .spazio{flex:1 1 auto}
-.contatori{display:flex;gap:9px;flex-wrap:wrap}
-.cont{background:var(--pann2);border:1px solid var(--linea);border-radius:10px;
-  padding:6px 13px;text-align:center;min-width:78px}
-.cont b{display:block;font-family:var(--head);font-size:1.32rem;line-height:1.1}
-.cont span{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muto)}
-.cont.oro b{color:var(--oro)} .cont.ambra{border-color:var(--ambra);background:var(--ambraL)}
-.codice{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.16em}
-
-/* ---------- pannelli ---------- */
-.pann{background:var(--pann);border:1px solid var(--linea);border-radius:var(--r);padding:18px}
-.pann + .pann{margin-top:14px}
-.occhiello{font-family:var(--head);font-size:.70rem;letter-spacing:.13em;
-  text-transform:uppercase;color:var(--oro);margin-bottom:7px}
-.muto{color:var(--muto)} .piccolo{font-size:.86rem}
-
-/* ---------- bottoni ---------- */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;
-  min-height:48px;padding:11px 20px;border-radius:11px;font-weight:700;
-  background:var(--pann2);border:1px solid var(--linea);color:var(--testo);
-  transition:background .15s,border-color .15s,transform .08s}
-.btn:active{transform:translateY(1px)}
+.btn{min-height:46px;padding:10px 17px;border-radius:10px;background:var(--pann2);
+  border:1px solid var(--linea);font-weight:700;font-size:.93rem}
 .btn:hover{border-color:var(--blu2)}
-.btn.pieno{background:var(--blu);border-color:var(--blu);color:#fff}
-.btn.pieno:hover{background:#1a4ead}
 .btn.oro{background:var(--oro);border-color:var(--oro);color:#1a1206}
-.btn.oro:hover{background:#e3b02c}
-.btn[disabled]{opacity:.42;cursor:not-allowed;transform:none}
 .btn:focus-visible{outline:3px solid var(--oro);outline-offset:2px}
-
-/* ---------- schermate ---------- */
-.schermo{display:none} .schermo.on{display:block}
-
-/* ---------- avvio ---------- */
-.settori{display:grid;gap:13px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));margin-top:6px}
-.settore{text-align:left;background:var(--pann2);border:1px solid var(--linea);
-  border-radius:var(--r);padding:16px;display:block;width:100%;min-height:132px}
-.settore:hover{border-color:var(--oro)}
-.settore.sel{border-color:var(--oro);background:var(--oroL)}
-.settore h3{font-size:1.06rem;margin-bottom:3px}
-.settore .imp{color:var(--blu2);font-size:.84rem;font-weight:700}
-.settore .det{color:var(--muto);font-size:.82rem;margin-top:7px}
-.campo{display:flex;flex-direction:column;gap:5px}
-.campo label{font-size:.80rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muto)}
-.campo input{font-family:var(--body);font-size:18px;padding:12px 14px;border-radius:10px;
-  background:var(--pann2);border:1px solid var(--linea);color:var(--testo);min-height:48px}
-.campo input:focus{outline:2px solid var(--oro);outline-offset:1px}
-.riga{display:flex;gap:13px;flex-wrap:wrap;align-items:flex-end;margin-top:14px}
-
-/* ---------- tavolo di gioco ---------- */
-.tavolo{display:grid;gap:16px;grid-template-columns:minmax(0,1fr) 330px;align-items:start}
-@media(max-width:1000px){.tavolo{grid-template-columns:1fr}}
-
-.griglia{display:grid;gap:3px;margin:0 auto;touch-action:manipulation}
-.cel{aspect-ratio:1;border-radius:6px;background:#22303F;border:1px solid #2E4053;
-  display:flex;align-items:center;justify-content:center;position:relative;
-  min-width:30px;min-height:30px;padding:0}
-.cel:hover{border-color:var(--blu2)}
-.cel.nota{border-color:var(--oroD)}
-.cel svg{width:74%;height:74%;display:block}
-.cel .segno{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-.cel.sospetto{box-shadow:inset 0 0 0 3px var(--ambra)}
-.cel.rivelata{background:#2A3B4D}
-.vuoto{background:none;border:0}
-
-/* pozzetti */
-.poz{border-radius:50%;background:var(--pann2);border:1px solid var(--linea);
-  display:flex;align-items:center;justify-content:center;position:relative;
-  font-family:ui-monospace,Menlo,monospace;font-size:.62rem;color:var(--tenue);
-  min-width:30px;min-height:30px;aspect-ratio:1;padding:0}
-.poz:hover{border-color:var(--oro);color:var(--testo)}
-.poz.usato{color:#0f1720;font-weight:700;font-size:.72rem;border-color:transparent}
-.poz.att{box-shadow:0 0 0 3px var(--fondo),0 0 0 5px currentColor}
-.poz.attenuato::after{content:'';position:absolute;inset:4px;border-radius:50%;
-  border:2px dashed rgba(0,0,0,.55)}
-.poz:focus-visible{outline:3px solid var(--oro);outline-offset:2px}
-
-/* attrezzi */
-.attrezzi{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
-.att{min-height:46px;min-width:46px;padding:6px 10px;border-radius:10px;
-  background:var(--pann2);border:1px solid var(--linea);
-  display:flex;align-items:center;gap:7px;font-size:.80rem}
-.att.sel{border-color:var(--oro);background:var(--oroL)}
-.att svg{width:22px;height:22px;flex:0 0 auto}
-
-/* registro */
-.reg{max-height:290px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
-.voce{display:flex;align-items:center;gap:10px;background:var(--pann2);
-  border:1px solid var(--linea);border-radius:9px;padding:8px 11px;font-size:.86rem}
-.voce b{font-family:ui-monospace,Menlo,monospace}
-.pallino{width:17px;height:17px;border-radius:50%;flex:0 0 auto;border:1px solid rgba(255,255,255,.28)}
-.pallino.att{background:none !important;border:2px dashed var(--muto)}
-
-/* esito */
-.esito{max-width:820px;margin:0 auto}
-.grande{font-family:var(--head);font-size:2.5rem;font-weight:700;line-height:1.1}
-.confronto{display:grid;gap:11px;grid-template-columns:1fr 1fr;margin:16px 0}
-@media(max-width:620px){.confronto{grid-template-columns:1fr}}
-.sfid{background:var(--pann2);border:1px solid var(--linea);border-radius:11px;padding:13px}
-.sfid.mio{border-color:var(--oro)}
-.dom{background:var(--bluL);border-left:3px solid var(--blu2);border-radius:0 11px 11px 0;
-  padding:13px 16px;margin-top:14px}
-.avviso{background:var(--ambraL);border:1px solid var(--ambra);border-radius:11px;
-  padding:11px 14px;font-size:.88rem;margin-top:12px}
-.pieno-schermo{position:fixed;inset:0;background:rgba(9,14,20,.86);z-index:60;
-  display:flex;align-items:center;justify-content:center;padding:20px}
-.modale{background:var(--pann);border:1px solid var(--linea);border-radius:var(--r);
-  padding:24px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto}
-.seed{font-family:ui-monospace,Menlo,monospace;font-size:.72rem;color:var(--tenue)}
-ul.reg-lista{margin:8px 0 0;padding-left:20px}
-ul.reg-lista li{margin-bottom:5px}
+.cont{display:flex;gap:8px;flex-wrap:wrap}
+.c{background:var(--pann2);border:1px solid var(--linea);border-radius:10px;
+  padding:5px 12px;text-align:center;min-width:80px}
+.c b{display:block;font-family:var(--head);font-size:1.26rem;line-height:1.1}
+.c span{font-size:.63rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muto)}
+.c.oro b{color:var(--oro)} .c.ambra{border-color:var(--ambra)} .c.ambra b{color:var(--ambra)}
+#telaio{position:relative;border-radius:13px;overflow:hidden;border:1px solid var(--linea);
+  line-height:0;background:#0D1620}
+canvas{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
+.sotto{display:grid;gap:11px;grid-template-columns:1.2fr 1fr;margin-top:11px}
+@media(max-width:820px){.sotto{grid-template-columns:1fr}}
+.card{background:var(--pann);border:1px solid var(--linea);border-radius:13px;padding:13px 16px}
+.voce{display:flex;align-items:center;gap:10px;margin-bottom:5px;font-size:.87rem}
+.q{width:26px;height:9px;border-radius:4px;flex:0 0 auto;border:1px solid rgba(255,255,255,.22)}
+.card p{margin:7px 0 0;font-size:.9rem;line-height:1.55;color:var(--muto)}
+.card p b{color:var(--testo)}
+#velo{position:fixed;inset:0;background:rgba(6,10,15,.9);z-index:50;display:none;
+  align-items:center;justify-content:center;padding:20px}
+#velo.on{display:flex}
+.modale{background:var(--pann);border:1px solid var(--linea);border-radius:15px;
+  padding:24px;max-width:600px;width:100%;max-height:88vh;overflow-y:auto}
+.modale h2{font-size:1.5rem;margin-bottom:10px}
+.modale p{line-height:1.6}
+.avviso{background:rgba(224,165,43,.13);border:1px solid var(--ambra);border-radius:11px;
+  padding:11px 14px;font-size:.9rem;margin-top:12px}
+.passi{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+/* --- l'esito: stelle grandi, poche parole -------------------------- */
+.esito{text-align:center}
+.stelle{display:flex;justify-content:center;gap:12px;margin:6px 0 14px}
+.stelle svg{width:62px;height:62px;opacity:.16;transform:scale(.5) rotate(-25deg);
+  transition:opacity .35s ease,transform .45s cubic-bezier(.2,1.5,.4,1)}
+.stelle svg.on{opacity:1;transform:scale(1) rotate(0)}
+.verdetto{font-family:var(--head);font-size:1.7rem;font-weight:700;line-height:1.15}
+.riga1{color:var(--muto);font-size:.95rem;margin-top:6px}
+.numeri{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:14px}
+.numeri div{background:var(--pann2);border:1px solid var(--linea);border-radius:10px;
+  padding:6px 12px;min-width:78px}
+.numeri b{display:block;font-family:var(--head);font-size:1.16rem;line-height:1.1}
+.numeri span{font-size:.62rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muto)}
+.pensiero{background:rgba(91,138,224,.10);border-left:3px solid var(--blu2);
+  border-radius:0 10px 10px 0;padding:10px 14px;margin-top:14px;text-align:left;
+  font-size:.9rem;line-height:1.5}
 </style>
 </head>
 <body>
 <div class="wrap">
-
 <header>
-  <div class="marchio">
-    <svg width="34" height="34" viewBox="0 0 32 32" aria-hidden="true">
-      <rect width="32" height="32" rx="7" fill="var(--blu)"/>
-      <path d="M4 12h9l5 8h10" fill="none" stroke="var(--oro)" stroke-width="3.4"
-            stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="13" cy="12" r="2.6" fill="#fff"/>
-    </svg>
-    <div>
-      <span>Campus Sacra Famiglia</span>
-      <b>SOTTOTRACCIA</b>
-    </div>
-  </div>
+  <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+    <rect width="32" height="32" rx="7" fill="#123E90"/>
+    <path d="M16 27V9" stroke="#D4A017" stroke-width="3" stroke-linecap="round"/>
+    <path d="M11 10h10l-5-6z" fill="#D4A017"/>
+  </svg>
+  <div><span class="occ">Campus Sacra Famiglia</span><b>LA TALPA</b></div>
   <div class="spazio"></div>
-  <div class="contatori" id="contatori"></div>
-  <a class="btn" href="index.html" style="text-decoration:none;min-height:42px;padding:8px 16px"
-     aria-label="Torna al campus in tre dimensioni">Torna al campus</a>
+  <div class="cont" id="cont"></div>
+  <button class="btn" id="bAiuto">Come si guida</button>
+  <button class="btn" id="bRicomincia">Riprova</button>
+  <button class="btn" id="bTorna">Torna al campus</button>
 </header>
-
-<!-- ============================ AVVIO ============================ -->
-<section class="schermo on" id="sc-avvio">
-  <div class="pann">
-    <div class="occhiello">Sotto il campus</div>
-    <h1 style="font-size:1.9rem;margin-bottom:10px">C'è un guasto, e nessuno sa dove</h1>
-    <p style="max-width:70ch">Il guasto è là sotto, sepolto sotto un metro di terra, e
-    <b>scavare a caso costa più di tutto il resto</b>. Per questo esiste il
-    <b>georadar</b>: da un pozzetto mandi un impulso e vedi <b>da dove riesce</b> e
-    <b>di che colore</b>. Il percorso non lo vedi. Il resto è deduzione.</p>
-    <p style="max-width:70ch">Quattro pozzetti, quattro impianti. <b>Ognuno aggiunge una
-    regola sola</b>: comincia dal campo da basket, dove l'impulso va sempre dritto.</p>
-  <div class="pann">
-    <div class="occhiello">1 · Scegli il pozzetto da cui scendere</div>
-    <div class="settori" id="lista-settori"></div>
-  </div>
-
-  <div class="pann">
-    <div class="occhiello">2 · La sfida</div>
-    <p class="piccolo muto" style="margin-top:0">Ogni partita ha un <b>codice</b>. Passalo a un
-    compagno e giocherete <b>esattamente la stessa rete</b>: vince chi trova il guasto spendendo
-    meno gettoni. Se non metti nessun codice, ne generiamo uno nuovo.</p>
-    <div class="riga">
-      <div class="campo" style="flex:1 1 190px">
-        <label for="nick">Come ti firmi</label>
-        <input id="nick" maxlength="14" placeholder="es. 2B-Giulia" autocomplete="off">
-      </div>
-      <div class="campo" style="flex:1 1 190px">
-        <label for="cod">Codice sfida (facoltativo)</label>
-        <input id="cod" maxlength="6" placeholder="es. K7M2Q9" autocomplete="off"
-               style="text-transform:uppercase" class="codice">
-      </div>
-      <button class="btn oro" id="btn-scendi" disabled>Scendi nel pozzetto</button>
-    </div>
-    <p class="piccolo muto" id="nota-firma" style="margin-bottom:0">La firma serve solo a
-    riconoscere la partita nel confronto. Non scrivere cognome, classe o dati di altri.</p>
-  </div>
-</section>
-
-<!-- ============================ GIOCO ============================ -->
-<section class="schermo" id="sc-gioco">
-  <div class="tavolo">
-    <div class="pann">
-      <div class="occhiello" id="tit-settore"></div>
-      <p class="piccolo muto" style="margin-top:0" id="istruzione">
-        Tocca un <b>pozzetto</b> sul bordo per mandare un impulso. Tocca una
-        <b>casella</b> per annotarci quello che hai dedotto.</p>
-      <div id="area-griglia" style="overflow-x:auto;padding:4px 0"></div>
-    </div>
-
-    <div>
-      <div class="pann">
-        <div class="occhiello">Il taccuino</div>
-        <p class="piccolo muto" style="margin-top:0;margin-bottom:9px">Scegli un segno, poi
-        tocca le caselle. Sono <b>appunti tuoi</b>: l'app non ti dice se hai ragione.</p>
-        <div class="attrezzi" id="attrezzi"></div>
-        <button class="btn" id="btn-carota" style="width:100%">
-          Carotaggio — apri una casella <b style="color:var(--oro)">4 gettoni</b></button>
-        <button class="btn pieno" id="btn-dichiara" style="width:100%;margin-top:9px">
-          Dichiara: il guasto è qui</button>
-        <p class="piccolo muto" style="margin-bottom:0">Dichiarare e sbagliare costa
-        <b>5 gettoni</b>, ma la partita continua.</p>
-      </div>
-
-      <div class="pann">
-        <div class="occhiello">Registro degli impulsi</div>
-        <div class="reg" id="registro"><p class="piccolo muto">Nessun impulso ancora.</p></div>
-      </div>
-
-      <div class="pann">
-        <div class="occhiello">Le regole dell'impulso</div>
-        <div id="legenda"></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============================ ESITO ============================ -->
-<section class="schermo" id="sc-esito">
-  <div class="pann esito" id="box-esito"></div>
-</section>
-
+<div id="telaio"><canvas id="tela"></canvas></div>
+<div class="sotto">
+  <div class="card" id="leg"></div>
+  <div class="card" id="note"></div>
 </div>
+</div>
+<div id="velo"><div class="modale" id="modale"></div></div>
 
 <script>
 "use strict";
-/* ====================================================================
-   0. PRNG deterministico — RIGIOCABILITA §5.1
-   Math.random() non e' utilizzabile: senza seed la sfida fra due
-   giocatori non esiste, perche' non giocherebbero la stessa rete.
-   ==================================================================== */
 function cyrb53(s,seed){seed=seed||0;let h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;
   for(let i=0,c;i<s.length;i++){c=s.charCodeAt(i);
     h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677);}
@@ -290,705 +122,843 @@ function cyrb53(s,seed){seed=seed||0;let h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;
   let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;
   return((t^t>>>14)>>>0)/4294967296;};}
-const rint=(a,b,r)=>a+Math.floor(r()*(b-a+1));
 
 /* ====================================================================
-   1. IL MOTORE — la fisica dell'impulso
-   Tre condotte in servizio col codice colore UNI, due gomiti che
-   deviano di 90 gradi, una testata che rimanda indietro.
+   1. IL FRONTE NORD — quote verificate sul modello 3D e sulle foto
+   facciata1/2/3 e chiesa1/2/3 di questo progetto.
    ==================================================================== */
-const ACQUA=1,GAS=2,ELET=4;
-const TIPI={
-  ACQUA    :{c:ACQUA,nome:'Condotta dell\'acqua',col:'var(--acqua)'},
-  GAS      :{c:GAS,  nome:'Condotta del gas',    col:'var(--gas)'},
-  ELET     :{c:ELET, nome:'Cavidotto elettrico', col:'var(--elet)'},
-  GOMITO_DX:{dev:'/', nome:'Gomito a 90°'},
-  GOMITO_SX:{dev:'\\',nome:'Gomito a 90°'},
-  TESTATA  :{rifl:true,nome:'Testata cieca'}
+const X0=-56, X1=40, PROF=38;
+/* L'ORDINE DEL FRONTE, da ponente a levante (Andrea):
+     PISCINA — PORTONE della scuola — CHIESA.
+   Prima avevo la chiesa a ponente e l'ala a levante: era rovesciato.
+   La centrale tecnica non è fissa: si sposta di livello in livello, sul
+   prato a levante della chiesa, dove non ci sono fondazioni. */
+const PISCINA={da:-54,a:-38};
+const ALA    ={da:-32,a:-16};
+const STORICO={da:-16,a:  6};
+const CHIESA ={da:  8,a: 16.7};
+const PORTALE=-5, LESENA=-16;
+let   CENTRALE={da:20,a:27};
+const POSTI_CENTRALE=[[20,27],[26,33],[31,38]];
+const EDIFICI=[PISCINA,ALA,STORICO,CHIESA];
+const sottoEdificio=x=>EDIFICI.some(e=>x>e.da-0.5&&x<e.a+0.5);
+
+const RETI={
+ elet :{nome:'Cavo elettrico',col:'#C0392B',prof:0.70,r:0.24},
+ gas  :{nome:'Gas metano',    col:'#E8B21E',prof:0.95,r:0.22},
+ acqua:{nome:'Acqua potabile',col:'#29A3D6',prof:1.35,r:0.28},
+ fogna:{nome:'Fognatura',     col:'#8A7A62',prof:2.20,r:0.42}
 };
-const DIR={N:[0,-1],S:[0,1],E:[1,0],O:[-1,0]};
-const GIRA={'/':{E:'N',N:'E',O:'S',S:'O'},'\\':{E:'S',S:'E',O:'N',N:'O'}};
-const OPP={N:'S',S:'N',E:'O',O:'E'};
+/* I sottoservizi corrono SOTTO gli edifici e attraversano il prato solo
+   in tratti corti: fra un tratto e l'altro ci sono i varchi, ed è lì che
+   la talpa può risalire. */
+const TUBI=[
+ {r:'elet', da:-52,a:-40},{r:'elet', da:-30,a:-18},{r:'elet', da:-14,a: 4},
+ {r:'elet', da: 34,a: 39},
+ {r:'gas',  da:-30,a:-20},{r:'gas',  da:-12,a:  2},
+ {r:'acqua',da:-53,a:-41},{r:'acqua',da:-31,a:-17},{r:'acqua',da:-13,a: 5},
+ {r:'acqua',da: 28,a: 39},
+ {r:'fogna',da:-50,a:-40},{r:'fogna',da:-28,a:-18},{r:'fogna',da: 10,a: 16}
+];
+const STRATI=[
+ {fino:0.9, c:'#6E5A3C',c2:'#7E6944'},{fino:4.2, c:'#8A7048',c2:'#9A7F55'},
+ {fino:11.0,c:'#9A8560',c2:'#A8926B'},{fino:22.0,c:'#7C6A52',c2:'#8A7860'},
+ {fino:999, c:'#5E5A54',c2:'#6B665F'}
+];
 
-function pozzetti(W,H){const p=[];
-  for(let x=0;x<W;x++)p.push({x,y:-1,d:'S'});
-  for(let y=0;y<H;y++)p.push({x:W,y,d:'O'});
-  for(let x=W-1;x>=0;x--)p.push({x,y:H,d:'N'});
-  for(let y=H-1;y>=0;y--)p.push({x:-1,y,d:'E'});
-  return p;}
+/* ====================================================================
+   2. STATO
+   ==================================================================== */
+const S={ seme:'', nick:'', rocce:[], gemme:[], sacca:{x:0,y:0}, x:0,y:0, dir:0,
+  energia:130, tunnel:[], raccolte:0, colpi:0,
+  attiva:false, finita:false, vinta:false, msg:'', msgT:0, mira:null };
 
-function impulso(cfg,iPoz){
-  const {W,H,pezzi,guasto}=cfg, P=pozzetti(W,H), p=P[iPoz];
-  let x=p.x,y=p.y,d=p.d,col=0,att=false,passi=0;
-  const scia=[];
-  while(passi++<W*H*4){
-    const v=DIR[d]; x+=v[0]; y+=v[1];
-    if(x<0||y<0||x>=W||y>=H){
-      const j=P.findIndex(q=>q.x===x&&q.y===y&&q.d===OPP[d]);
-      return {uscita:j,colore:col,attenuato:att,scia:scia};}
-    scia.push(x+','+y);
-    const pz=pezzi.find(q=>q.x===x&&q.y===y);
-    if(!pz) continue;
-    const t=TIPI[pz.t];
-    /* SENZA mescolanza l'impulso prende SOLO il colore della PRIMA
-       condotta che incontra: e' la semplificazione che toglie di mezzo la
-       tabella delle otto combinazioni nei primi tre settori. */
-    if(t.c){ if(cfg.mescola||col===0) col|=t.c; if(guasto===pz.t) att=true; }
-    else if(t.dev) d=GIRA[t.dev][d];
-    else if(t.rifl) d=OPP[d];
-  }
-  return {uscita:-1,colore:col,attenuato:att,scia:scia};   /* assorbito */
+/* ====================================================================
+   3. TELA — scala di profondità spezzata: i primi 3 m ingranditi,
+   perché è lì che stanno i sottoservizi ed è lì che si decide.
+   ==================================================================== */
+const tela=document.getElementById('tela'), ctx=tela.getContext('2d');
+let LARG=1200, SUOLO=250, ALT=700, MPX=1;
+const YSPACCO=3, FRAZ=0.24;
+function dimensiona(){
+  const w=Math.min(document.querySelector('.wrap').clientWidth-2,1250);
+  LARG=Math.max(560,w);
+  SUOLO=Math.round(LARG*0.225);
+  ALT=SUOLO+Math.round(LARG*0.50);
+  tela.width=LARG; tela.height=ALT;
+  tela.style.width='100%'; tela.style.height='auto';
+  MPX=LARG/(X1-X0);
 }
-const rispostaDi=(c,i)=>{const e=impulso(c,i);
-  return e.uscita+':'+e.colore+':'+(e.attenuato?1:0);};
+const px=x=>(x-X0)*MPX;
+function py(y){ const h=ALT-SUOLO;
+  return y<=YSPACCO ? SUOLO+h*FRAZ*(y/YSPACCO)
+                    : SUOLO+h*FRAZ+h*(1-FRAZ)*((y-YSPACCO)/(PROF-YSPACCO)); }
+const xDaPx=p=>X0+p/MPX;
+function yDaPy(p){ const h=ALT-SUOLO;
+  return p<=SUOLO+h*FRAZ ? (p-SUOLO)/(h*FRAZ)*YSPACCO
+                         : YSPACCO+(p-SUOLO-h*FRAZ)/(h*(1-FRAZ))*(PROF-YSPACCO); }
+addEventListener('resize',dimensiona);
 
-/* ---- generazione inversa, RIGIOCABILITA §5.4 ----------------------
-   Costruisco e poi provo a rompere: la rete e' buona solo se ogni pezzo
-   e' raggiungibile da almeno un impulso (altrimenti il livello e'
-   irrisolvibile) e se nessuna configurazione "a un passo" da questa
-   spiega le stesse risposte (altrimenti e' ambiguo).                */
-function generaGrezza(W,H,lista,r){
-  const pezzi=[],occ=new Set();
-  const libera=(x,y)=>{
-    if(occ.has(x+','+y))return false;
-    return !([[1,0],[-1,0],[0,1],[0,-1]].some(v=>occ.has((x+v[0])+','+(y+v[1]))));};
-  for(let i=0;i<lista.length;i++){
-    let t=0,x,y;
-    do{x=rint(0,W-1,r);y=rint(0,H-1,r);}while(!libera(x,y)&&++t<400);
-    if(t>=400)return null;
-    occ.add(x+','+y); pezzi.push({t:lista[i],x:x,y:y});}
-  return pezzi;}
-
-function varianti(cfg){
-  const v=[];
-  cfg.pezzi.forEach((p,i)=>{[[1,0],[-1,0],[0,1],[0,-1]].forEach(u=>{
-    const q=cfg.pezzi.map(a=>({t:a.t,x:a.x,y:a.y}));
-    q[i].x+=u[0]; q[i].y+=u[1];
-    if(q[i].x<0||q[i].y<0||q[i].x>=cfg.W||q[i].y>=cfg.H)return;
-    if(q.some((a,j)=>j!==i&&a.x===q[i].x&&a.y===q[i].y))return;
-    v.push({W:cfg.W,H:cfg.H,pezzi:q,guasto:cfg.guasto});});});
-  const id=cfg.pezzi.map((p,i)=>TIPI[p.t].c?i:-1).filter(i=>i>=0);
-  for(let a=0;a<id.length;a++)for(let b=a+1;b<id.length;b++){
-    const q=cfg.pezzi.map(z=>({t:z.t,x:z.x,y:z.y}));
-    const tt=q[id[a]].t; q[id[a]].t=q[id[b]].t; q[id[b]].t=tt;
-    v.push({W:cfg.W,H:cfg.H,pezzi:q,guasto:cfg.guasto});}
-  cfg.pezzi.forEach(p=>{if(TIPI[p.t].c&&p.t!==cfg.guasto)
-    v.push({W:cfg.W,H:cfg.H,pezzi:cfg.pezzi,guasto:p.t});});
-  return v;}
-
-function firma(cfg){const n=2*(cfg.W+cfg.H),o=[];
-  for(let i=0;i<n;i++)o.push(rispostaDi(cfg,i));return o.join('|');}
-
-function genera(W,H,lista,seme,mescola){
+/* ====================================================================
+   4. IL LIVELLO — rocce sparse ma con un corridoio garantito dalla
+   sacca all'arrivo, e le GEMME DI CALORE fuori dalla strada dritta:
+   sono loro a creare la scelta fra la via sicura e quella che rende.
+   ==================================================================== */
+function generaLivello(seme){
   const r=mulberry32(cyrb53(seme));
-  for(let tent=0;tent<400;tent++){
-    const pezzi=generaGrezza(W,H,lista,r);
-    if(!pezzi)continue;
-    const cond=pezzi.filter(p=>TIPI[p.t].c);
-    const cfg={W:W,H:H,mescola:!!mescola,pezzi:pezzi,
-               guasto:cond[rint(0,cond.length-1,r)].t};
-    const tocc=new Set(); const n=2*(W+H);
-    for(let i=0;i<n;i++)impulso(cfg,i).scia.forEach(s=>tocc.add(s));
-    if(pezzi.some(p=>!tocc.has(p.x+','+p.y)))continue;
-    const f=firma(cfg);
-    if(varianti(cfg).some(v=>firma(v)===f))continue;
-    return cfg;}
-  return null;}
+  /* la centrale tecnica cambia posto a ogni livello: sta sempre sul prato
+     a levante della chiesa, dove non ci sono fondazioni da attraversare */
+  const posto=POSTI_CENTRALE[Math.floor(r()*POSTI_CENTRALE.length)];
+  CENTRALE={da:posto[0],a:posto[1]};
+  const cx=(CENTRALE.da+CENTRALE.a)/2;
+  S.sacca={x:cx+(r()<0.5?-1:1)*(15+r()*15), y:29+r()*6};
+  const via=[[S.sacca.x,S.sacca.y],
+             [S.sacca.x+(cx-S.sacca.x)*0.45, 19+r()*4],
+             [cx+(r()-0.5)*6, 8+r()*3],
+             [cx,0]];
+  const distVia=(x,y)=>{ let m=1e9;
+    for(let i=0;i<via.length-1;i++){
+      const a=via[i],b=via[i+1], vx=b[0]-a[0], vy=b[1]-a[1];
+      const t=Math.max(0,Math.min(1,((x-a[0])*vx+(y-a[1])*vy)/(vx*vx+vy*vy||1)));
+      m=Math.min(m,Math.hypot(x-(a[0]+vx*t), y-(a[1]+vy*t)));}
+    return m;};
+  const rocce=[]; let t1=0;
+  while(rocce.length<30 && t1++<4000){
+    const x=X0+3+r()*(X1-X0-6), y=4.4+r()*(PROF-6.5), rr=1.5+r()*3.2;
+    if(distVia(x,y)<rr+2.4) continue;
+    if(rocce.some(q=>Math.hypot(q.x-x,q.y-y)<q.r+rr+1.0)) continue;
+    rocce.push({x:x,y:y,r:rr,f:r()*6.28});}
+  /* le gemme: lontano dalla via dritta, ma raggiungibili */
+  const gemme=[]; let t2=0;
+  while(gemme.length<7 && t2++<4000){
+    const x=X0+4+r()*(X1-X0-8), y=5+r()*(PROF-8);
+    const d=distVia(x,y);
+    if(d<4 || d>17) continue;
+    if(rocce.some(q=>Math.hypot(q.x-x,q.y-y)<q.r+1.4)) continue;
+    if(gemme.some(q=>Math.hypot(q.x-x,q.y-y)<6)) continue;
+    gemme.push({x:x,y:y,v:Math.round(12+r()*10),presa:false});}
+  S.rocce=rocce; S.gemme=gemme;
+}
+function ostacoloA(x,y){
+  for(let i=0;i<S.rocce.length;i++){
+    const q=S.rocce[i];
+    if(Math.hypot(q.x-x,q.y-y)<q.r) return {t:'roccia',q:q};}
+  /* IL POZZO DELLA CENTRALE È UN VARCO NELLE FONDAZIONI. Senza questa
+     riga il traguardo cadeva dentro l'impronta dell'ala est e la talpa
+     sbatteva contro il proprio arrivo a −3,40: livello impossibile. */
+  const dentroPozzo = x>=CENTRALE.da && x<=CENTRALE.a;
+  if(y<3.4 && sottoEdificio(x) && !dentroPozzo) return {t:'fondazione'};
+  return null;
+}
+function tuboA(x,y){
+  for(let i=0;i<TUBI.length;i++){
+    const t=TUBI[i], R=RETI[t.r];
+    if(x>=t.da&&x<=t.a&&Math.abs(y-R.prof)<=R.r+0.22) return t;}
+  return null;
+}
 
 /* ====================================================================
-   2. I QUATTRO SETTORI — i pozzetti del piano terra del campus
+   5. DISEGNO
    ==================================================================== */
-/* ====================================================================
-   2. I QUATTRO SETTORI — UNA REGOLA NUOVA PER TOMBINO
-   La prima stesura metteva tutto insieme dal primo minuto: tre colori che
-   si mescolano in otto combinazioni, due gomiti e una testata. Troppo.
-   Adesso ogni tombino aggiunge UNA COSA SOLA, e le altre restano quelle
-   che si sanno gia'. Numeri tarati col prototipo (scratchpad/taratura2.js):
-   fra parentesi le sonde che servono a chi ragiona, mediana e p90.
-   ==================================================================== */
-const SETTORI={
-  basket:{ nome:'Sotto il campo da basket', impianto:'Drenaggio e acque piovane',
-    W:6,H:6,lista:['ACQUA','GAS','ELET'],mescola:false,gettoni:15,
-    novita:'L\'impulso va sempre dritto e torna col colore della prima condotta che incontra.',
-    intro:'Dopo un temporale il campo resta bagnato a mezzogiorno. Sotto corrono tre linee: acqua, gas e un cavidotto.'},
-  infanzia:{ nome:'Sotto il giardino dell\'Infanzia', impianto:'Irrigazione e gas della cucina',
-    W:7,H:7,lista:['ACQUA','GAS','ELET','TESTATA'],mescola:false,gettoni:14,
-    novita:'Qui c\'è anche una TESTATA CIECA: se l\'impulso la colpisce torna indietro e riesce dal pozzetto da cui era partito.',
-    intro:'L\'irrigazione parte da sola anche quando piove, e in cucina la fiamma cala quando si accende il forno.'},
-  piscine:{ nome:'Sotto le piscine', impianto:'Ricircolo e riscaldamento delle vasche',
-    W:8,H:8,lista:['ACQUA','GAS','ELET','TESTATA','GOMITO_DX'],mescola:false,gettoni:13,
-    novita:'Si aggiunge un GOMITO: fa girare l\'impulso di novanta gradi, e non sai da che parte finché non lo vedi uscire.',
-    intro:'La vasca a corsie perde due centimetri a notte, e non è evaporazione.'},
-  chiesa:{ nome:'Sotto la chiesa', impianto:'La linea elettrica più vecchia del campus',
-    W:9,H:9,lista:['ACQUA','GAS','ELET','TESTATA','GOMITO_DX','GOMITO_SX'],mescola:true,gettoni:12,
-    novita:'Due gomiti invece di uno, e soprattutto: se l\'impulso attraversa PIÙ condotte i colori SI MESCOLANO — azzurro+giallo dà verde, azzurro+rosso viola, giallo+rosso arancio.',
-    intro:'Quando si accende l\'organo, in sacrestia le luci calano. È l\'impianto più vecchio del campus: nessuno ha più il disegno.'}
-};
+const rf=mulberry32(20260810);
+const GRANI=[],CIOTTOLI=[];
+for(let i=0;i<2200;i++) GRANI.push({x:rf(),y:rf(),r:.4+rf()*1.6,a:.05+rf()*.14,t:rf()});
+for(let i=0;i<160;i++) CIOTTOLI.push({x:rf(),y:rf(),r:1.5+rf()*3,s:.6+rf()*.5,a:rf()*6.28});
+const quotaStrato=(i,x)=>STRATI[i].fino+Math.sin(x*.05+i*2.1)*.45+Math.sin(x*.019+i*5.7)*.85;
 
-/* ====================================================================
-   3. STATO — fonte unica. Il DOM lo riflette, non lo contiene.
-   ==================================================================== */
-const S={
-  settore:null, codice:null, cfg:null, nick:'',
-  gettoni:0, spesi:0,
-  colpi:[],          /* {i, uscita, colore, att, n}                    */
-  note:{},           /* appunti del giocatore: "x,y" -> tipo           */
-  carotate:{},       /* "x,y" -> tipo vero, pagato 4 gettoni           */
-  sospetto:null,     /* la casella scelta per la dichiarazione         */
-  sbagliate:[],      /* dichiarazioni gia' fatte e sbagliate           */
-  attrezzo:'ACQUA',
-  t0:0, finita:false, vinta:false
-};
-
-/* ---- identita' locale, mai trasmessa (RIGIOCABILITA §5.2) -------- */
-function sid(){let v=localStorage.getItem('st-sid');
-  if(!v){v=(Date.now().toString(36)+Math.random().toString(36).slice(2,8)).toUpperCase();
-    localStorage.setItem('st-sid',v);}return v;}
-function nuovoCodice(){
-  const n=(+localStorage.getItem('st-run')||0)+1;
-  localStorage.setItem('st-run',n);
-  const s=cyrb53(sid()+'-'+n+'-'+Date.now()).toString(36).toUpperCase();
-  return s.slice(-6).padStart(6,'X');}
-
-/* ====================================================================
-   4. DISEGNI — solo SVG inline, nessuna emoji
-   ==================================================================== */
-function iconaTipo(t,dim){
-  const s=dim||24;
-  /* Le tre condotte NON si distinguono solo dal colore: ognuna ha anche
-     una forma sua. Un daltronico deve poter giocare, e in proiezione i
-     colori si impastano comunque. */
-  const T={
-    ACQUA:'<circle cx="12" cy="12" r="7.8" fill="none" stroke="var(--acqua)" stroke-width="3"/>'
-         +'<path d="M8 12.4q2-2.4 4 0t4 0" fill="none" stroke="var(--acqua)" stroke-width="2.2" stroke-linecap="round"/>',
-    GAS  :'<circle cx="12" cy="12" r="7.8" fill="none" stroke="var(--gas)" stroke-width="3"/>'
-         +'<path d="M12 8.2 L15 12 L12 15.8 L9 12 Z" fill="var(--gas)"/>',
-    ELET :'<circle cx="12" cy="12" r="7.8" fill="none" stroke="var(--elet)" stroke-width="3"/>'
-         +'<path d="M13.4 7.6 L9.6 12.4 L12.4 12.4 L10.6 16.4" fill="none" stroke="var(--elet)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
-    GOMITO_DX:'<path d="M3 19 L12 19 L12 5 L21 5" fill="none" stroke="#DCE6F0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>',
-    GOMITO_SX:'<path d="M3 5 L12 5 L12 19 L21 19" fill="none" stroke="#DCE6F0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>',
-    TESTATA:'<path d="M4 12 L15 12 M17 5 L17 19" fill="none" stroke="#DCE6F0" stroke-width="3" stroke-linecap="round"/>',
-    VUOTO:'<path d="M7 12 L17 12" stroke="#4C6178" stroke-width="3" stroke-linecap="round"/>',
-    SOSPETTO:'<path d="M12 4 L21 20 L3 20 Z" fill="none" stroke="var(--ambra)" stroke-width="2.6" stroke-linejoin="round"/><path d="M12 10 L12 14" stroke="var(--ambra)" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="17" r="1.2" fill="var(--ambra)"/>'
-  };
-  return '<svg viewBox="0 0 24 24" width="'+s+'" height="'+s+'" aria-hidden="true">'+(T[t]||'')+'</svg>';
+function disegna(){
+  ctx.clearRect(0,0,LARG,ALT);
+  cielo(); fronteNord(); terreno(); rocce(); tunnel(); gemme(); tubi();
+  arrivo(); talpa(); etichette();
 }
-/* il colore che esce: mescolanza sottrattiva delle condotte attraversate */
-const MISCELE={0:'#DDE3EA',1:'#29A3D6',2:'#E8B21E',4:'#C0392B',
-  3:'#2E9E5B',5:'#7B4B9E',6:'#E07B2A',7:'#6B4A34'};
-const NOMI_MISCELA={0:'incolore — non ha incontrato condotte',1:'azzurro — acqua',
-  2:'giallo — gas',4:'rosso — cavo elettrico',3:'verde — acqua + gas',
-  5:'viola — acqua + elettrico',6:'arancio — gas + elettrico',
-  7:'bruno — tutte e tre'};
-
-/* ====================================================================
-   5. RENDER
-   ==================================================================== */
-const $=id=>document.getElementById(id);
-function mostra(quale){['sc-avvio','sc-gioco','sc-esito']
-  .forEach(k=>$(k).classList.toggle('on',k===quale));window.scrollTo(0,0);}
-
-function renderContatori(){
-  const c=$('contatori');
-  if(!S.cfg){c.innerHTML='';return;}
-  const rim=S.gettoni-S.spesi;
-  c.innerHTML=
-    '<div class="cont'+(rim<=3?' ambra':'')+'"><b>'+rim+'</b><span>gettoni</span></div>'+
-    '<div class="cont"><b>'+S.colpi.length+'</b><span>impulsi</span></div>'+
-    '<div class="cont oro"><b class="codice" style="font-size:1.02rem">'+S.codice+'</b><span>codice sfida</span></div>';
+function cielo(){
+  const g=ctx.createLinearGradient(0,0,0,SUOLO);
+  g.addColorStop(0,'#5E93BE'); g.addColorStop(.55,'#9CC3DE'); g.addColorStop(1,'#DCEAF3');
+  ctx.fillStyle=g; ctx.fillRect(0,0,LARG,SUOLO);
+  const s=ctx.createRadialGradient(LARG*.2,SUOLO*.22,4,LARG*.2,SUOLO*.22,SUOLO);
+  s.addColorStop(0,'rgba(255,247,218,.7)'); s.addColorStop(1,'rgba(255,247,218,0)');
+  ctx.fillStyle=s; ctx.fillRect(0,0,LARG,SUOLO);
 }
-
-function renderGriglia(){
-  const {W,H}=S.cfg, P=pozzetti(W,H);
-  const cel=Math.max(30,Math.min(46,Math.floor(660/(W+2))));
-  let h='<div class="griglia" style="grid-template-columns:repeat('+(W+2)+','+cel+'px)">';
-  const pozIdx=(x,y)=>P.findIndex(p=>p.x===x&&p.y===y);
-  for(let ry=-1;ry<=H;ry++){
-    for(let rx=-1;rx<=W;rx++){
-      const bordoX=(rx===-1||rx===W), bordoY=(ry===-1||ry===H);
-      if(bordoX&&bordoY){h+='<div class="vuoto"></div>';continue;}
-      if(bordoX||bordoY){
-        const i=pozIdx(rx,ry);
-        h+=bottonePozzetto(i);
-        continue;}
-      h+=bottoneCella(rx,ry);
-    }}
-  h+='</div>';
-  $('area-griglia').innerHTML=h;
-  $('area-griglia').querySelectorAll('[data-poz]').forEach(b=>
-    b.onclick=()=>mandaImpulso(+b.dataset.poz));
-  $('area-griglia').querySelectorAll('[data-cel]').forEach(b=>
-    b.onclick=()=>toccaCella(b.dataset.cel));
+function fronteNord(){
+  const U=Math.min(15,SUOLO*.072);
+  ctx.fillStyle='#5F8342'; ctx.fillRect(0,SUOLO-9,LARG,9);
+  ctx.fillStyle='#8A7566'; ctx.fillRect(px(-18),SUOLO-7,px(19)-px(-18),7);
+  ctx.strokeStyle='rgba(255,255,255,.10)'; ctx.lineWidth=1;
+  for(let p=px(-18);p<px(19);p+=13){
+    ctx.beginPath(); ctx.moveTo(p,SUOLO-7); ctx.lineTo(p,SUOLO); ctx.stroke();}
+  piscina(U); alaPiatta(U); corpoStorico(U); chiesa(U); centraleTermica(U); sagrato(U);
+  ctx.fillStyle='#3F3527'; ctx.fillRect(0,SUOLO-2,LARG,3);
 }
-
-function bottonePozzetto(i){
-  /* Un pozzetto puo' essere: mai usato, ingresso di un impulso, uscita
-     di un impulso (e allora si colora), o tutti e due insieme. In
-     quest'ultimo caso vanno mostrati ENTRAMBI i numeri: mostrarne uno
-     solo faceva sembrare "entrata" quella che era anche un'uscita. */
-  const ing=S.colpi.filter(c=>c.i===i);
-  const usc=S.colpi.filter(c=>c.uscita===i);
-  let st='',cls='poz',parti=[];
-  if(usc.length){
-    const c=usc[usc.length-1];
-    st='background:'+MISCELE[c.colore]+';';
-    cls+=' usato'+(c.att?' attenuato':'');
-    parti.push('uscita dell\'impulso '+usc.map(q=>q.n).join(' e ')+', '+NOMI_MISCELA[c.colore]
-              +(c.att?', attenuato':''));
-  }
-  if(ing.length){ cls+=' att'; parti.push('partenza dell\'impulso '+ing.map(q=>q.n).join(' e ')); }
-  const numeri=[...new Set(ing.concat(usc).map(c=>c.n))].sort((a,b)=>a-b);
-  const num = numeri.length? numeri.join('·') : (i+1);
-  const etichetta='pozzetto '+(i+1)+(parti.length? ', '+parti.join(', ') : ', mai usato');
-  return '<button class="'+cls+'" style="'+st+'" data-poz="'+i+'" aria-label="'+etichetta+'">'
-        +num+'</button>';
+function chiesa(U){
+  const a=px(CHIESA.da), b=px(CHIESA.a), w=b-a, H=13.5*U, y=SUOLO-H;
+  if(w<20) return;
+  ctx.fillStyle='rgba(30,40,50,.16)'; ctx.fillRect(a-5,SUOLO-3,w+10,6);
+  ctx.fillStyle='#E7E0D2'; ctx.fillRect(a,y,w,H);
+  ctx.fillStyle='#B9B7B0'; ctx.fillRect(a,y,U*.9,H); ctx.fillRect(b-U*.9,y,U*.9,H);
+  const ax=a+U*1.3, aw=w-U*2.6, ah=H-U*2.6, ay=SUOLO-ah;
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(ax,SUOLO); ctx.lineTo(ax,ay+aw/2);
+  ctx.arc(ax+aw/2,ay+aw/2,aw/2,Math.PI,0); ctx.lineTo(ax+aw,SUOLO); ctx.closePath();
+  ctx.clip();
+  ctx.fillStyle='#A8563C'; ctx.fillRect(ax,ay,aw,ah);
+  ctx.strokeStyle='rgba(255,255,255,.20)'; ctx.lineWidth=1;
+  for(let yy=ay;yy<SUOLO;yy+=Math.max(3,U*.28)){
+    ctx.beginPath(); ctx.moveTo(ax,yy); ctx.lineTo(ax+aw,yy); ctx.stroke();}
+  ctx.fillStyle='#D8C89E'; ctx.fillRect(ax+aw*.16,ay+aw*.32,aw*.68,ah*.20);
+  ctx.fillStyle='#7A6242'; ctx.textAlign='center';
+  ctx.font='700 '+Math.max(5,U*.40)+'px Lexend, sans-serif';
+  ctx.fillText('I CENTENARIO',ax+aw/2,ay+aw*.32+ah*.13);
+  ctx.fillStyle='#4C6376';
+  for(let i=0;i<4;i++){
+    const fx=ax+aw*(.14+i*.24), fw=aw*.11, fy=ay+ah*.62;
+    ctx.beginPath(); ctx.moveTo(fx,SUOLO-U*1.2); ctx.lineTo(fx,fy+fw/2);
+    ctx.arc(fx+fw/2,fy+fw/2,fw/2,Math.PI,0); ctx.lineTo(fx+fw,SUOLO-U*1.2);
+    ctx.closePath(); ctx.fill();}
+  ctx.restore();
+  ctx.fillStyle='#D9D2C4';
+  ctx.beginPath(); ctx.moveTo(a-U*.5,y); ctx.lineTo(a+w/2,y-U*2.2);
+  ctx.lineTo(b+U*.5,y); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#5A5248'; ctx.fillRect(a-U*.6,y-U*.25,w+U*1.2,U*.3);
+  ctx.strokeStyle='#4A4A4A'; ctx.lineWidth=Math.max(1.6,U*.14);
+  ctx.beginPath(); ctx.moveTo(a+w/2,y-U*2.2); ctx.lineTo(a+w/2,y-U*3.6); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(a+w/2-U*.5,y-U*3.05); ctx.lineTo(a+w/2+U*.5,y-U*3.05); ctx.stroke();
+  ctx.fillStyle='#CFC8BA';
+  for(let k=0;k<3;k++) ctx.fillRect(a+w*.30-k*U*.4,SUOLO-U*.22*(3-k),w*.40+k*U*.8,U*.24);
 }
-
-function bottoneCella(x,y){
-  const k=x+','+y;
-  let cls='cel', dentro='';
-  if(S.carotate[k]){
-    cls+=' rivelata';
-    dentro=S.carotate[k]==='VUOTO'?iconaTipo('VUOTO'):iconaTipo(S.carotate[k]);
-  }else if(S.note[k]){ cls+=' nota'; dentro=iconaTipo(S.note[k]); }
-  if(S.sospetto===k) cls+=' sospetto';
-  if(S.sbagliate.indexOf(k)>=0) dentro=iconaTipo('SOSPETTO');
-  return '<button class="'+cls+'" data-cel="'+k+'" aria-label="casella '+(x+1)+'-'+(y+1)+'">'
-        +'<span class="segno">'+dentro+'</span></button>';
+function corpoStorico(U){
+  /* RIFATTO SULLA FOTOGRAFIA facciata3 (e facciata1). Correzioni:
+     - il portale NON ha la lunetta a raggiera: e' tutto legno a cassettoni
+       sotto una MOSTRA BIANCA ad arco. La raggiera l'avevo dedotta.
+     - l'intonaco e' GRIGIO FREDDO, non crema.
+     - le finestre hanno mostra bianca sporgente e TAPPARELLA scura; al
+       piano terra hanno le GRATE. Niente scuri verdi.
+     - la gronda sporge, con i travetti a vista sotto. */
+  const a=px(STORICO.da), b=px(STORICO.a), w=b-a, H=9.4*U, y=SUOLO-H;
+  if(w<20) return;
+  ctx.fillStyle='rgba(30,40,50,.16)'; ctx.fillRect(a-5,SUOLO-3,w+10,6);
+  const g=ctx.createLinearGradient(a,y,a,SUOLO);
+  g.addColorStop(0,'#DCDAD4'); g.addColorStop(1,'#CDCBC4');
+  ctx.fillStyle=g; ctx.fillRect(a,y,w,H);
+  ctx.fillStyle='#C2C0B8'; ctx.fillRect(a,SUOLO-U*0.85,w,U*0.85);   /* basamento */
+  /* tetto in coppi + cornicione sporgente coi travetti */
+  ctx.fillStyle='#A85A3E';
+  ctx.beginPath(); ctx.moveTo(a-U*.9,y); ctx.lineTo(a+w/2,y-U*1.35);
+  ctx.lineTo(b+U*.9,y); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,.16)'; ctx.lineWidth=1;
+  for(let k=1;k<4;k++){const t=k/4;
+    ctx.beginPath(); ctx.moveTo(a-U*.9+(w+U*1.8)*.5*t,y-U*1.35*t);
+    ctx.lineTo(b+U*.9-(w+U*1.8)*.5*t,y-U*1.35*t); ctx.stroke();}
+  ctx.fillStyle='#C7C2B6'; ctx.fillRect(a-U*.9,y-U*.18,w+U*1.8,U*.30);
+  ctx.fillStyle='#8E8578';
+  for(let p=a-U*.6;p<b+U*.6;p+=U*.85) ctx.fillRect(p,y+U*.12,U*.20,U*.26);
+  /* IL PORTALE: mostra bianca ad arco, ante di legno a cassettoni */
+  const pxp=px(PORTALE), pw=U*2.7, ph=U*3.9, m=U*.42;
+  ctx.fillStyle='#F4F2EC';
+  ctx.beginPath(); ctx.moveTo(pxp-pw/2-m,SUOLO); ctx.lineTo(pxp-pw/2-m,SUOLO-ph);
+  ctx.arc(pxp,SUOLO-ph,pw/2+m,Math.PI,0); ctx.lineTo(pxp+pw/2+m,SUOLO);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#6B4326';
+  ctx.beginPath(); ctx.moveTo(pxp-pw/2,SUOLO); ctx.lineTo(pxp-pw/2,SUOLO-ph);
+  ctx.arc(pxp,SUOLO-ph,pw/2,Math.PI,0); ctx.lineTo(pxp+pw/2,SUOLO);
+  ctx.closePath(); ctx.fill();
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(pxp-pw/2,SUOLO); ctx.lineTo(pxp-pw/2,SUOLO-ph);
+  ctx.arc(pxp,SUOLO-ph,pw/2,Math.PI,0); ctx.lineTo(pxp+pw/2,SUOLO);
+  ctx.closePath(); ctx.clip();
+  ctx.strokeStyle='rgba(255,255,255,.13)'; ctx.lineWidth=Math.max(1,U*.10);
+  for(let k=1;k<3;k++){const X=pxp-pw/2+pw*k/3;
+    ctx.beginPath(); ctx.moveTo(X,SUOLO); ctx.lineTo(X,SUOLO-ph-pw/2); ctx.stroke();}
+  for(let k=1;k<6;k++){const Y=SUOLO-(ph+pw/2)*k/6;
+    ctx.beginPath(); ctx.moveTo(pxp-pw/2,Y); ctx.lineTo(pxp+pw/2,Y); ctx.stroke();}
+  ctx.restore();
+  ctx.strokeStyle='#3E2716'; ctx.lineWidth=1.6;
+  ctx.beginPath(); ctx.moveTo(pxp,SUOLO); ctx.lineTo(pxp,SUOLO-ph-pw/2+2); ctx.stroke();
+  /* le due fioriere coniche ai lati del portale */
+  [-1,1].forEach(sg=>{ const fx=pxp+sg*(pw/2+m+U*.85);
+    ctx.fillStyle='#6E4436';
+    ctx.beginPath(); ctx.moveTo(fx-U*.32,SUOLO); ctx.lineTo(fx-U*.46,SUOLO-U*1.15);
+    ctx.lineTo(fx+U*.46,SUOLO-U*1.15); ctx.lineTo(fx+U*.32,SUOLO); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#A8323C';
+    ctx.beginPath(); ctx.arc(fx,SUOLO-U*1.35,U*.42,0,6.29); ctx.fill();});
+  /* finestre: tre sopra il portale + due per lato, grate al piano terra */
+  /* tre finestre in asse col portale (scarti -3,35 / 0 / +3,35) e due
+     più esterne: si contano dal portale, non da una x fissa. */
+  [-3.35,0,3.35,-5.8,6.4].forEach(d=>finestra(px(PORTALE+d),SUOLO-U*6.6,U,false));
+  [-5.8,6.4].forEach(d=>finestra(px(PORTALE+d),SUOLO-U*3.1,U,true));
+  /* faretto e telecamera */
+  ctx.fillStyle='#7E858B'; ctx.fillRect(px(PORTALE-4.9),SUOLO-U*8.2,U*.75,U*.24);
+  ctx.fillStyle='#4A5158';
+  ctx.beginPath(); ctx.arc(px(PORTALE+5.0),SUOLO-U*5.4,U*.22,0,6.29); ctx.fill();
+  /* LA LESENA DI MATTONI: sporge sopra la gronda, e segna il giunto */
+  const lx=px(LESENA);
+  ctx.fillStyle='#B05A38'; ctx.fillRect(lx-U*.62,y-U*2.1,U*1.24,H+U*2.1);
+  ctx.strokeStyle='rgba(255,255,255,.16)'; ctx.lineWidth=1;
+  for(let yy=y-U*2.1;yy<SUOLO;yy+=Math.max(3,U*.28)){
+    ctx.beginPath(); ctx.moveTo(lx-U*.62,yy); ctx.lineTo(lx+U*.62,yy); ctx.stroke();}
 }
-
-function renderAttrezzi(){
-  /* Solo i segni che servono in QUESTO settore: nel primo sono quattro,
-     non sette. Un attrezzo per una cosa che non puo' esistere e' rumore. */
-  const el=[...new Set(SETTORI[S.settore].lista)].concat('VUOTO');
-  $('attrezzi').innerHTML=el.map(t=>
-    '<button class="att'+(S.attrezzo===t?' sel':'')+'" data-att="'+t+'" '+
-    'aria-label="'+(t==='VUOTO'?'niente':TIPI[t].nome)+'" '+
-    'aria-pressed="'+(S.attrezzo===t)+'">'+iconaTipo(t)+'</button>').join('');
-  $('attrezzi').querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{
-    S.attrezzo=b.dataset.att; renderAttrezzi();});
-}
-
-function renderRegistro(){
-  const r=$('registro');
-  if(!S.colpi.length){r.innerHTML='<p class="piccolo muto">Nessun impulso ancora.</p>';return;}
-  r.innerHTML=S.colpi.slice().reverse().map(c=>{
-    const dove = c.uscita<0 ? 'non è più riemerso'
-              : c.uscita===c.i ? 'è tornato dal <b>'+(c.i+1)+'</b> (eco)'
-              : 'uscito dal <b>'+(c.uscita+1)+'</b>';
-    return '<div class="voce"><span class="pallino'+(c.att?' att':'')+'" style="background:'
-      +MISCELE[c.colore]+'"></span><span><b>'+c.n+'.</b> dal <b>'+(c.i+1)+'</b>, '+dove
-      +(c.att?' · <span style="color:var(--ambra)">attenuato</span>':'')+'</span></div>';}).join('');
-}
-
-function renderLegenda(){
-  /* Si elencano SOLO le regole che valgono in questo settore, e la novita'
-     e' in evidenza: e' l'unica cosa nuova da imparare qui. */
-  const st=SETTORI[S.settore], ha=t=>st.lista.indexOf(t)>=0;
-  let h='<div style="display:flex;flex-direction:column;gap:9px">';
-  ['ACQUA','GAS','ELET'].forEach(t=>{ if(ha(t))
-    h+='<div style="display:flex;gap:9px;align-items:center">'+iconaTipo(t,20)
-      +'<span class="piccolo">'+TIPI[t].nome+' — <b>tinge</b> l\'impulso</span></div>';});
-  if(ha('TESTATA'))
-    h+='<div style="display:flex;gap:9px;align-items:center">'+iconaTipo('TESTATA',20)
-      +'<span class="piccolo">Testata cieca — <b>rimanda indietro</b></span></div>';
-  if(ha('GOMITO_DX')||ha('GOMITO_SX'))
-    h+='<div style="display:flex;gap:9px;align-items:center">'+iconaTipo('GOMITO_DX',20)
-      +'<span class="piccolo">Gomito — <b>gira di 90°</b></span></div>';
-  h+='<div style="display:flex;gap:9px;align-items:center"><span class="pallino att"></span>'
-    +'<span class="piccolo"><b>Attenuato</b> (anello tratteggiato): ha attraversato la '
-    +'condotta rotta</span></div>';
-  if(st.mescola)
-    h+='<div style="display:flex;gap:9px;align-items:center">'
-      +'<span class="pallino" style="background:#2E9E5B"></span>'
-      +'<span class="piccolo"><b>Colori mescolati</b>: verde = acqua+gas · viola = acqua+elettrico '
-      +'· arancio = gas+elettrico</span></div>';
-  else
-    h+='<div style="display:flex;gap:9px;align-items:center">'
-      +'<span class="pallino" style="background:#DDE3EA"></span>'
-      +'<span class="piccolo">Il colore è quello della <b>prima</b> condotta incontrata. '
-      +'Bianco = non ne ha incontrata nessuna.</span></div>';
-  h+='</div>';
-  $('legenda').innerHTML=h;
-}
-
-function renderTutto(){renderContatori();renderGriglia();renderRegistro();renderAzioni();}
-
-/* ====================================================================
-   6. AZIONI
-   ==================================================================== */
-function spendi(n){S.spesi+=n; if(S.spesi>=S.gettoni) finisci(false);}
-
-function mandaImpulso(i){
-  if(S.finita) return;
-  if(S.colpi.some(c=>c.i===i)){
-    avvisa('Da quel pozzetto hai già sondato: la risposta sarebbe identica. Non ti costa nulla, ma non ti dice niente di nuovo.');
-    return;}
-  if(S.gettoni-S.spesi<1){finisci(false);return;}
-  const e=impulso(S.cfg,i);
-  S.colpi.push({i:i,uscita:e.uscita,colore:e.colore,att:e.attenuato,n:S.colpi.length+1,
-                scia:e.scia});
-  spendi(1);
-  renderTutto();
-}
-
-function toccaCella(k){
-  if(S.finita) return;
-  if(S.carotate[k]) return;                    /* gia' aperta, non si annota */
-  if(S.note[k]===S.attrezzo) delete S.note[k]; /* secondo tocco: cancella    */
-  else S.note[k]=S.attrezzo;
-  S.sospetto=k;                                /* l'ultima toccata e' quella
-                                                  su cui agirebbero i bottoni */
-  renderGriglia(); renderAzioni();
-}
-
-function carotaggio(){
-  if(S.finita) return;
-  if(!S.sospetto){avvisa('Prima tocca la casella che vuoi aprire.');return;}
-  if(S.carotate[S.sospetto]){avvisa('Quella casella l\'hai già aperta.');return;}
-  if(S.gettoni-S.spesi<4){avvisa('Non ti restano abbastanza gettoni per un carotaggio.');return;}
-  const [x,y]=S.sospetto.split(',').map(Number);
-  const p=S.cfg.pezzi.find(q=>q.x===x&&q.y===y);
-  S.carotate[S.sospetto]=p?p.t:'VUOTO';
-  delete S.note[S.sospetto];
-  spendi(4);
-  renderTutto();
-}
-
-function dichiara(){
-  if(S.finita) return;
-  if(!S.sospetto){avvisa('Prima tocca sulla griglia la casella dove pensi ci sia il guasto.');return;}
-  const [x,y]=S.sospetto.split(',').map(Number);
-  /* La dichiarazione non parte mai "di sorpresa" sull'ultima casella
-     toccata: si chiede conferma e si dice ad alta voce quanto costa
-     sbagliare. E' proprio qui che sta la decisione del gioco. */
-  conferma('Dichiari che il guasto è nella casella <b>'+(x+1)+'-'+(y+1)+'</b>?<br><br>'
-    +'Ti restano <b>'+(S.gettoni-S.spesi)+' gettoni</b>. Se ti sbagli ne perdi <b>5</b>.',
-    'Sì, è lì', ()=>{
-      const g=S.cfg.pezzi.find(q=>q.t===S.cfg.guasto);
-      if(g.x===x&&g.y===y){ finisci(true); return; }
-      if(S.sbagliate.indexOf(S.sospetto)<0) S.sbagliate.push(S.sospetto);
-      spendi(5);
-      if(!S.finita){
-        avvisa('Sotto quella casella il guasto non c\'è. Ti è costato 5 gettoni — ma adesso '
-          +'sai una cosa in più: quella casella è esclusa, e resta segnata sulla griglia.');
-        renderTutto();}
-    });
-}
-
-/* l'etichetta dei due bottoni dice sempre SU QUALE casella agirebbero */
-function renderAzioni(){
-  const b=$('btn-dichiara'), c=$('btn-carota');
-  if(!S.sospetto){
-    b.textContent='Dichiara: il guasto è qui';
-    c.innerHTML='Carotaggio — apri una casella <b style="color:var(--oro)">4 gettoni</b>';
+function finestra(cx,cy,U,grata){
+  const w=U*1.25,h=U*1.7;
+  ctx.fillStyle='#F6F4EE'; ctx.fillRect(cx-w/2-U*.18,cy-U*.18,w+U*.36,h+U*.36);
+  if(grata){
+    ctx.fillStyle='#7C838A'; ctx.fillRect(cx-w/2,cy,w,h);
+    ctx.strokeStyle='#B8BEC4'; ctx.lineWidth=1.1;
+    for(let k=1;k<4;k++){ctx.beginPath();
+      ctx.moveTo(cx-w/2+w*k/4,cy); ctx.lineTo(cx-w/2+w*k/4,cy+h); ctx.stroke();}
+    for(let k=1;k<5;k++){ctx.beginPath();
+      ctx.moveTo(cx-w/2,cy+h*k/5); ctx.lineTo(cx+w/2,cy+h*k/5); ctx.stroke();}
   }else{
-    const [x,y]=S.sospetto.split(',').map(Number);
-    b.textContent='Dichiara: il guasto è in '+(x+1)+'-'+(y+1);
-    c.innerHTML='Carotaggio: apri la '+(x+1)+'-'+(y+1)+' <b style="color:var(--oro)">4 gettoni</b>';
+    ctx.fillStyle='#6B6E70'; ctx.fillRect(cx-w/2,cy,w,h);      /* tapparella */
+    ctx.strokeStyle='rgba(0,0,0,.22)'; ctx.lineWidth=1;
+    for(let k=1;k<6;k++){ctx.beginPath();
+      ctx.moveTo(cx-w/2,cy+h*k/6); ctx.lineTo(cx+w/2,cy+h*k/6); ctx.stroke();}
   }
-  b.disabled=S.finita; c.disabled=S.finita||(S.gettoni-S.spesi<4);
 }
-
-function avvisa(t){
-  const d=document.createElement('div');
-  d.className='pieno-schermo';
-  d.innerHTML='<div class="modale"><p style="margin-top:0">'+t+'</p>'+
-    '<button class="btn pieno" style="width:100%">Ho capito</button></div>';
-  d.querySelector('button').onclick=()=>d.remove();
-  d.onclick=e=>{if(e.target===d)d.remove();};
-  document.body.appendChild(d);
-  d.querySelector('button').focus();
+function alaPiatta(U){
+  /* DUE FASCE, come nella foto: ocra al primo piano, bianca al piano
+     terra, e FINESTRE A NASTRO orizzontali con telaio scuro — non
+     finestre quadrate in fila, che è quello che avevo disegnato. */
+  const a=px(ALA.da), b=px(ALA.a), w=b-a, H=7.4*U, y=SUOLO-H;
+  if(w<20) return;
+  ctx.fillStyle='rgba(30,40,50,.16)'; ctx.fillRect(a,SUOLO-3,w+6,6);
+  ctx.fillStyle='#E4C49B'; ctx.fillRect(a,y,w,H);                 /* ocra    */
+  ctx.fillStyle='#F2F1ED'; ctx.fillRect(a,SUOLO-U*3.4,w,U*3.4);   /* bianco  */
+  ctx.fillStyle='#CFC9BB'; ctx.fillRect(a-U*.35,y-U*.45,w+U*.7,U*.45);
+  ctx.fillStyle='#BEB6A6'; ctx.fillRect(a,SUOLO-U*3.55,w,U*.18);
+  /* le finestre a nastro: tre campate lunghe */
+  const nb=3, marg=U*1.1;
+  for(let i=0;i<nb;i++){
+    const bx=a+marg+(w-marg*2)*i/nb, bw=(w-marg*2)/nb-U*.9;
+    ctx.fillStyle='#3A4149'; ctx.fillRect(bx,SUOLO-U*5.9,bw,U*1.55);
+    ctx.fillStyle='#9FBACE'; ctx.fillRect(bx+U*.10,SUOLO-U*5.78,bw-U*.20,U*1.31);
+    ctx.strokeStyle='#3A4149'; ctx.lineWidth=Math.max(1,U*.10);
+    const nd=Math.max(2,Math.round(bw/(U*1.5)));
+    for(let k=1;k<nd;k++){const X=bx+bw*k/nd;
+      ctx.beginPath(); ctx.moveTo(X,SUOLO-U*5.78); ctx.lineTo(X,SUOLO-U*4.47); ctx.stroke();}}
+  /* piano terra: finestrelle con grata */
+  for(let i=0;i<Math.max(3,Math.round(w/(U*5)));i++){
+    const fx=a+U*2.2+i*U*5;
+    if(fx>b-U*2) break;
+    if(fx>px(CENTRALE.da)-U*1.5&&fx<px(CENTRALE.a)+U*1.5) continue;
+    finestra(fx,SUOLO-U*2.5,U,true);}
+  /* la pensilina sull'ingresso di levante */
+  ctx.fillStyle='#D8D4CA'; ctx.fillRect(a+w*.72,SUOLO-U*3.0,U*4.2,U*.28);
+  ctx.fillStyle='#9AA0A6'; ctx.fillRect(a+w*.72+U*3.9,SUOLO-U*3.0,U*.16,U*3.0);
 }
-function conferma(t,etichettaSi,onSi){
-  const d=document.createElement('div');
-  d.className='pieno-schermo';
-  d.innerHTML='<div class="modale"><p style="margin-top:0">'+t+'</p>'+
-    '<div style="display:flex;gap:10px;flex-wrap:wrap">'+
-    '<button class="btn pieno" style="flex:1 1 150px">'+etichettaSi+'</button>'+
-    '<button class="btn" style="flex:1 1 120px">Aspetta</button></div></div>';
-  const [si,no]=d.querySelectorAll('button');
-  si.onclick=()=>{d.remove();onSi();};
-  no.onclick=()=>d.remove();
-  d.onclick=e=>{if(e.target===d)d.remove();};
-  document.body.appendChild(d); no.focus();
+/* --- l'arredo del sagrato: croce di ferro e lampione, come in foto --- */
+function sagrato(U){
+  const cx=px(PORTALE+4.2);
+  ctx.fillStyle='#2E3238';
+  ctx.fillRect(cx-U*.16,SUOLO-U*4.6,U*.32,U*4.6);
+  ctx.fillRect(cx-U*1.05,SUOLO-U*3.5,U*2.1,U*.30);
+  ctx.fillRect(cx-U*.42,SUOLO-U*.28,U*.84,U*.28);
+  const lx=px(PORTALE+6.0);
+  ctx.fillStyle='#23262A';
+  ctx.fillRect(lx-U*.5,SUOLO-U*.5,U*1.0,U*.5);
+  ctx.fillRect(lx-U*.15,SUOLO-U*4.2,U*.30,U*3.8);
+  ctx.beginPath(); ctx.moveTo(lx-U*.55,SUOLO-U*4.2); ctx.lineTo(lx+U*.55,SUOLO-U*4.2);
+  ctx.lineTo(lx+U*.32,SUOLO-U*4.9); ctx.lineTo(lx-U*.32,SUOLO-U*4.9);
+  ctx.closePath(); ctx.fill();
+}
+function piscina(U){
+  /* la vasca a corsie vista di fianco: bordo, acqua, trampolino e rete */
+  const a=px(PISCINA.da), b=px(PISCINA.a), w=b-a;
+  if(w<20) return;
+  ctx.fillStyle='rgba(30,40,50,.14)'; ctx.fillRect(a-4,SUOLO-3,w+8,6);
+  ctx.fillStyle='#E2DCCE'; ctx.fillRect(a,SUOLO-U*1.5,w,U*1.5);      /* bordo */
+  const g=ctx.createLinearGradient(0,SUOLO-U*1.25,0,SUOLO-U*.15);
+  g.addColorStop(0,'#5FC6DE'); g.addColorStop(1,'#2E86AE');
+  ctx.fillStyle=g; ctx.fillRect(a+U*.9,SUOLO-U*1.25,w-U*1.8,U*1.1);
+  ctx.strokeStyle='rgba(255,255,255,.55)'; ctx.lineWidth=1.4;
+  for(let p=a+U*1.6;p<b-U*1.2;p+=U*1.4){
+    ctx.beginPath(); ctx.moveTo(p,SUOLO-U*.75); ctx.lineTo(p+U*.7,SUOLO-U*.75); ctx.stroke();}
+  /* trampolino */
+  ctx.fillStyle='#9AA0A6'; ctx.fillRect(a+U*1.2,SUOLO-U*2.6,U*.28,U*1.1);
+  ctx.fillStyle='#D8D4CA'; ctx.fillRect(a+U*.7,SUOLO-U*2.8,U*2.4,U*.22);
+  /* rete di recinzione sul fondo */
+  ctx.strokeStyle='rgba(120,132,142,.55)'; ctx.lineWidth=1.2;
+  for(let p=a;p<b;p+=U*.55){
+    ctx.beginPath(); ctx.moveTo(p,SUOLO-U*4.2); ctx.lineTo(p,SUOLO-U*1.5); ctx.stroke();}
+  ctx.strokeStyle='rgba(120,132,142,.8)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(a,SUOLO-U*4.2); ctx.lineTo(b,SUOLO-U*4.2); ctx.stroke();
+  ctx.fillStyle='#123E90'; ctx.textAlign='center';
+  ctx.font='700 '+Math.max(7,U*.46)+'px Lexend, sans-serif';
+  ctx.fillText('PISCINE',(a+b)/2,SUOLO-U*4.8);
+}
+function centraleTermica(U){
+  const a=px(CENTRALE.da), b=px(CENTRALE.a), w=b-a, H=3.6*U, y=SUOLO-H;
+  ctx.fillStyle='rgba(30,40,50,.18)'; ctx.fillRect(a-4,SUOLO-3,w+8,6);
+  ctx.fillStyle='#DAD5C8'; ctx.fillRect(a,y,w,H);
+  ctx.fillStyle='#B6AF9F'; ctx.fillRect(a-U*.25,y-U*.34,w+U*.5,U*.36);
+  ctx.fillStyle='#9AA0A6'; ctx.fillRect(a+w*.66,y-U*3.4,U*.85,U*3.4);   /* camino */
+  ctx.fillStyle='#7E858B'; ctx.fillRect(a+w*.66-U*.14,y-U*3.72,U*1.13,U*.36);
+  ctx.fillStyle='#3E4A56'; ctx.fillRect(a+w*.14,SUOLO-U*2.1,U*1.35,U*2.1);
+  ctx.fillStyle='#123E90'; ctx.textAlign='center';
+  ctx.font='700 '+Math.max(7,U*.48)+'px Lexend, sans-serif';
+  ctx.fillText('CENTRALE TERMICA',(a+b)/2,y-U*.8);
+}
+function terreno(){
+  let sopra=[]; for(let p=0;p<=LARG;p+=6) sopra.push(0);
+  STRATI.forEach((st,i)=>{
+    const giu=[];
+    for(let p=0;p<=LARG;p+=6)
+      giu.push(i===STRATI.length-1?PROF:Math.min(PROF,quotaStrato(i,xDaPx(p))));
+    ctx.beginPath();
+    for(let k=0,p=0;p<=LARG;p+=6,k++) k===0?ctx.moveTo(p,py(sopra[k])):ctx.lineTo(p,py(sopra[k]));
+    for(let k=giu.length-1,p=LARG;p>=0;p-=6,k--) ctx.lineTo(p,py(giu[k]));
+    ctx.closePath();
+    const g=ctx.createLinearGradient(0,py(i===0?0:st.fino-3),0,py(Math.min(PROF,st.fino)));
+    g.addColorStop(0,st.c2); g.addColorStop(1,st.c);
+    ctx.fillStyle=g; ctx.fill();
+    if(i<STRATI.length-1){
+      ctx.strokeStyle='rgba(45,34,22,.40)'; ctx.lineWidth=1.5; ctx.beginPath();
+      for(let k=0,p=0;p<=LARG;p+=6,k++) k===0?ctx.moveTo(p,py(giu[k])):ctx.lineTo(p,py(giu[k]));
+      ctx.stroke();}
+    sopra=giu;});
+  ctx.save(); ctx.beginPath(); ctx.rect(0,SUOLO,LARG,ALT-SUOLO); ctx.clip();
+  GRANI.forEach(g=>{ ctx.fillStyle='rgba('+(g.t>.5?'40,30,18':'240,232,210')+','+g.a+')';
+    ctx.beginPath(); ctx.arc(g.x*LARG,SUOLO+g.y*(ALT-SUOLO),g.r,0,6.29); ctx.fill();});
+  const a0=py(4.2),a1=py(11);
+  CIOTTOLI.forEach(c=>{ ctx.save(); ctx.translate(c.x*LARG,a0+c.y*(a1-a0));
+    ctx.rotate(c.a); ctx.scale(1,c.s);
+    ctx.fillStyle='rgba(214,200,172,.5)'; ctx.beginPath(); ctx.arc(0,0,c.r,0,6.29); ctx.fill();
+    ctx.fillStyle='rgba(60,46,30,.28)'; ctx.beginPath(); ctx.arc(.7,.9,c.r*.8,0,6.29); ctx.fill();
+    ctx.restore();});
+  ctx.restore();
+  ctx.fillStyle='rgba(122,122,118,.9)';
+  EDIFICI.forEach(e=>{
+    /* il pozzo della centrale è un vuoto nelle fondazioni: si disegna
+       spezzando il massiccio, altrimenti il varco non si vede */
+    if(CENTRALE.da>e.da && CENTRALE.a<e.a){
+      ctx.fillRect(px(e.da),py(0),px(CENTRALE.da)-px(e.da),py(3.4)-py(0));
+      ctx.fillRect(px(CENTRALE.a),py(0),px(e.a)-px(CENTRALE.a),py(3.4)-py(0));
+    } else ctx.fillRect(px(e.da),py(0),px(e.a)-px(e.da),py(3.4)-py(0));});
+}
+function rocce(){
+  S.rocce.forEach(q=>{
+    const cx=px(q.x), cy=py(q.y), rx=q.r*MPX, ry=(py(q.y+q.r)-py(q.y-q.r))/2;
+    ctx.save(); ctx.translate(cx,cy);
+    const g=ctx.createRadialGradient(-rx*.3,-ry*.4,1,0,0,Math.max(rx,ry));
+    g.addColorStop(0,'#8E8880'); g.addColorStop(1,'#4E4A45');
+    ctx.fillStyle=g; ctx.beginPath();
+    for(let k=0;k<9;k++){ const an=k/9*6.283, rr=.82+.2*Math.sin(an*3+q.f);
+      const X=Math.cos(an)*rx*rr, Y=Math.sin(an)*ry*rr;
+      k===0?ctx.moveTo(X,Y):ctx.lineTo(X,Y);}
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='rgba(20,18,16,.45)'; ctx.lineWidth=1.4; ctx.stroke();
+    ctx.restore();});
+}
+/* IL TUNNEL SCAVATO — è quello che resta, e si vede. Da Diggy: la
+   soddisfazione è guardare la galleria che hai aperto tu. */
+function tunnel(){
+  if(S.tunnel.length<2) return;
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.strokeStyle='#2A2118'; ctx.lineWidth=Math.max(9,1.35*MPX);
+  ctx.beginPath();
+  S.tunnel.forEach((p,i)=>i===0?ctx.moveTo(px(p[0]),py(p[1])):ctx.lineTo(px(p[0]),py(p[1])));
+  ctx.stroke();
+  ctx.strokeStyle='rgba(196,168,120,.35)'; ctx.lineWidth=Math.max(11,1.7*MPX);
+  ctx.globalCompositeOperation='destination-over';
+  ctx.stroke(); ctx.globalCompositeOperation='source-over';
+  ctx.strokeStyle='rgba(226,150,60,.28)'; ctx.lineWidth=Math.max(3,.5*MPX);
+  ctx.stroke();
+}
+function gemme(){
+  S.gemme.forEach(g=>{
+    if(g.presa) return;
+    const X=px(g.x), Y=py(g.y), t=performance.now()*.003;
+    const R=Math.max(7,.85*MPX)*(1+.08*Math.sin(t+g.x));
+    const gr=ctx.createRadialGradient(X,Y,1,X,Y,R*2.4);
+    gr.addColorStop(0,'rgba(255,206,120,.9)'); gr.addColorStop(1,'rgba(226,138,48,0)');
+    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(X,Y,R*2.4,0,6.29); ctx.fill();
+    ctx.fillStyle='#F2B23C';
+    ctx.beginPath();
+    for(let k=0;k<6;k++){ const a=k/6*6.283-Math.PI/2;
+      const P=[X+Math.cos(a)*R,Y+Math.sin(a)*R];
+      k===0?ctx.moveTo(P[0],P[1]):ctx.lineTo(P[0],P[1]);}
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='rgba(255,238,190,.8)'; ctx.lineWidth=1.4; ctx.stroke();});
+}
+function tubi(){
+  TUBI.forEach(t=>{
+    const R=RETI[t.r], a=px(Math.max(t.da,X0)), b=px(Math.min(t.a,X1));
+    const y=py(R.prof), h=Math.max(6,(py(R.prof+R.r)-py(R.prof-R.r)));
+    ctx.fillStyle='rgba(228,216,184,.32)'; ctx.fillRect(a,y-h/2-3,b-a,h+6);
+    ctx.fillStyle=R.col; ctx.fillRect(a,y-h/2,b-a,h);
+    const g=ctx.createLinearGradient(0,y-h/2,0,y+h/2);
+    g.addColorStop(0,'rgba(255,255,255,.55)'); g.addColorStop(.35,'rgba(255,255,255,0)');
+    g.addColorStop(1,'rgba(0,0,0,.45)');
+    ctx.fillStyle=g; ctx.fillRect(a,y-h/2,b-a,h);
+    ctx.fillStyle='rgba(255,255,255,.2)';
+    for(let p=a+30;p<b;p+=58) ctx.fillRect(p,y-h/2-1.5,3,h+3);});
+}
+function arrivo(){
+  const a=px(CENTRALE.da), b=px(CENTRALE.a);
+  ctx.fillStyle='rgba(212,160,23,.15)'; ctx.fillRect(a,py(0),b-a,py(3.4)-py(0));
+  ctx.strokeStyle='rgba(212,160,23,.9)'; ctx.lineWidth=2.4; ctx.setLineDash([7,5]);
+  ctx.strokeRect(a,py(0),b-a,py(3.4)-py(0)); ctx.setLineDash([]);
+}
+function talpa(){
+  const sg=ctx.createRadialGradient(px(S.sacca.x),py(S.sacca.y),2,
+                                    px(S.sacca.x),py(S.sacca.y),48);
+  sg.addColorStop(0,'rgba(255,196,92,.8)'); sg.addColorStop(1,'rgba(226,138,48,0)');
+  ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(px(S.sacca.x),py(S.sacca.y),48,0,6.29); ctx.fill();
+  const X=px(S.x), Y=py(S.y);
+  ctx.save(); ctx.translate(X,Y); ctx.rotate(S.dir);
+  const L=Math.max(15,1.6*MPX), W=Math.max(9,1.0*MPX);
+  ctx.fillStyle='#C9B08A'; ctx.fillRect(-W/2,0,W,L*.72);
+  ctx.fillStyle='#8E7A5E'; ctx.fillRect(-W/2,L*.28,W,L*.1);
+  ctx.fillStyle='#A8B0B8';
+  ctx.beginPath(); ctx.moveTo(-W*.62,0); ctx.lineTo(W*.62,0); ctx.lineTo(0,-L*.6);
+  ctx.closePath(); ctx.fill();
+  const t=performance.now()*.012;
+  ctx.strokeStyle='#6E767E'; ctx.lineWidth=1.5;
+  for(let k=0;k<3;k++){ const a=t+k*2.1;
+    ctx.beginPath(); ctx.moveTo(Math.cos(a)*W*.42,-L*.12-k*L*.13);
+    ctx.lineTo(-Math.cos(a)*W*.42,-L*.05-k*L*.13); ctx.stroke();}
+  ctx.restore();
+  if(S.mira&&S.attiva){
+    ctx.strokeStyle='rgba(212,160,23,.5)'; ctx.lineWidth=1.6; ctx.setLineDash([4,5]);
+    ctx.beginPath(); ctx.moveTo(X,Y); ctx.lineTo(px(S.mira[0]),py(S.mira[1])); ctx.stroke();
+    ctx.setLineDash([]);}
+}
+function etichette(){
+  ctx.textAlign='left'; ctx.font='600 11px Lexend, sans-serif';
+  [1,2,3,5,10,15,20,25,30,35].forEach(m=>{ if(m>=PROF) return;
+    ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,py(m)); ctx.lineTo(LARG,py(m)); ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.4)'; ctx.fillText('−'+m+' m',6,py(m)-4);});
+  ctx.setLineDash([7,5]); ctx.strokeStyle='rgba(212,160,23,.45)'; ctx.lineWidth=1.3;
+  ctx.beginPath(); ctx.moveTo(0,py(YSPACCO)); ctx.lineTo(LARG,py(YSPACCO)); ctx.stroke();
+  ctx.setLineDash([]);
+  if(S.msg&&performance.now()-S.msgT<3400){
+    ctx.font='700 15px Atkinson Hyperlegible, sans-serif'; ctx.textAlign='center';
+    const w=ctx.measureText(S.msg).width+28;
+    ctx.fillStyle='rgba(12,18,26,.92)'; ctx.fillRect(LARG/2-w/2,12,w,33);
+    ctx.strokeStyle='rgba(212,160,23,.7)'; ctx.lineWidth=1.4;
+    ctx.strokeRect(LARG/2-w/2,12,w,33);
+    ctx.fillStyle='#F2E6C6'; ctx.fillText(S.msg,LARG/2,34);}
 }
 
 /* ====================================================================
-   7. FINE PARTITA + DEBRIEF
-   La skill lo dice chiaro: un'app con dinamiche di gioco non chiude con
-   un punteggio, chiude con una domanda.
+   6. LA GUIDA — la talpa avanza sempre e vira PIANO. È il limite di
+   sterzata a rendere la guida una cosa che si impara.
    ==================================================================== */
-function finisci(vinta){
+const VEL=3.6, STERZO=1.6;
+function avvisa(t){ S.msg=t; S.msgT=performance.now(); }
+
+/* ---- la musichetta della vittoria ---------------------------------
+   Un <audio> solo, riusato: crearne uno nuovo a ogni partita lascia
+   dietro elementi che continuano a tenere il file in memoria. Il
+   browser blocca l'audio finché non c'è stato un gesto dell'utente —
+   qui il gesto c'è sempre (il bottone "Accendi la talpa"), ma la
+   promessa di play() va comunque raccolta, altrimenti in console
+   compare un errore ogni volta. */
+const suonoVinta=new Audio('win.wav');
+suonoVinta.preload='auto';
+let audioAcceso=(localStorage.getItem('talpa-audio')!=='0');
+function suona(){
+  if(!audioAcceso) return;
+  try{ suonoVinta.currentTime=0; const pr=suonoVinta.play();
+       if(pr&&pr.catch) pr.catch(function(){}); }catch(e){}
+}
+function passo(dt){
+  if(S.mira){
+    const dx=S.mira[0]-S.x, dy=S.mira[1]-S.y;
+    let d=Math.atan2(dx,-dy)-S.dir;
+    while(d>Math.PI) d-=6.283; while(d<-Math.PI) d+=6.283;
+    const max=STERZO*dt, g=Math.max(-max,Math.min(max,d));
+    S.dir+=g; S.energia-=Math.abs(g)*6;
+  }
+  S.dir=Math.max(-1.4,Math.min(1.4,S.dir));
+  const nx=S.x+Math.sin(S.dir)*VEL*dt, ny=S.y-Math.cos(S.dir)*VEL*dt;
+  S.energia-=VEL*dt*0.85;
+  if(nx<X0+1||nx>X1-1){ S.dir=-S.dir*.6; avvisa('Sei al bordo dello scavo.'); return; }
+  const t=tuboA(nx,ny);
+  if(t){ S.energia-=20; S.attiva=false;
+    avvisa('Hai rotto: '+RETI[t.r].nome.toLowerCase()+'.'); finisci(false,'tubo'); return; }
+  const o=ostacoloA(nx,ny);
+  if(o){
+    /* SCIVOLA, non rimbalza sul posto. La prima stesura faceva
+       dir = -dir*0.5: con la talpa dritta (dir=0) resta 0, quindi
+       ritentava la stessa cella bloccata a ogni fotogramma — 5458 urti
+       e l'energia a meno quarantamila. Adesso si prende la NORMALE
+       dell'ostacolo e la si costeggia. */
+    S.colpi++; S.energia-=6;
+    if(o.t==='roccia'){
+      const lato=(S.x-o.q.x)>=0?1:-1;
+      S.dir=Math.max(-1.4,Math.min(1.4,S.dir+lato*0.55));
+    }else{
+      const verso=((CENTRALE.da+CENTRALE.a)/2-S.x)>=0?1:-1;
+      S.dir=Math.max(-1.4,Math.min(1.4,S.dir+verso*0.6));
+    }
+    /* e si muove comunque un poco lungo la nuova direzione: se resta
+       ferma dentro l'ostacolo il ciclo non esce mai */
+    const sx=S.x+Math.sin(S.dir)*VEL*dt*0.7, sy=S.y-Math.cos(S.dir)*VEL*dt*0.7;
+    if(!ostacoloA(sx,sy)&&!tuboA(sx,sy)&&sx>X0+1&&sx<X1-1){ S.x=sx; S.y=sy; }
+    avvisa(o.t==='roccia'?'Roccia: la talpa la costeggia e perde energia.'
+                         :'Fondazione dell\'edificio: di qui non si passa.');
+    if(S.energia<=0){ S.attiva=false; finisci(false,'energia'); }
+    return; }
+  S.x=nx; S.y=ny;
+  const u=S.tunnel[S.tunnel.length-1];
+  if(!u||Math.hypot(S.x-u[0],S.y-u[1])>0.45) S.tunnel.push([S.x,S.y]);
+  S.gemme.forEach(g=>{ if(!g.presa && Math.hypot(g.x-S.x,g.y-S.y)<1.5){
+    g.presa=true; S.raccolte++; S.energia=Math.min(170,S.energia+g.v);
+    avvisa('Sacca di calore: +'+g.v+' di energia.');}});
+  if(S.energia<=0){ S.attiva=false; finisci(false,'energia'); return; }
+  if(S.y<=0.15){ S.attiva=false;
+    const dentro=S.x>=CENTRALE.da&&S.x<=CENTRALE.a;
+    finisci(dentro,dentro?'arrivo':'fuori'); }
+}
+function finisci(vinta,perche){
   if(S.finita) return;
   S.finita=true; S.vinta=vinta;
-  const durata=Math.round((Date.now()-S.t0)/1000);
-  const st=SETTORI[S.settore];
+  const E=Math.max(0,Math.round(S.energia)), n=stelle(vinta,E);
+  const dist=Math.abs(S.x-(CENTRALE.da+CENTRALE.a)/2);
 
-  /* mai attraversate: la misura onesta di quanto hai esplorato */
-  const tocc=new Set(); S.colpi.forEach(c=>c.scia.forEach(s=>tocc.add(s)));
-  const totCelle=S.cfg.W*S.cfg.H;
-  const coperte=Math.round(100*tocc.size/totCelle);
+  /* UNA RIGA, non un paragrafo. Le card lunghe non le legge nessuno:
+     il verdetto sta nelle stelle, il perché in una frase sola. */
+  const verdetto = vinta
+    ? (n===3?'Strada pulita.':n===2?'Sei arrivato.':'Arrivato per un soffio.')
+    : (perche==='tubo'?'Hai rotto un tubo.'
+      :perche==='energia'?'Energia finita.'
+      :'Uscito fuori posto.');
+  const riga = vinta
+    ? (n===3?'La scuola si scalda, e ti è avanzata energia.'
+      :n===2?'Con qualche virata in meno prendevi la terza stella.'
+      :'Ce l\'hai fatta, ma con il serbatoio quasi vuoto.')
+    : (perche==='tubo'?'Era disegnato: i tubi si vedono.'
+      :perche==='energia'?'Ogni virata consuma più che andare dritti.'
+      :'Sei uscito a '+dist.toFixed(0)+' m dalla centrale.');
 
-  const g=S.cfg.pezzi.find(q=>q.t===S.cfg.guasto);
-  let h='';
-  h+='<div class="occhiello">'+st.nome+'</div>';
-  h+='<div class="grande" style="color:'+(vinta?'var(--oro)':'var(--ambra)')+'">'+
-     (vinta?'Guasto trovato.':'Gettoni finiti.')+'</div>';
-  h+='<p>'+(vinta
-    ? 'Era la <b>'+TIPI[S.cfg.guasto].nome.toLowerCase()+'</b>, nella casella '
-      +(g.x+1)+'-'+(g.y+1)+'. Hai speso <b>'+S.spesi+' gettoni</b> in '+S.colpi.length+' impulsi'
-      +(S.sbagliate.length?' e '+S.sbagliate.length+' dichiarazione'+(S.sbagliate.length>1?'i':'')+' sbagliata'+(S.sbagliate.length>1?'e':''):'')+'.'
-    : 'Il guasto era la <b>'+TIPI[S.cfg.guasto].nome.toLowerCase()+'</b>, nella casella '
-      +(g.x+1)+'-'+(g.y+1)+'. Nessuna penalità: la squadra torna domani con più gettoni.')+'</p>';
+  let h='<div class="esito">';
+  h+='<div class="stelle" id="stelle">'+STELLA+STELLA+STELLA+'</div>';
+  h+='<div class="verdetto" style="color:'+(vinta?'var(--oro)':'var(--ambra)')+'">'
+    +verdetto+'</div>';
+  h+='<div class="riga1">'+riga+'</div>';
+  h+='<div class="numeri">'
+    +'<div><b>'+E+'</b><span>energia</span></div>'
+    +'<div><b>'+S.raccolte+'/'+S.gemme.length+'</b><span>sacche</span></div>'
+    +'<div><b>'+S.colpi+'</b><span>urti</span></div>'
+    +'<div><b>'+lung().toFixed(0)+' m</b><span>galleria</span></div></div>';
+  /* la domanda resta, ma solo quando c'è qualcosa da imparare */
+  if(n<3) h+='<div class="pensiero">Guarda la galleria che hai lasciato: '
+    +'<b>dove hai virato più del necessario?</b> La talpa non frena — le curve '
+    +'si cominciano prima.</div>';
+  h+='<div id="bacheca" style="margin-top:14px;border-top:1px solid var(--linea);'
+    +'padding-top:12px;text-align:left"></div>';
+  h+='<div class="passi"><button class="btn oro" style="flex:1 1 180px" id="bNu">'
+    +'Un altro sottosuolo</button>'
+    +'<button class="btn" style="flex:1 1 150px" id="bAn">Rigioca questo</button>'
+    +'<button class="btn" id="bAud" style="flex:0 0 auto" aria-label="musica"></button>'
+    +'</div></div>';
+  modale(h);
 
-  /* la rete vera, svelata */
-  h+='<div class="occhiello" style="margin-top:18px">La rete che c\'era davvero</div>';
-  h+='<div id="svelata"></div>';
+  /* le stelle si accendono una alla volta, e la musichetta parte con la prima */
+  const box=document.getElementById('stelle');
+  for(let k=0;k<n;k++) setTimeout(function(){
+    box.children[k].classList.add('on'); },260+k*300);
+  if(vinta) setTimeout(suona,240);
 
-  h+='<div class="occhiello" style="margin-top:18px">Che cosa dicono i tuoi numeri</div>';
-  h+='<ul class="reg-lista">';
-  h+='<li>I tuoi impulsi hanno attraversato <b>'+coperte+'%</b> delle caselle del settore.'
-    +(coperte<45?' Sei rimasto sulle stesse corsie: le zone mai attraversate non potevano dirti niente.':'')+'</li>';
-  h+='<li>Carotaggi: <b>'+Object.keys(S.carotate).length+'</b> ('+(4*Object.keys(S.carotate).length)+' gettoni).</li>';
-  h+='<li>Impulsi che sono usciti <b>attenuati</b>: <b>'+S.colpi.filter(c=>c.att).length+'</b> — sono gli unici che toccavano la condotta rotta.</li>';
-  h+='</ul>';
+  const bAud=document.getElementById('bAud');
+  function segnaAudio(){ bAud.textContent=audioAcceso?'Musica accesa':'Musica spenta'; }
+  segnaAudio();
+  bAud.onclick=function(){ audioAcceso=!audioAcceso;
+    localStorage.setItem('talpa-audio',audioAcceso?'1':'0');
+    if(!audioAcceso) suonoVinta.pause(); segnaAudio(); };
+  document.getElementById('bAn').onclick=function(){chiudi();nuovo(S.seme);};
+  document.getElementById('bNu').onclick=function(){chiudi();nuovo();};
 
-  h+='<div class="dom"><b>Prima di rigiocare, rispondi a te stesso:</b><br>'
-    +'quale impulso ti ha detto di più, e perché proprio quello? E ce n\'è stato uno che, '
-    +'guardando ora la rete vera, non poteva dirti nulla?</div>';
-
-  h+='<div class="confronto" id="confronto"></div>';
-  h+='<div class="riga" style="justify-content:center">'
-    +'<button class="btn oro" id="btn-ancora">Un\'altra rete, stesso settore</button>'
-    +'<button class="btn" id="btn-torna">Cambia settore</button>'
-    +'<button class="btn" id="btn-campus">Torna al campus</button></div>';
-  h+='<p class="seed" style="text-align:center;margin-bottom:0">codice sfida '+S.codice
-    +' · settore '+S.settore+'</p>';
-
-  $('box-esito').innerHTML=h;
-  disegnaSvelata($('svelata'));
-  $('btn-ancora').onclick=()=>{avvia(S.settore,nuovoCodice(),S.nick);};
-  $('btn-torna').onclick =()=>{S.cfg=null;renderContatori();mostra('sc-avvio');};
-  $('btn-campus').onclick=()=>{location.href='index.html';};
-
-  /* i codici gia' chiusi: servono ad avvisare chi rigioca la stessa rete */
-  try{
-    const g=JSON.parse(localStorage.getItem('st-fatti')||'[]');
-    if(g.indexOf(S.settore+'|'+S.codice)<0){ g.push(S.settore+'|'+S.codice);
-      localStorage.setItem('st-fatti',JSON.stringify(g.slice(-60))); }
-  }catch(e){}
-
-  /* telemetria formativa in locale (RIGIOCABILITA §6) */
-  try{
-    const log=JSON.parse(localStorage.getItem('st-runs')||'[]');
-    log.push({s:S.settore,cod:S.codice,esito:vinta?1:0,spesi:S.spesi,
-              imp:S.colpi.length,sec:durata,t:Date.now()});
-    localStorage.setItem('st-runs',JSON.stringify(log.slice(-40)));
-  }catch(e){}
-
-  mostra('sc-esito');
-  Sfida.invia({codice:S.codice,settore:S.settore,nick:S.nick,
-    gettoni:S.spesi,impulsi:S.colpi.length,esito:vinta?'trovato':'esaurito',sec:durata});
-  Sfida.confronta(S.codice,$('confronto'));
+  Bacheca.invia({nick:S.nick||'anonimo',energia:E,sacche:S.raccolte,
+    urti:S.colpi,esito:vinta?'arrivata':'ferma'});
+  Bacheca.mostra(document.getElementById('bacheca'));
 }
-
-function disegnaSvelata(box){
-  const {W,H}=S.cfg;
-  const cel=Math.max(22,Math.min(34,Math.floor(560/W)));
-  let h='<div class="griglia" style="grid-template-columns:repeat('+W+','+cel+'px)">';
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-    const p=S.cfg.pezzi.find(q=>q.x===x&&q.y===y);
-    const rotto=p&&p.t===S.cfg.guasto;
-    h+='<div class="cel'+(rotto?' sospetto':'')+'" style="cursor:default">'
-      +'<span class="segno">'+(p?iconaTipo(p.t,Math.round(cel*.7)):'')+'</span></div>';}
-  h+='</div>';
-  box.innerHTML=h+'<p class="piccolo muto" style="margin-top:8px">Il cerchio in ambra è il '
-    +'tratto guasto.</p>';
+/* LE STELLE. Una misura sola, così si capisce senza spiegazioni:
+   l'energia con cui arrivi. Le sacche di calore ne restituiscono, quindi
+   chi devia bene ne ha di più — il trade-off entra da solo nel punteggio,
+   senza aggiungere un secondo contatore. */
+function stelle(vinta,energia){
+  if(!vinta) return 0;
+  if(energia>=75) return 3;
+  if(energia>=45) return 2;
+  return 1;
 }
+const STELLA='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9'
+  +'-4.7 4.6 1.1 6.5L12 17.4 6.2 20.5l1.1-6.5L2.6 9.4l6.5-.9z" fill="#D4A017"'
+  +' stroke="#8C6A0F" stroke-width="1" stroke-linejoin="round"/></svg>';
+
+function lung(){ let L=0;
+  for(let i=1;i<S.tunnel.length;i++)
+    L+=Math.hypot(S.tunnel[i][0]-S.tunnel[i-1][0],S.tunnel[i][1]-S.tunnel[i-1][1]);
+  return L; }
 
 /* ====================================================================
-   8. LA SFIDA — Google Sheets via Apps Script
-   Il gioco funziona SEMPRE anche senza rete: il codice sfida contiene
-   gia' il seme, quindi due studenti giocano la stessa rete anche
-   offline. Il foglio serve solo a raccogliere e confrontare i risultati.
-   Chiamate in JSONP: Apps Script non manda intestazioni CORS.
+   7. COMANDI — si tiene il dito dove si vuole andare. Nient'altro.
    ==================================================================== */
-const Sfida={
-  /* Deploy di Andrea (Apps Script, "Esegui come Me" · accesso "Chiunque").
-     Se un giorno si ridistribuisce con un URL nuovo, si cambia QUI e basta.
-     Ricordarsi: ogni modifica a Codice.gs vuole una NUOVA VERSIONE, non il
-     solo salvataggio, altrimenti resta in linea il codice vecchio. */
+(function comandi(){
+  function punto(e){ const r=tela.getBoundingClientRect();
+    const p=(e.touches&&e.touches[0])?e.touches[0]:e;
+    return [xDaPx((p.clientX-r.left)*(tela.width/r.width)),
+            yDaPy((p.clientY-r.top)*(tela.height/r.height))]; }
+  function giu(e){ if(S.finita) return; S.attiva=true; S.mira=punto(e); e.preventDefault(); }
+  function muovi(e){ if(S.mira){ S.mira=punto(e); e.preventDefault(); } }
+  function su(){ S.mira=null; }
+  tela.addEventListener('mousedown',giu);
+  tela.addEventListener('mousemove',muovi);
+  addEventListener('mouseup',su);
+  tela.addEventListener('touchstart',giu,{passive:false});
+  tela.addEventListener('touchmove',muovi,{passive:false});
+  tela.addEventListener('touchend',su);
+})();
+
+/* ====================================================================
+   8. INTERFACCIA
+   ==================================================================== */
+const $=id=>document.getElementById(id);
+function contatori(){
+  $('cont').innerHTML=
+    '<div class="c'+(S.energia<30?' ambra':' oro')+'"><b>'+Math.max(0,S.energia).toFixed(0)
+      +'</b><span>energia</span></div>'+
+    '<div class="c"><b>−'+S.y.toFixed(1).replace('.',',')+'</b><span>profondità</span></div>'+
+    '<div class="c oro"><b>'+S.raccolte+'/'+S.gemme.length+'</b><span>sacche</span></div>'+
+    '<div class="c'+(S.colpi?' ambra':'')+'"><b>'+S.colpi+'</b><span>urti</span></div>';
+}
+function legenda(){
+  $('leg').innerHTML='<div class="occ">Che cosa incontri salendo</div>'
+    +Object.keys(RETI).map(function(k){const R=RETI[k];
+      return '<div class="voce"><span class="q" style="background:'+R.col+'"></span>'
+        +'<span><b>'+R.nome+'</b> — a −'+R.prof.toFixed(2).replace('.',',')
+        +' m. Romperlo ferma tutto.</span></div>';}).join('')
+    +'<div class="voce"><span class="q" style="background:#6E6A64"></span>'
+    +'<span><b>Roccia</b> — la talpa rimbalza e perde energia</span></div>'
+    +'<div class="voce"><span class="q" style="background:#7A7A76"></span>'
+    +'<span><b>Fondazioni</b> — sotto gli edifici non si passa</span></div>'
+    +'<div class="voce"><span class="q" style="background:#F2B23C"></span>'
+    +'<span><b>Sacche di calore</b> — restituiscono energia, ma stanno fuori strada</span></div>'
+    +'<p>I tubi <b>si vedono</b>: stanno sulle tavole di rilievo della scuola. Non è un '
+    +'indovinello, è una strada da scegliere.</p>';
+}
+function note(){
+  $('note').innerHTML='<div class="occ">La talpa</div>'
+    +'<p style="margin-top:0"><b>Tieni premuto</b> dove vuoi andare: la talpa punta lì. Ma '
+    +'vira <b>piano</b> e non frena mai — le curve si cominciano prima.</p>'
+    +'<p>Virare consuma più che andare dritti. Le <b>sacche di calore</b> lungo il percorso '
+    +'restituiscono energia: conviene deviare solo se la deviazione costa meno di quello '
+    +'che rende. <b>È tutta lì la scelta.</b></p>'
+    +'<p style="font-size:.78rem">sottosuolo <b>'+S.seme+'</b></p>';
+}
+/* ====================================================================
+   LA BACHECA DELLA GIORNATA — Google Sheets via Apps Script.
+   Chiamate in JSONP: Apps Script non manda intestazioni CORS.
+   Il gioco funziona SEMPRE anche senza rete: se il foglio non risponde
+   la bacheca si spegne e basta, e l'app lo dice.
+   ==================================================================== */
+const Bacheca={
   URL:'https://script.google.com/macros/s/AKfycby-gahd2YUorxQD644DEWY6jdUXUi9flCNGu8sf9hRdjXDRi0iwCqwla6JZgF11mFcI/exec',
-  attivo(){return !!this.URL;},
   chiama(par,cb){
-    if(!this.attivo()){cb(null);return;}
-    const nome='st_cb_'+Math.random().toString(36).slice(2,9);
-    const t=setTimeout(()=>{delete window[nome];cb(null);},7000);
-    window[nome]=d=>{clearTimeout(t);delete window[nome];s.remove();cb(d);};
+    if(!this.URL){cb(null);return;}
+    const nome='tp_cb_'+Math.random().toString(36).slice(2,9);
+    const t=setTimeout(function(){delete window[nome];cb(null);},7000);
+    window[nome]=function(d){clearTimeout(t);delete window[nome];sc.remove();cb(d);};
     par.callback=nome;
-    const s=document.createElement('script');
-    s.src=this.URL+'?'+new URLSearchParams(par).toString();
-    s.onerror=()=>{clearTimeout(t);delete window[nome];s.remove();cb(null);};
-    document.head.appendChild(s);
-  },
-  invia(dati){ const p=Object.assign({azione:'salva'},dati); this.chiama(p,()=>{}); },
-  confronta(codice,box){
-    if(!this.attivo()){
-      box.innerHTML='<div class="sfid" style="grid-column:1/-1"><b>Sfida non collegata.</b>'
-        +'<p class="piccolo muto" style="margin-bottom:0">Il confronto con i compagni è spento: '
-        +'manca l\'indirizzo del foglio. Il gioco funziona lo stesso — passa il codice '
-        +'<b class="codice">'+codice+'</b> a un compagno e confrontate i gettoni a voce.</p></div>';
-      return;}
-    box.innerHTML='<div class="sfid" style="grid-column:1/-1" class="muto">Cerco chi ha già '
-      +'giocato questa rete…</div>';
-    this.chiama({azione:'leggi',codice:codice},d=>{
-      if(!d||!d.righe){box.innerHTML='<div class="sfid" style="grid-column:1/-1">'
-        +'<b>Non sono riuscito a leggere il foglio.</b><p class="piccolo muto" '
-        +'style="margin-bottom:0">Il tuo risultato resta valido: riprova più tardi.</p></div>';return;}
-      const mie=d.righe.filter(r=>r.nick===S.nick);
-      const altrui=d.righe.filter(r=>r.nick!==S.nick)
-        .sort((a,b)=>(a.esito===b.esito? a.gettoni-b.gettoni : (a.esito==='trovato'?-1:1)));
-      let h='<div class="sfid mio"><div class="occhiello">Tu</div><b>'+(S.nick||'anonimo')
-        +'</b><br>'+S.spesi+' gettoni · '+S.colpi.length+' impulsi<br>'
-        +'<span class="piccolo muto">'+(S.vinta?'guasto trovato':'gettoni esauriti')+'</span></div>';
-      if(!altrui.length){
-        h+='<div class="sfid"><div class="occhiello">Sfidante</div>'
-          +'<b class="muto">ancora nessuno</b><br><span class="piccolo muto">Passa il codice '
-          +'<b class="codice">'+codice+'</b>: giocherà la stessa identica rete.</span></div>';
+    const sc=document.createElement('script');
+    sc.src=this.URL+'?'+new URLSearchParams(par).toString();
+    sc.onerror=function(){clearTimeout(t);delete window[nome];sc.remove();cb(null);};
+    document.head.appendChild(sc);},
+  invia(d){ this.chiama(Object.assign({azione:'salva',gioco:'talpa'},d),function(){}); },
+  mostra(box){
+    box.innerHTML='<div class="occ">La bacheca di oggi</div>'
+      +'<p style="margin-top:0">Cerco chi ha giocato oggi…</p>';
+    this.chiama({azione:'leggi'},function(d){
+      if(!d||!d.ok){
+        box.innerHTML='<div class="occ">La bacheca di oggi</div>'
+          +'<p style="margin-top:0">Non sono riuscito a leggerla. Il tuo risultato '
+          +'resta valido: riprova più tardi.</p>'; return;}
+      let h='<div class="occ">La bacheca di oggi</div>';
+      if(!d.classifica.length){
+        h+='<p style="margin-top:0">Oggi non è ancora arrivato nessuno alla centrale. '
+          +(d.partite?'Ci hanno provato in '+d.partite+'.':'Sei il primo a provarci.')+'</p>';
       }else{
-        const a=altrui[0];
-        const vinco = S.vinta && (a.esito!=='trovato' || S.spesi<a.gettoni);
-        const pari  = S.vinta && a.esito==='trovato' && S.spesi===+a.gettoni;
-        h+='<div class="sfid"><div class="occhiello">Sfidante</div><b>'+a.nick+'</b><br>'
-          +a.gettoni+' gettoni · '+a.impulsi+' impulsi<br>'
-          +'<span class="piccolo muto">'+a.esito+'</span></div>';
-        h+='<div class="sfid" style="grid-column:1/-1;border-color:var(--oro)"><b>'
-          +(pari?'Pari: stessa rete, stessi gettoni.'
-            :vinco?'Hai chiuso spendendo meno.'
-            :'Ha chiuso spendendo meno di te.')+'</b>'
-          +'<p class="piccolo muto" style="margin-bottom:0">Stessa rete, stesse condotte, stesso '
-          +'guasto. La differenza sta tutta in quali pozzetti avete scelto.</p></div>';
-        if(altrui.length>1)
-          h+='<div class="sfid" style="grid-column:1/-1"><span class="piccolo muto">'
-            +'Su questa rete hanno giocato in '+(altrui.length+1)+'.</span></div>';
-      }
-      box.innerHTML=h;
-    });
-  }
+        h+='<p style="margin-top:0">Oggi ce l\'hanno fatta in <b>'+d.riuscite+'</b> '
+          +'su '+d.partite+' partite. Conta l\'<b>energia rimasta</b>: chi arriva con '
+          +'più energia ha fatto la strada più pulita.</p><div style="margin-top:8px">';
+        d.classifica.slice(0,8).forEach(function(r,i){
+          h+='<div class="voce"><span class="q" style="width:22px;height:22px;'
+            +'border-radius:50%;display:flex;align-items:center;justify-content:center;'
+            +'background:'+(i===0?'var(--oro)':'var(--pann2)')+';color:'
+            +(i===0?'#1a1206':'var(--muto)')+';font-weight:700;font-size:.72rem">'
+            +(i+1)+'</span><span><b>'+r.nick+'</b> — energia <b>'+r.energia+'</b>'
+            +' · '+r.sacche+' sacche'+(r.urti?' · '+r.urti+' urti':'')+'</span></div>';});
+        h+='</div>';}
+      h+='<p style="font-size:.78rem">A mezzanotte la bacheca si azzera: domani '
+        +'si riparte da zero per tutti.</p>';
+      box.innerHTML=h;});}
 };
+
+function modale(h){ $('modale').innerHTML=h; $('velo').classList.add('on'); }
+function chiudi(){ $('velo').classList.remove('on'); }
+function guida(){
+  modale('<div class="occ">Il calore sotto il campus</div>'
+   +'<h2>Trenta metri sotto il cortile c\'è una sacca calda</h2>'
+   +'<p>Basterebbe a spegnere la caldaia a gas. Il problema è portarla su: scavare '
+   +'dall\'alto vorrebbe dire aprire il cortile per trenta metri. Quindi si fa il '
+   +'contrario — si cala una <b>talpa meccanica</b> nella sacca e la si guida <b>dal basso '
+   +'verso l\'alto</b>, fino alla <b>centrale termica</b>.</p>'
+   +'<p><b>Come si guida:</b> tieni premuto il dito dove vuoi che vada. La talpa punta lì, '
+   +'ma <b>vira piano</b> e <b>non si ferma mai</b>. La galleria che scava resta: a fine '
+   +'partita si vede la strada che hai fatto.</p>'
+   +'<div class="avviso">Le <b>rocce</b> la fanno rimbalzare, sotto gli edifici ci sono le '
+   +'<b>fondazioni</b>, e nei primi due metri corrono acqua, gas, elettricità e fognatura: '
+   +'<b>romperne uno ferma tutto</b>. Sono disegnati — guardali prima di partire.</div>'
+   +'<div style="margin-top:16px"><label for="nick" style="font-size:.78rem;'
+   +'letter-spacing:.08em;text-transform:uppercase;color:var(--muto)">Come ti firmi '
+   +'sulla bacheca di oggi</label><br><input id="nick" maxlength="14" '
+   +'placeholder="es. 4A-Giulia" autocomplete="off" style="width:100%;margin-top:5px;'
+   +'font-family:inherit;font-size:17px;padding:11px 13px;border-radius:10px;'
+   +'background:var(--pann2);border:1px solid var(--linea);color:var(--testo)">'
+   +'<div style="font-size:.78rem;color:var(--muto);margin-top:5px">Solo un '
+   +'soprannome: niente cognome, niente dati di altri.</div></div>'
+   +'<div class="passi"><button class="btn oro" style="flex:1 1 200px" id="bVia">'
+   +'Accendi la talpa</button></div>');
+  const inp=document.getElementById('nick');
+  if(inp) inp.value=localStorage.getItem('talpa-nick')||'';
+  $('bVia').onclick=function(){
+    if(inp){ S.nick=inp.value.trim().slice(0,14);
+      localStorage.setItem('talpa-nick',S.nick); }
+    chiudi();};
+}
 
 /* ====================================================================
    9. AVVIO
    ==================================================================== */
-function renderSettori(){
-  $('lista-settori').innerHTML=Object.keys(SETTORI).map(k=>{
-    const s=SETTORI[k];
-    return '<button class="settore" data-set="'+k+'">'
-      +'<h3>'+s.nome+'</h3><div class="imp">'+s.impianto+'</div>'
-      +'<div class="det">griglia '+s.W+'×'+s.H+' · '+s.lista.length+' tratti sepolti · '
-      +s.gettoni+' gettoni</div>'
-      +'<div class="det" style="color:var(--oro);margin-top:6px">'+s.novita+'</div></button>';})
-    .join('');
-  $('lista-settori').querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{
-    $('lista-settori').querySelectorAll('.settore').forEach(x=>x.classList.remove('sel'));
-    b.classList.add('sel');
-    S.settore=b.dataset.set;
-    $('btn-scendi').disabled=false;});
+function nuovo(seme){
+  S.seme = seme || (Date.now().toString(36).slice(-4)
+           +Math.floor(Math.random()*999)).toUpperCase();
+  generaLivello(S.seme);
+  S.x=S.sacca.x; S.y=S.sacca.y; S.dir=0; S.energia=130;
+  S.tunnel=[[S.x,S.y]]; S.raccolte=0; S.colpi=0;
+  S.attiva=false; S.finita=false; S.vinta=false; S.mira=null; S.msg='';
+  dimensiona(); legenda(); note(); contatori();
 }
+$('bAiuto').onclick=guida;
+$('bRicomincia').onclick=function(){nuovo(S.seme);};
+$('bTorna').onclick=function(){location.href='index.html';};
+$('velo').onclick=function(e){ if(e.target===$('velo')) chiudi(); };
 
-function avvia(settore,codice,nick){
-  const s=SETTORI[settore];
-  const cfg=genera(s.W,s.H,s.lista,settore+'|'+codice,s.mescola);
-  if(!cfg){avvisa('Non sono riuscito a generare una rete leggibile con questo codice. Provane un altro.');return;}
-  S.settore=settore; S.codice=codice; S.cfg=cfg; S.nick=(nick||'').trim().slice(0,14);
-  S.gettoni=s.gettoni; S.spesi=0; S.colpi=[]; S.note={}; S.carotate={};
-  S.sospetto=null; S.sbagliate=[]; S.attrezzo='ACQUA';
-  S.finita=false; S.vinta=false; S.t0=Date.now();
-  $('tit-settore').textContent=s.nome+' — '+s.impianto;
-  renderAttrezzi(); renderLegenda(); renderTutto();
-  mostra('sc-gioco');
-  /* APERTURA GUIDATA IN TRE PASSI (contesto → obiettivo → la regola
-     nuova), non un muro di testo. Il primo modale diceva tutto insieme e
-     nessuno lo leggeva fino in fondo. */
-  let gia=false;
-  try{ gia=JSON.parse(localStorage.getItem('st-fatti')||'[]')
-        .indexOf(settore+'|'+codice)>=0; }catch(e){}
-  const passi=[
-    {t:'Che cosa succede quassù',
-     c:s.intro+'<br><br>Il guasto è là sotto, e <b>scavare a caso costa</b>. '
-      +'Hai il georadar: da un pozzetto mandi un impulso e vedi <b>da dove riesce</b> '
-      +'e <b>di che colore</b>. Il percorso non lo vedi mai.'},
-    {t:'Che cosa devi fare',
-     c:'Dire <b>in quale casella</b> è il guasto. Non serve ricostruire tutta la rete: '
-      +'basta quella casella.<br><br>Hai <b>'+s.gettoni+' gettoni</b>. Un impulso ne costa '
-      +'<b>1</b>. Aprire una casella col carotaggio ne costa <b>4</b>. Dichiarare nel posto '
-      +'sbagliato ne costa <b>5</b> — ma la partita continua, non si perde.'
-      +'<br><br>L\'impulso che ha attraversato la condotta rotta esce <b>attenuato</b>: '
-      +'lo riconosci dall\'anello tratteggiato.'},
-    {t:'La novità di questo settore',
-     c:s.novita+(gia?'<br><br><span style="color:var(--ambra)">Questa rete l\'hai già '
-      +'chiusa: è la stessa di prima, guasto compreso. Puoi rigiocarla per provare '
-      +'un\'altra strada, ma nella sfida conta il primo tentativo.</span>':'')}
-  ];
-  guida(passi);
-}
+/* PRIMA si costruisce il livello, POI parte il ciclo. Al contrario il
+   primo fotogramma disegnava con MPX ancora a 1: la facciata veniva di
+   larghezza negativa, arc() sollevava IndexSizeError e l'eccezione
+   abortiva il resto dello script — nuovo() non veniva mai eseguito. */
+nuovo(new URLSearchParams(location.search).get('seme')||undefined);
+guida();
 
-/* modale a passi: uno per volta, con l'avanzamento visibile */
-function guida(passi){
-  let i=0;
-  const d=document.createElement('div');
-  d.className='pieno-schermo';
-  document.body.appendChild(d);
-  function dipingi(){
-    const p=passi[i];
-    d.innerHTML='<div class="modale">'
-      +'<div class="occhiello">passo '+(i+1)+' di '+passi.length+'</div>'
-      +'<h2 style="font-size:1.4rem;margin-bottom:10px">'+p.t+'</h2>'
-      +'<p style="margin-top:0">'+p.c+'</p>'
-      +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">'
-      +(i>0?'<button class="btn" style="flex:0 0 auto">Indietro</button>':'')
-      +'<button class="btn oro" style="flex:1 1 160px">'
-      +(i<passi.length-1?'Avanti':'Comincia')+'</button></div></div>';
-    const b=d.querySelectorAll('button');
-    if(i>0) b[0].onclick=()=>{i--;dipingi();};
-    b[b.length-1].onclick=()=>{ if(i<passi.length-1){i++;dipingi();} else d.remove(); };
-    b[b.length-1].focus();
-  }
-  dipingi();
-}
-
-/* parametri per il docente: settore, codice, e le leve di difficolta' */
-const par=new URLSearchParams(location.search);
-if(par.get('gettoni')) Object.keys(SETTORI).forEach(k=>SETTORI[k].gettoni=+par.get('gettoni'));
-
-renderSettori();
-$('nick').value=localStorage.getItem('st-nick')||'';
-if(par.get('settore')&&SETTORI[par.get('settore')]){
-  S.settore=par.get('settore');
-  $('btn-scendi').disabled=false;
-  const b=$('lista-settori').querySelector('[data-set="'+S.settore+'"]');
-  if(b) b.classList.add('sel');
-}
-if(par.get('codice')) $('cod').value=par.get('codice').toUpperCase();
-
-$('btn-scendi').onclick=()=>{
-  if(!S.settore) return;
-  const nick=$('nick').value.trim();
-  localStorage.setItem('st-nick',nick);
-  const cod=($('cod').value.trim().toUpperCase()||nuovoCodice()).slice(0,6);
-  avvia(S.settore,cod,nick);
-};
-$('btn-carota').onclick=carotaggio;
-$('btn-dichiara').onclick=dichiara;
-
-/* Chi arriva da un tombino trova gia' scelto il settore, ma NON parte da
-   solo: deve poter mettere la firma e il codice della sfida. Far partire
-   la partita d'ufficio gli toglieva l'unica cosa che serve al duello. */
-if(par.get('via')==='tombino'&&S.settore){
-  const box=$('nick').closest('.pann');
-  if(box) setTimeout(()=>box.scrollIntoView({behavior:'smooth',block:'center'}),250);
-}
+let ultimo=performance.now();
+(function ciclo(t){
+  requestAnimationFrame(ciclo);
+  const dt=Math.min(.045,(t-ultimo)/1000); ultimo=t;
+  if(S.attiva&&!S.finita){ passo(dt); contatori(); }
+  disegna();
+})(performance.now());
 </script>
 </body>
 </html>
