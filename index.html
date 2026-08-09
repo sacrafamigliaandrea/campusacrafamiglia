@@ -283,10 +283,16 @@ if(TOCCO) document.body.classList.add('tocco');
 
 const canvas=document.getElementById('scena');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+/* PIXEL RATIO A 1,5, NON A 2. Su uno schermo Retina il 2 vuol dire quattro
+   volte i pixel di un fotogramma normale, ed e' il primo posto dove se ne
+   va la fluidita' del giro del campus. A 1,5 il bordo resta pulito e si
+   disegna meno della meta'. */
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
 renderer.setSize(window.innerWidth,window.innerHeight);
 renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+/* PCFSoft costa il triplo di PCF e qui non si vede: le ombre sono di
+   contatto, non morbide su superfici curve. */
+renderer.shadowMap.type=THREE.PCFShadowMap;
 renderer.outputEncoding=THREE.sRGBEncoding;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=0.86;
@@ -999,9 +1005,12 @@ const mondo=new THREE.Group(); scene.add(mondo);
   gg.strokeStyle='rgba(255,255,255,.8)';gg.lineWidth=4;
   for(let i=0;i<18;i++){gg.beginPath();gg.moveTo(i*28+8,4);gg.lineTo(i*28+8,60);gg.stroke();
     gg.beginPath();gg.moveTo(i*28+8,68);gg.lineTo(i*28+8,124);gg.stroke();}
-  const r=new THREE.Mesh(new THREE.PlaneGeometry(118,17),
+  /* IL PIANO DELLE STRISCE ARRIVAVA A x=-43, cioe' 30 m dentro il prato
+     e sul sagrato della chiesa: le righe dei posti auto restavano dipinte
+     sull'erba. Ora comincia dove comincia l'asfalto, a x=-13. */
+  const r=new THREE.Mesh(new THREE.PlaneGeometry(61,17),
     new THREE.MeshBasicMaterial({map:tex(cs,false),transparent:true}));
-  r.rotation.x=-Math.PI/2;r.position.set(16,0.05,-45);mondo.add(r);
+  r.rotation.x=-Math.PI/2;r.position.set(44.5,0.05,-45);mondo.add(r);
 })();
 
 /* ===================== verde, auto, recinzioni, arredo esterno ============ */
@@ -1058,9 +1067,9 @@ albero(-44,4,1.35);
     for(let i=0;i<24;i++){ const px=-34+i*5;
       /* NIENTE AUTO A PONENTE DELLA ROTATORIA (Andrea, IMG_5001): da li' fino
          alla chiesa e' tutto prato, e la prima auto della fila finiva
-         addirittura dentro la navata (x[-41,3 · -32,6]). L'asfalto comincia
-         a x=-13, dove tocca l'anello della rotatoria. */
-      if(px<-13) continue;
+         addirittura dentro la navata (x[-41,3 · -32,6]). I posti auto
+         cominciano dove finisce la rotatoria, a x=14. */
+      if(px<14) continue;
       /* e nemmeno dentro la rotatoria, che adesso sta qui in mezzo */
       if(Math.hypot(px-(-0.3),z-(-53.4))<15) continue;
       if(rnd()<0.66) auto(px,z,(k%2)?Math.PI:0,cols[(rnd()*cols.length)|0]);}});})();
@@ -1728,6 +1737,15 @@ function faroLed(x,y,z,ry){
        dall'asse del portale. */
     const XL=-14.0;                        /* la lesena di mattoni           */
     const XP=-22.6;                        /* l'asse del portale             */
+    /* LE QUOTE DEL PORTALE SI RICAVANO DALLA FINESTRA CHE GLI STA SOPRA, non
+       si scelgono. La fila alta e' a y=4,95 con vani da 1,45: il davanzale
+       della finestra centrale comincia a 4,035. Il portale, mostra compresa,
+       arrivava a 4,63 e ci sfondava dentro. Adesso il suo colmo sta a
+       HPORT + RPORT + 0,28 = 3,95, cioe' 8 cm sotto il davanzale.
+       Se un giorno si alza la fila delle finestre, qui si alza da sola. */
+    const YFIN=4.95, HFIN=1.45;
+    const WPORT=2.50, RPORT=WPORT/2, XW=RPORT+0.28;
+    const HPORT=(YFIN-HFIN/2-0.32) - RPORT - 0.28;   /* 2,42 */
     const gf=new THREE.Group(); mondo.add(gf);
 
     const mGreige = lam(0xB6B2A7);   /* il corpo storico                     */
@@ -1752,12 +1770,12 @@ function faroLed(x,y,z,ry){
        anche davanti al portone: aprendo i battenti si vedeva il muro pieno
        invece dell'ingresso. Zoccolo e intonaco si spezzano ai due lati e si
        richiudono sopra l'arco. */
-    const XW=1.58;                       /* mezza luce del vano + la mostra  */
     [[XA,XP-XW],[XP+XW,XB]].forEach(q=>
       box(gf,q[1]-q[0],1.15,0.20,mBianco2,(q[0]+q[1])/2,0.575,ZP-0.02,false));
     [[XA,XP-XW],[XP+XW,XL]].forEach(q=>
       box(gf,q[1]-q[0],HH-1.15,0.16,mGreige,(q[0]+q[1])/2,1.15+(HH-1.15)/2,ZP,false));
-    box(gf,XW*2,HH-4.66,0.16,mGreige,XP,4.66+(HH-4.66)/2,ZP,false);   /* sopra l'arco */
+    const YARCO=HPORT+RPORT+0.28+0.03;                    /* il colmo della mostra */
+    box(gf,XW*2,HH-YARCO,0.16,mGreige,XP,YARCO+(HH-YARCO)/2,ZP,false); /* sopra l'arco */
     box(gf,XB-XL,HH-3.30,0.16,mCrema2,(XL+XB)/2,3.30+(HH-3.30)/2,ZP,false);
     box(gf,XB-XL,3.30-1.15,0.16,mBianco2,(XL+XB)/2,1.15+(3.30-1.15)/2,ZP,false);
     /* la cornice sottile del tetto piatto dell'ala di levante */
@@ -1765,14 +1783,37 @@ function faroLed(x,y,z,ry){
     /* la lesena di mattoni, a tutta altezza e leggermente sporgente */
     box(gf,1.35,HH+0.45,0.34,lam(0xffffff,{map:texLes}),XL,(HH+0.45)/2,ZP-0.10,true);
 
-    /* --- le finestre ---------------------------------------------------- */
+    /* --- le finestre: vetro dietro, TAPPARELLA VERDE davanti -------------
+       Le tapparelle si alzano insieme al portone (Andrea): ogni telo e' una
+       mesh che si SCHIACCIA verso l'alto tenendo fermo il bordo superiore —
+       scalando di s e riportando il centro a  ytop − s·h/2  il telo si
+       arrotola nel cassonetto invece di scivolare via. Dietro restano i
+       vetri, che finalmente si vedono. */
+    const texTapp=(()=>{const c=mkCanvas(64,64),x=c.getContext('2d');
+      x.fillStyle='#5A7A54';x.fillRect(0,0,64,64);
+      for(let i=0;i<10;i++){
+        x.fillStyle='#4A6746';x.fillRect(0,i*6.4+5.2,64,1.2);
+        x.fillStyle='#688A60';x.fillRect(0,i*6.4,64,1.0);}
+      return tex(c,true);})();
+    const matVetroFin=new THREE.MeshPhongMaterial({color:0x9DB2BD,shininess:90,
+      specular:0xE8F2F6});
+    const tapparelle=[];
     function finestra(x,y,w,h,grata){
       box(gf,w+0.26,h+0.26,0.10,mMostra,x,y,ZP-0.10,false);          /* mostra  */
-      box(gf,w,h,0.05,lam(0x37414A),x,y,ZP-0.15,false);              /* vetro   */
+      /* il vetro, con la crociera */
+      box(gf,w,h,0.05,matVetroFin,x,y,ZP-0.14,false);
+      box(gf,0.05,h,0.03,mScuro2,x,y,ZP-0.17,false);
+      box(gf,w,0.05,0.03,mScuro2,x,y+h*0.12,ZP-0.17,false);
       box(gf,w+0.34,0.08,0.20,mMostra,x,y-h/2-0.15,ZP-0.14,false);   /* davanzale */
       if(grata){ for(let i=0;i<5;i++)
           box(gf,0.035,h,0.03,mScuro2,x-w/2+ (i+0.5)*w/5,y,ZP-0.19,false); }
-      else box(gf,w,h,0.04,mScuro2,x,y,ZP-0.18,false);               /* scuro   */
+      /* il cassonetto e il telo */
+      box(gf,w+0.20,0.16,0.12,mMostra,x,y+h/2+0.09,ZP-0.20,false);
+      const t=new THREE.Mesh(new THREE.BoxGeometry(w,h,0.04),
+        lam(0xffffff,{map:(()=>{const q=texTapp.clone();q.needsUpdate=true;
+          q.repeat.set(1,Math.max(2,Math.round(h*4)));return q;})()}));
+      t.position.set(x,y,ZP-0.21); t.userData.animato=true; gf.add(t);
+      tapparelle.push({m:t,ytop:y+h/2,h:h});
     }
     /* corpo storico (a ponente della lesena): due file, saltando la fascia
        del portale, che ha un disegno suo */
@@ -1790,7 +1831,7 @@ function faroLed(x,y,z,ry){
 
     /* --- IL PORTALE: ante di legno e lunetta a raggiera ----------------- */
     (function portale(){
-      const W=2.60, HP=3.05, R=W/2;              /* imposta a 3,05, poi l'arco */
+      const W=WPORT, HP=HPORT, R=RPORT;
       /* mostra di pietra bianca, sottile, che segue l'arco */
       const mo=new THREE.Shape();
       mo.moveTo(-R-0.28,0); mo.lineTo(-R-0.28,HP);
@@ -1812,11 +1853,11 @@ function faroLed(x,y,z,ry){
          `a` positivo. */
       const ante=[-1,1].map(s=>{
         const p=new THREE.Group();
-        p.position.set(XP+s*W/2, 0, ZP-0.12); gf.add(p);
+        p.position.set(XP+s*W/2, 0, ZP-0.12); p.userData.animato=true; gf.add(p);
         const cx=-s*W/4;
         box(p,W/2,HP,0.10,mLegno3,cx,HP/2,0,false);
         for(let i=0;i<5;i++)
-          box(p,W/2-0.10,0.05,0.03,lam(0x452C1B),cx,0.42+i*0.55,-0.06,false);
+          box(p,W/2-0.10,0.05,0.03,lam(0x452C1B),cx,0.36+i*(HP-0.72)/4,-0.06,false);
         box(p,0.05,HP-0.12,0.035,lam(0x452C1B),cx,HP/2,-0.06,false);
         const mn=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.30,8),lam(0xB09A54));
         mn.position.set(-s*0.14,1.05,-0.09); p.add(mn);
@@ -1847,7 +1888,8 @@ function faroLed(x,y,z,ry){
           mn.position.set(x+s*(W/4-0.14),1.05,zb-0.09); gf.add(mn);});
       })();
 
-      /* --- l'apertura: si spalanca arrivando davanti, si richiude andando via */
+      /* --- l'apertura: si spalanca arrivando davanti, si richiude andando
+         via. Lo stesso valore alza le tapparelle. */
       let apert=0;
       AGGIORNA.push(dt=>{
         const dx=pos.x-XP, dz=pos.z-ZP;
@@ -1855,6 +1897,11 @@ function faroLed(x,y,z,ry){
         apert += ((davanti?1:0)-apert)*Math.min(1,dt*2.8);
         ante[0].rotation.y = -apert*1.30;
         ante[1].rotation.y =  apert*1.30;
+        /* la tapparella si arrotola: resta fermo il bordo ALTO */
+        const s2=1-apert*0.94;
+        tapparelle.forEach(q=>{
+          q.m.scale.y=s2;
+          q.m.position.y=q.ytop-s2*q.h/2;});
       });
       /* LA LUNETTA A RAGGIERA: nelle foto e' il segno del portone */
       const lu=new THREE.Mesh(new THREE.CylinderGeometry(R,R,0.09,24,1,false,0,Math.PI),mLegno3);
@@ -1889,9 +1936,8 @@ function faroLed(x,y,z,ry){
       const p=new THREE.Mesh(new THREE.PlaneGeometry(26,9),lam(0xffffff,{map:t}));
       p.rotation.x=-Math.PI/2; p.position.set(XP-2,0.035,ZP-4.6);
       p.receiveShadow=true; mondo.add(p);
-      /* le righe bianche dei posti auto, dipinte sul selciato */
-      for(let i=0;i<7;i++) box(mondo,0.10,0.02,4.4,lam(0xE8E6DE),
-        XP-12+i*3.4,0.05,ZP-6.6,false);
+      /* NIENTE RIGHE DEI POSTI AUTO SUL SELCIATO (Andrea): il sagrato
+         davanti al portone non e' un parcheggio. */
     })();
 
     /* --- la croce di ferro isolata sul piazzale ------------------------- */
@@ -1911,33 +1957,96 @@ function faroLed(x,y,z,ry){
     })(XP-6.6,ZP-4.4);
   })();
 
-  /* --- la rotonda: il medaglione e le lettere ------------------------- */
-  (function insegnaRotonda(){
-    /* LA ROTATORIA E' PIU' A EST (Andrea). Misurata sull'ortofoto zenitale:
-       l'aiuola col cordolo bianco e' un ovale di ~16 x 15,7 m centrato in
-       (-0,3 · -53,4). Il modello la teneva in asse col portone (-22,6), per
-       una correzione di due mesi fa: era in asse col portone di un fronte
-       che allora stava in un altro posto. */
-    const XR=-0.3, ZR=-53.4;
-    /* il disco di pietra, in piedi sull'aiuola */
-    const d=new THREE.Mesh(new THREE.CylinderGeometry(1.55,1.55,0.26,28),lam(0x9E9585));
-    d.rotation.x=Math.PI/2; d.position.set(XR-3.2,1.60,ZR+1.2);
-    d.castShadow=true; mondo.add(d);
-    const dd=new THREE.Mesh(new THREE.CylinderGeometry(1.28,1.28,0.30,28),lam(0x8C8375));
-    dd.rotation.x=Math.PI/2; dd.position.set(XR-3.2,1.60,ZR+1.19); mondo.add(dd);
-    box(mondo,1.1,1.6,0.7,lam(0x8A8175),XR-3.2,0.8,ZR+1.2,true);
-    /* le lettere metalliche, su un basso profilo */
+  /* ==========================================================================
+     LA ROTATORIA — rifatta sulla foto aerea e su rotatoria.jpg
+     --------------------------------------------------------------------------
+     Misurata sull'ortofoto zenitale: l'aiuola col CORDOLO DI BLOCCHI BIANCHI
+     e' 17,2 x 16,1 m centrata in (-0,4 · -53,5) — la posizione ce l'avevamo
+     giusta, mancava tutto il resto. Dentro l'aiuola ci sono TRE ALBERI, non
+     l'erba liscia.
+     E il medaglione con le lettere NON sta li': sta su un'ISOLA LUNGA
+     separata, quella che in rotatoria.jpg si vede col filare di platani, il
+     lampione col faro e il cordolo di pietra bianca. Sull'ortofoto e' la
+     macchia di chiome a x[-29 · -15] z[-57 · -49], fra il parcheggio e
+     l'anello.
+     ======================================================================== */
+  (function rotatoria(){
+    const XR=-0.4, ZR=-53.5;
+    /* --- l'aiuola centrale: cordolo a blocchi, erba, tre alberi ---------- */
+    for(let i=0;i<44;i++){
+      const a=i*Math.PI*2/44;
+      const b2=box(mondo,0.85,0.22,0.34,lam(0xE8E4DA),
+        XR+Math.cos(a)*8.2,0.11,ZR+Math.sin(a)*8.2,false);
+      b2.rotation.y=-a;}
+    [[-2.4,-2.0,3.4],[2.6,1.2,3.9],[0.2,3.6,3.0]].forEach(q=>{
+      const t=new THREE.Mesh(new THREE.CylinderGeometry(0.20,0.28,2.6,8),lam(0x5F4630));
+      t.position.set(XR+q[0],1.3,ZR+q[1]); t.castShadow=true; mondo.add(t);
+      const ch=new THREE.Mesh(new THREE.SphereGeometry(q[2],10,8),lam(0x4A6B38));
+      ch.position.set(XR+q[0],2.6+q[2]*0.75,ZR+q[1]); ch.scale.y=0.82;
+      ch.castShadow=true; mondo.add(ch);
+      contatto(mondo,XR+q[0],0.06,ZR+q[1],q[2]*2,q[2]*2,0.5);});
+    /* --- i triangoli di "dare precedenza" sui due innesti --------------- */
+    [[-13.5,0],[13.5,Math.PI]].forEach(q=>{
+      for(let i=0;i<7;i++){
+        const t=box(mondo,0.42,0.02,0.62,lam(0xE8E6DE),
+          XR+q[0]*1.06,0.05,ZR-2.2+i*0.75,false);
+        t.rotation.y=q[1];}});
+
+    /* --- l'ISOLA LUNGA col medaglione, le lettere e il filare ----------- */
+    const IX0=-29, IX1=-15, IZ0=-57, IZ1=-49;
+    const ic=[(IX0+IX1)/2,(IZ0+IZ1)/2];
+    const pr=new THREE.Mesh(new THREE.PlaneGeometry(IX1-IX0,IZ1-IZ0),matPrato);
+    pr.rotation.x=-Math.PI/2; pr.position.set(ic[0],0.055,ic[1]); mondo.add(pr);
+    /* cordolo di blocchi bianchi tutt'intorno */
+    for(let x=IX0;x<=IX1;x+=0.9){
+      box(mondo,0.86,0.22,0.34,lam(0xE8E4DA),x,0.11,IZ0,false);
+      box(mondo,0.86,0.22,0.34,lam(0xE8E4DA),x,0.11,IZ1,false);}
+    for(let z=IZ0;z<=IZ1;z+=0.9){
+      box(mondo,0.34,0.22,0.86,lam(0xE8E4DA),IX0,0.11,z,false);
+      box(mondo,0.34,0.22,0.86,lam(0xE8E4DA),IX1,0.11,z,false);}
+    /* il filare di platani */
+    for(let i=0;i<4;i++){
+      const x=IX0+2.6+i*3.1, z=IZ0+2.6;
+      const t=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.30,3.2,8),lam(0x5F4630));
+      t.position.set(x,1.6,z); t.castShadow=true; mondo.add(t);
+      const ch=new THREE.Mesh(new THREE.SphereGeometry(3.6,10,8),lam(0x467A36));
+      ch.position.set(x,5.6,z); ch.scale.y=0.78; ch.castShadow=true; mondo.add(ch);
+      contatto(mondo,x,0.07,z,6,6,0.5);}
+    /* il lampione alto col faro, in mezzo all'isola */
+    (function faro(x,z){
+      const p2=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.16,7.4,10),lam(0x9A9A94));
+      p2.position.set(x,3.7,z); p2.castShadow=true; mondo.add(p2);
+      box(mondo,0.85,0.16,0.34,lam(0x8E8E88),x,7.45,z,false);
+      box(mondo,0.72,0.10,0.26,lam(0xF2EAC8),x,7.34,z,false);
+    })(IX0+8.4,IZ0+2.2);
+    /* IL MEDAGLIONE di bronzo, in piedi sul suo basamento, a ponente */
+    (function medaglione(x,z){
+      const d=new THREE.Mesh(new THREE.CylinderGeometry(1.35,1.35,0.22,30),lam(0x8E7A52));
+      d.rotation.x=Math.PI/2; d.position.set(x,2.05,z); d.castShadow=true; mondo.add(d);
+      const dd=new THREE.Mesh(new THREE.CylinderGeometry(1.12,1.12,0.26,30),lam(0x7A6844));
+      dd.rotation.x=Math.PI/2; dd.position.set(x,2.05,z-0.01); mondo.add(dd);
+      box(mondo,0.9,1.0,0.5,lam(0x8A8175),x,0.5,z,true);
+      contatto(mondo,x,0.07,z,2.6,2.0,0.5);
+    })(IX0+2.2,IZ0+5.4);
+    /* LE LETTERE METALLICHE su un profilo basso, lungo il filo sud */
     (function lettere(){
-      const c=mkCanvas(1024,96),x=c.getContext('2d');
-      x.clearRect(0,0,1024,96);
-      x.fillStyle='#C7A94E';x.font='bold 62px Lexend, sans-serif';x.textAlign='center';
-      x.fillText('CONGREGAZIONE  SACRA  FAMIGLIA',512,70);
-      const m=new THREE.Mesh(new THREE.PlaneGeometry(15.5,1.45),
+      const c=mkCanvas(1024,88),x=c.getContext('2d');
+      x.translate(1024,0); x.scale(-1,1);          /* il piano guarda a nord */
+      x.clearRect(0,0,1024,88);
+      x.fillStyle='#C7A94E';x.font='bold 58px Lexend, sans-serif';x.textAlign='center';
+      x.fillText('CONGREGAZIONE  SACRA  FAMIGLIA',512,64);
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(10.6,0.92),
         new THREE.MeshLambertMaterial({map:tex(c,false),transparent:true}));
-      m.position.set(XR+4.6,0.86,ZR+1.4); mondo.add(m);
-      for(let i=0;i<9;i++) box(mondo,0.05,0.30,0.05,lam(0x8E8A82),
-        XR-2.4+i*1.8,0.15,ZR+1.4,false);
+      m.position.set(IX0+7.6,0.82,IZ1-0.9); m.rotation.y=Math.PI; mondo.add(m);
+      for(let i=0;i<8;i++) box(mondo,0.05,0.36,0.05,lam(0x8E8A82),
+        IX0+3.0+i*1.5,0.18,IZ1-0.9,false);
     })();
+    /* i paracarri gialli sul lato della scuola (rotatoria.jpg) */
+    for(let i=0;i<5;i++){
+      const x=IX1+3.2+i*3.4;
+      const b3=new THREE.Mesh(new THREE.CylinderGeometry(0.30,0.36,0.85,8),lam(0xC9A83E));
+      b3.position.set(x,0.42,IZ0-3.2); b3.castShadow=true; mondo.add(b3);
+      contatto(mondo,x,0.05,IZ0-3.2,1.2,1.2,0.5);}
   })();
 
   contatto(mondo,-22.6,0.03,z0-4.6,26,9,0.40);
@@ -2553,292 +2662,379 @@ function faroLed(x,y,z,ry){
 
 
 /* ===================== PISCINE ANDREANA ================================
-   RIFATTE SULLE QUOTE DEL RILIEVO (VERIFICA-FOTOGRAFICA §16) e sull'aerea
-   etichettata Campus_zone.png.
-   - Le piscine NON stanno lontane dalla scuola: sono A CONTATTO con
-     l'estremita' del fronte, subito oltre il tratto "Ingresso Piscina".
-     Fra scuola e piscine c'e' solo il piazzale piastrellato.
-   - VASCA GRANDE quotata 25,00 x 15,00, piano vasca +0,50.
-   - VASCA PICCOLA quotata 16,00 x 6,00, piano vasca +6,50: sta SEI METRI
-     PIU' IN ALTO, su una terrazza. E' la vasca di partenza degli scivoli, ed
-     e' il dislivello che non avevo mai considerato.
-   - DUE scivoli ELICOIDALI, ~35 m di sviluppo ciascuno (non uno solo ad ansa
-     aperta): scendono avvolgendosi attorno alla torre fino alla vasca d'arrivo.
-   - Due capannoni chiari affiancati (uno per vasca coperta), terrazza del bar
-     con tende a braccio e ombrelloni, torretta del bagnino.
+   RIFONDATE SULL'ORTOFOTO ZENITALE, non piu' su foto oblique.
+   strumenti/campus_zen.png — 0,20966 m/px, nord in alto, origine del modello
+   al pixel (1165, 632). Ogni numero qui sotto e' MISURATO li' sopra
+   estraendo gli intervalli d'acqua riga per riga, non stimato a occhio.
+
+   COSA AVEVO SBAGLIATO (e che si vede in un colpo solo sulla zenitale):
+   - Avevo messo DUE TETTOIE VETRATE affiancate sopra le vasche. Non
+     esistono. Esistono due VOLUMI BASSI COL TETTO BIANCO, e non stanno
+     sopra le vasche: stanno ACCANTO. Quello grande e' fermo SUBITO A NORD
+     della vasca a corsie — e' la copertura ritirata sui binari, cioe'
+     esattamente la struttura che Andrea aveva indicato dal parcheggio.
+   - Avevo una sola vasca a corsie. Sono DUE, incrociate: quella nord ha le
+     corde EST-OVEST, quella sud le ha NORD-SUD.
+   - Avevo la torre degli scivoli a sud-ovest, alta sei metri, con la vasca
+     piccola in cima. Gli scivoli stanno a EST, e sono di due specie
+     diverse: a nord una PISTA A QUATTRO CORSIE dritta (la striscia azzurra
+     lunga 22 m che scende verso il canale), a sud DUE TUBI ELICOIDALI.
+   - Avevo una vasca d'arrivo a x=33, cioe' addosso agli edifici.
+
+   IL RILIEVO (coordinate MONDO: x+ est, z+ sud):
+     copertura scorrevole   x 50,5 . 80,9   z -40,7 . -17,2   (30,4 x 23,5)
+     vasca corsie nord      x 56,0 . 81,3   z -16,6 .  -3,0   (25,3 x 13,6)
+     pista a 4 corsie       x 90,2 . 95,0   z -25,5 .  -3,0
+     canale + laguna        x 75,3 . 97,1   z  -2,5 .  32,5
+     vasca corsie sud       x 66,9 . 83,7   z  16,4 .  40,7   (16,8 x 24,3)
+     padiglione sud-ovest   x 47,6 . 62,1   z  21,6 .  48,4   (14,5 x 26,8)
+     scivoli elicoidali     x 84,3 . 98,9   z  23,1 .  42,6
+     siepe di confine       x ~102                            (est)
+
+   NIENTE OFFSET DI GRUPPO. La versione precedente teneva il gruppo a
+   x=-40 e scriveva coordinate locali: ogni pezzo finiva piazzato a mano,
+   con uno scarto suo. Qui il gruppo sta a zero e si scrivono le coordinate
+   del modello, le stesse che si leggono sull'ortofoto.
    ====================================================================== */
 (function piscine(){
-  const g=new THREE.Group();
-  /* ORTOFOTO: le piscine cominciano SUBITO a est dell'ala nord-est.
-     Tutto il complesso e' costruito attorno all'origine locale e poi
-     traslato: cosi' si sposta in un punto solo. */
-  g.position.x=-40; mondo.add(g);
-  const matPiastre=lam(0xffffff,{map:(()=>{const t=tex(texPunti('#e0c3a8',
-    ['#d8bb9f','#e8cdb2','#d0b397'],23),true);t.repeat.set(46,40);return t;})()});
-  const piastra=new THREE.Mesh(new THREE.PlaneGeometry(84,58),matPiastre);
-  piastra.rotation.x=-Math.PI/2;piastra.position.set(109,0.02,-3);piastra.receiveShadow=true;g.add(piastra);
-  const matBordo=lam(0xe6e2d8);
+  const g=new THREE.Group(); mondo.add(g);
 
-  /* vasca rettangolare a una quota qualsiasi: il piano vasca e' un parametro,
-     perche' §16 quota due vasche a quote diverse (+0,50 e +6,50) */
-  function vascaRett(cx,cz,w,d,corsie,blocchi,y0){
-    y0=y0||0;
-    box(g,w+1.6,0.32,d+1.6,matBordo,cx,y0+0.16,cz,false);
-    const a2=new THREE.Mesh(new THREE.PlaneGeometry(w,d),matAcqua);
-    a2.rotation.x=-Math.PI/2;a2.position.set(cx,y0+0.34,cz);g.add(a2);
-    for(let i=1;i<corsie;i++){const t=i/corsie;
-      for(let k=0.5;k<w;k+=0.85){
-        const b2=new THREE.Mesh(new THREE.SphereGeometry(0.08,6,5),
-          lam((Math.floor(k/0.85)%2)?0xe8e4dc:0xd8443a));
-        b2.position.set(cx-w/2+k,y0+0.41,cz-d/2+d*t);g.add(b2);}}
-    if(blocchi) for(let i=0;i<corsie;i++){const t=(i+0.5)/corsie;
-      box(g,0.46,0.34,0.46,lam(0xd8d4cc),cx-w/2+0.7,y0+0.47,cz-d/2+d*t,true);
-      box(g,0.30,0.05,0.30,lam(0x2f6fb5),cx-w/2+0.7,y0+0.65,cz-d/2+d*t,false);}
+  /* --- materiali, campionati sull'ortofoto ------------------------------
+     cotto  #E2BC9C (deck attorno alla vasca nord, caldo)
+     cemento #E6E7DE (deck attorno alla laguna e alla vasca sud)
+     tetti  #F0EDE2 (i due volumi chiari)                                 */
+  const matCotto=lam(0xffffff,{map:(()=>{const t=tex(texPunti('#e2bc9c',
+    ['#d8b090','#ecc8a8','#cfa484'],23),true);t.repeat.set(24,16);return t;})()});
+  const matCemento=lam(0xffffff,{map:(()=>{const t=tex(texPunti('#e6e7de',
+    ['#dcddd4','#eff0e8','#d2d3ca'],23),true);t.repeat.set(24,16);return t;})()});
+  const matBordo =lam(0xE6E2D8);
+  const matTetto =lam(0xF0EDE2);
+  const matMuro  =lam(0xDCD8CE);
+  const matLatt  =lam(0xB2B6BC);
+  /* tre acque diverse, come sull'ortofoto: la vasca nord e' turchese
+     chiaro, la laguna appena piu' verde, la vasca sud ha il rivestimento
+     blu e risulta molto piu' scura. */
+  const acquaNord   =matAcqua;
+  const acquaLaguna =new THREE.MeshPhongMaterial({color:0x6FD4E8,shininess:110,
+    specular:0xffffff,transparent:true,opacity:0.93});
+  const acquaSud    =new THREE.MeshPhongMaterial({color:0x3FA8E0,shininess:110,
+    specular:0xffffff,transparent:true,opacity:0.94});
+
+  function deck(mat,x0,x1,z0,z1,y){
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),mat);
+    m.rotation.x=-Math.PI/2;m.position.set((x0+x1)/2,y||0.02,(z0+z1)/2);
+    m.receiveShadow=true;g.add(m);return m;}
+
+  /* il piazzale: cotto attorno alla vasca nord, cemento chiaro da meta' in
+     giu'. Il cambio di pavimentazione si legge nettamente sulla zenitale. */
+  deck(matCotto,  44,102,-22,13.5,0.02);
+  deck(matCemento,44,102,13.5,49,0.02);
+  deck(lam(0xC9C5BC),47,84,-43,-17,0.03);      /* platea della copertura   */
+
+  /* --- vasca rettangolare a corsie --------------------------------------
+     corde lungo X (vert=false) o lungo Z (vert=true), blocchi di partenza
+     sul lato corto d'ingresso. */
+  function vasca(x0,x1,z0,z1,mat,corsie,vert,blocchi){
+    const w=x1-x0,d=z1-z0,cx=(x0+x1)/2,cz=(z0+z1)/2;
+    box(g,w+1.8,0.34,d+1.8,matBordo,cx,0.17,cz,false);
+    const a=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat);
+    a.rotation.x=-Math.PI/2;a.position.set(cx,0.36,cz);g.add(a);
+    for(let i=1;i<corsie;i++){
+      const t=i/corsie;
+      const lungo=vert?d:w;
+      for(let k=0.5;k<lungo;k+=0.85){
+        const b=new THREE.Mesh(new THREE.SphereGeometry(0.09,6,5),
+          lam((Math.floor(k/0.85)%2)?0xE8E4DC:0xD4A017));
+        if(vert) b.position.set(x0+w*t,0.43,z0+k); else b.position.set(x0+k,0.43,z0+d*t);
+        g.add(b);}}
+    /* I BLOCCHI DI PARTENZA STANNO SUL BORDO, NON SULL'ACQUA: vanno messi
+       fuori dal filo della vasca, sul piastrellato. */
+    if(blocchi) for(let i=0;i<corsie;i++){
+      const t=(i+0.5)/corsie;
+      const bx=vert?x0+w*t:x0-0.55, bz=vert?z0-0.55:z0+d*t;
+      box(g,0.48,0.36,0.48,lam(0xD8D4CC),bx,0.50,bz,true);
+      box(g,0.32,0.05,0.32,lam(0x2F6FB5),bx,0.70,bz,false);}
+    /* scalette a bordo vasca, sul lato lungo */
+    for(let i=0;i<2;i++){
+      const sx=vert?x1+0.3:x0+w*(0.3+0.4*i), sz=vert?z0+d*(0.3+0.4*i):z1+0.3;
+      box(g,0.07,1.05,0.07,lam(0xD6D8D6),sx,0.62,sz,false);}
+    contatto(g,cx,0.03,cz,w+4,d+4,0.40);
   }
 
-  /* --- capannone vetrato: e' la copertura fissa delle vasche coperte -------
-     Nell'aerea sono DUE, chiari e affiancati, a falde leggere su montanti
-     bianchi ravvicinati, con il vetro azzurrino. */
-  function capannone(cx,cz,w,d,h,alt){
-    const mm=lam(0xf2f0ea);
-    for(let i=0;i<=Math.round(w/3.2);i++){
-      const px=cx-w/2+i*w/Math.round(w/3.2);
-      box(g,0.22,h,0.22,mm,px,h/2,cz-d/2,true);
-      box(g,0.22,h,0.22,mm,px,h/2,cz+d/2,true);}
-    const vet=new THREE.Mesh(new THREE.PlaneGeometry(w,h-0.6),matVetro);
-    vet.position.set(cx,h/2-0.1,cz-d/2-0.05);g.add(vet);
-    const vet2=vet.clone();vet2.position.z=cz+d/2+0.05;g.add(vet2);
-    const vet3=new THREE.Mesh(new THREE.PlaneGeometry(d,h-0.6),matVetro);
-    vet3.rotation.y=Math.PI/2;vet3.position.set(cx-w/2-0.05,h/2-0.1,cz);g.add(vet3);
-    const vet4=vet3.clone();vet4.position.x=cx+w/2+0.05;g.add(vet4);
-    /* FOTO 4893-4896: la copertura della piscina e' RETTANGOLARE, PIATTA e in
-       LAMIERA BLU — non due falde vetrate translucide. Andrea. */
-    const mBlu = new THREE.MeshPhongMaterial({color:0x2E5F94,shininess:80,specular:0x8FB4D8});
-    const cop = new THREE.Mesh(new THREE.BoxGeometry(w+1.2,0.26,d+1.2),mBlu);
-    cop.position.set(cx,h+0.13,cz); cop.castShadow=true; g.add(cop);
-    /* nervature della lamiera, nel senso lungo */
-    for(let k=0;k<Math.round(d/1.6);k++){
-      const n=new THREE.Mesh(new THREE.BoxGeometry(w+1.1,0.07,0.12),lam(0x24507E));
-      n.position.set(cx,h+0.29,cz-d/2+0.8+k*1.6); g.add(n);}
-    /* bordo di lattoneria tutt'intorno */
-    box(g,w+1.4,0.16,0.18,lam(0x1E4570),cx,h+0.06,cz-d/2-0.6,false);
-    box(g,w+1.4,0.16,0.18,lam(0x1E4570),cx,h+0.06,cz+d/2+0.6,false);
-    box(g,0.18,0.16,d+1.4,lam(0x1E4570),cx-w/2-0.6,h+0.06,cz,false);
-    box(g,0.18,0.16,d+1.4,lam(0x1E4570),cx+w/2+0.6,h+0.06,cz,false);
-    contatto(g,cx,0.03,cz,w+3,d+3,0.42);
-  }
-  /* Il "Padiglione Eventi 40,00 x 25,00" della planimetria NON e' un edificio
-     a se': e' la COPERTURA CHIUSA DELLA VASCA GRANDE (indicazione di Andrea).
-     Quindi qui va un capannone 40x25 sopra la vasca quotata, non un volume
-     staccato. Il secondo capannone, piu' piccolo, resta per la vasca coperta. */
-  /* ANDREA: sul lato piscine la COPERTURA BLU ce l'ha SOLO la vasca grande.
-     Tutte le altre vasche sono a cielo aperto — il secondo capannone non
-     esiste. Resta la vasca, con il solo bordo piastrellato e le scalette. */
-  capannone(98.5,-6.5,40,25,5.4,2.0);
-  /* ===== LA STRUTTURA SU CUI SCORRE LA COPERTURA ======================
-     Nel parcheggio (parcheggio.png, IMG_5006) c'e' un lungo colonnato di
-     pilastri quadrati intonacati che regge due travi parallele: sono le
-     ROTAIE su cui la copertura della vasca scivola quando la si apre. Il
-     tetto blu del capannone continua per un tratto sopra le rotaie — e'
-     la parte gia' scorsa fuori — e poi le travi proseguono nude sopra
-     l'asfalto. Non e' una pensilina del parcheggio: e' il binario. */
-  (function binariCopertura(){
-    const XA=88, XB=97, Z0=-19.2, Z1=-50.0;      /* due rotaie, 9 m fra loro */
-    const mPil=lam(0xE0D8BE), mTrave=lam(0xD8D2C2), mBlu=lam(0x2E5F94);
-    [XA,XB].forEach(px=>{
-      for(let z=Z0;z>=Z1;z-=3.6){
-        box(g,0.55,3.55,0.55,mPil,px,1.775,z,true);
-        contatto(g,px,0.03,z,1.3,1.3,0.45);}
-      box(g,0.66,0.92,Z0-Z1,mTrave,px,4.02,(Z0+Z1)/2,true);   /* la trave */
-      box(g,0.78,0.14,Z0-Z1,lam(0xC6BFAD),px,4.55,(Z0+Z1)/2,false); /* la rotaia */
-    });
-    /* il tratto di copertura gia' scorso fuori, in lamiera blu */
-    box(g,XB-XA+1.6,0.24,12.0,mBlu,(XA+XB)/2,4.74,Z0-6.4,true);
-    for(let k=0;k<7;k++)
-      box(g,XB-XA+1.5,0.07,0.12,lam(0x24507E),(XA+XB)/2,4.88,Z0-1.2-k*1.7,false);
-    box(g,XB-XA+1.8,0.16,0.20,lam(0x1E4570),(XA+XB)/2,4.66,Z0-12.5,false);
+  /* =================== 1) VASCA A CORSIE NORD, 25 m ======================
+     x 56,0 . 81,3  z -16,6 . -3,0. Sei corsie, corde EST-OVEST, blocchi
+     sul filo ovest: e' il lato da cui si legge la partenza sull'ortofoto. */
+  vasca(56.0,81.3,-16.6,-3.0,acquaNord,6,false,true);
+
+  /* =================== 2) LA COPERTURA SCORREVOLE =======================
+     x 50,5 . 80,9  z -40,7 . -17,2, alta 5,6. Sull'ortofoto il tetto e'
+     bianchissimo e diviso in QUATTRO campate da giunti che corrono
+     nord-sud; sul fianco nord e su quello ovest c'e' la fascia d'ombra,
+     che e' quanto basta a dire che il volume e' alto cinque o sei metri.
+     Sta fermo a nord della vasca: quando si chiude scende sui binari e ci
+     va sopra. E' la struttura che si vede dal parcheggio. */
+  const PN={x0:50.5,x1:80.9,z0:-40.7,z1:-17.2,h:5.6};
+  (function copertura(){
+    const w=PN.x1-PN.x0,d=PN.z1-PN.z0,cx=(PN.x0+PN.x1)/2,cz=(PN.z0+PN.z1)/2,h=PN.h;
+    /* zoccolo scuro: e' il carrello su cui il capannone cammina */
+    box(g,w+0.5,0.55,d+0.5,lam(0x6E7278),cx,0.28,cz,true);
+    /* montanti e vetrate sui quattro lati */
+    const nm=Math.round(w/3.0);
+    for(let i=0;i<=nm;i++){
+      const px=PN.x0+i*w/nm;
+      box(g,0.20,h,0.20,matMuro,px,h/2+0.5,PN.z0,true);
+      box(g,0.20,h,0.20,matMuro,px,h/2+0.5,PN.z1,true);}
+    [[cx,PN.z0-0.06,w,0],[cx,PN.z1+0.06,w,0]].forEach(q=>{
+      const v=new THREE.Mesh(new THREE.PlaneGeometry(q[2],h-0.7),matVetro);
+      v.position.set(q[0],h/2+0.55,q[1]);g.add(v);});
+    [[PN.x0-0.06],[PN.x1+0.06]].forEach(q=>{
+      const v=new THREE.Mesh(new THREE.PlaneGeometry(d,h-0.7),matVetro);
+      v.rotation.y=Math.PI/2;v.position.set(q[0],h/2+0.55,cz);g.add(v);});
+    /* IL TETTO: quattro campate bianche, giunti nord-sud, leggerissima
+       monta al centro. Non e' vetro e non e' lamiera blu: e' bianco. */
+    for(let i=0;i<4;i++){
+      const px=PN.x0+(i+0.5)*w/4;
+      const p=box(g,w/4-0.16,0.26,d+0.6,matTetto,px,h+0.62,cz,true);
+      p.rotation.z=0;                       /* piatto, come sull'ortofoto */
+      box(g,0.12,0.10,d+0.6,matLatt,px-w/8,h+0.78,cz,false);}
+    /* lattoneria perimetrale e colmo */
+    box(g,w+0.8,0.20,0.24,matLatt,cx,h+0.60,PN.z0-0.35,false);
+    box(g,w+0.8,0.20,0.24,matLatt,cx,h+0.60,PN.z1+0.35,false);
+    box(g,0.24,0.20,d+0.9,matLatt,PN.x0-0.35,h+0.60,cz,false);
+    box(g,0.24,0.20,d+0.9,matLatt,PN.x1+0.35,h+0.60,cz,false);
+    solido(box(g,w,h+0.6,d,new THREE.MeshBasicMaterial({visible:false}),cx,(h+0.6)/2,cz,false));
+    contatto(g,cx,0.04,cz,w+4,d+4,0.5);
   })();
-  vascaRett(124,-26,17,7,4,false,0);
-  (function bordoVascaNord(){
-    const cx=124,cz=-26;
-    box(g,23,0.3,13,matBordo,cx,0.15,cz,false);          /* piano vasca a raso */
-    for(let i=0;i<2;i++)                                  /* scalette a bordo  */
-      box(g,0.06,1.0,0.06,lam(0xd6d8d6),cx-8.7,0.6,cz-2.4+i*4.8,false);
-    contatto(g,cx,0.03,cz,25,15,0.40);})();
 
-  /* --- 1) VASCA GRANDE quotata: 25 x 15, piano vasca +0,50 --------------- */
-  (function vascaGrande(){
-    const cx=98.5,cz=-6.5;
-    box(g,29,0.5,19,matBordo,cx,0.25,cz,false);          /* piano vasca +0.50 */
-    for(let i=0;i<3;i++)                                  /* gradini al bordo */
-      box(g,3.4,0.17,0.55,matBordo,cx-16.4,0.42-i*0.17,cz,false);
-    vascaRett(cx,cz,25,15,6,true,0.5);
-    contatto(g,cx,0.03,cz,31,21,0.42);})();
+  /* --- i BINARI su cui la copertura scorre sopra la vasca ---------------
+     ANDREA (parcheggio.png, IMG_5006): dal parcheggio si vede un colonnato
+     di PILASTRI QUADRATI INTONACATI che regge DUE TRAVI PARALLELE. Sulla
+     zenitale il parcheggio e' asfalto nudo con le strisce dei posti: il
+     colonnato non sta li' in mezzo, sta sui FIANCHI DEL PADIGLIONE, ed e'
+     quello che si vede guardando da nord. Quindi le travi alte corrono
+     lungo il tratto di riposo (z -43 . -17) e proseguono verso la vasca
+     come sole rotaie a terra: sul deck di cotto, a bordo vasca, non c'e'
+     nessuna ombra di pilastro da leggere sull'ortofoto. */
+  (function binari(){
+    const ZA=-43.0, ZM=PN.z1, ZB=-1.6, YT=4.55;
+    const mPil=lam(0xE0D8BE), mTrave=lam(0xD8D2C2);
+    [PN.x0-0.42,PN.x1+0.42].forEach(bx=>{
+      for(let z=ZA;z<=ZM;z+=3.55){
+        box(g,0.55,YT-0.55,0.55,mPil,bx,(YT-0.55)/2,z,true);
+        contatto(g,bx,0.03,z,1.3,1.3,0.42);}
+      box(g,0.66,0.62,ZM-ZA+0.8,mTrave,bx,YT-0.24,(ZA+ZM)/2,true);
+      box(g,0.78,0.13,ZM-ZA+0.8,lam(0xC6BFAD),bx,YT+0.13,(ZA+ZM)/2,false);
+      /* la rotaia a terra, dal padiglione fino a oltre il bordo vasca */
+      box(g,0.30,0.16,ZB-ZM,lam(0xA8ACB2),bx,0.62,(ZM+ZB)/2,false);
+      for(let z=ZM;z<=ZB;z+=3.4)
+        box(g,0.40,0.50,0.40,lam(0xCFCBC2),bx,0.25,z,true);});
+  })();
 
-  /* --- 2) vasca a forma libera, con i gradini d'ingresso a raggiera ------- */
-  (function libera(){
+  /* =================== 3) PISTA A QUATTRO CORSIE ========================
+     La striscia azzurra x 90,2 . 95,0 che scende da z -25,5 a z -3,0:
+     quattro corsie affiancate, dritte, che finiscono nel canale. Ha in
+     testa una torretta, non una terrazza da sei metri con la vasca sopra. */
+  (function pista(){
+    const cx=92.6,W=4.8,ZT=-25.5,ZB=-3.0,YT=7.4,YB=0.95;
+    const ang=Math.atan2(YT-YB,ZB-ZT), L=Math.hypot(ZB-ZT,YT-YB);
+    /* torretta di partenza */
+    box(g,W+1.8,YT,4.4,matMuro,cx,YT/2,ZT-2.4,true);
+    box(g,W+2.4,0.28,4.9,matBordo,cx,YT+0.14,ZT-2.4,false);
+    for(let i=0;i<19;i++)
+      box(g,1.5,0.10,0.42,lam(0xCFCBC2),cx-4.4,0.40+i*0.39,ZT-4.6+i*0.44,false);
+    [[-3.6,-4.7],[-3.6,3.1]].forEach(q=>
+      box(g,0.08,YT+1.0,0.08,matLatt,cx+q[0],(YT+1.0)/2,ZT-2.4+q[1],false));
+    [[0,-2.3,W+2.4,0.08],[-(W/2+1.2),0,0.08,4.9],[W/2+1.2,0,0.08,4.9]].forEach(q=>
+      box(g,q[2],1.0,q[3],matLatt,cx+q[0],YT+0.78,ZT-2.4+q[1],false));
+    /* le quattro corsie */
+    for(let i=0;i<4;i++){
+      const px=cx-W/2+(i+0.5)*W/4;
+      const f=box(g,W/4-0.10,0.13,L,lam(i%2?0x4FA0DC:0x2F79B8),px,(YT+YB)/2,(ZT+ZB)/2,true);
+      f.rotation.x=ang;
+      [-1,1].forEach(s=>{
+        const b=box(g,0.11,0.34,L,lam(0xE2E6EA),px+s*(W/8-0.05),(YT+YB)/2+0.16,(ZT+ZB)/2,false);
+        b.rotation.x=ang;});}
+    /* i cavalletti che la reggono */
+    for(let k=1;k<=4;k++){
+      const t=k/5, pz=ZT+(ZB-ZT)*t, py=YT-(YT-YB)*t;
+      box(g,W+0.6,0.16,0.16,matLatt,cx,py-0.30,pz,false);
+      [-1,1].forEach(s=>box(g,0.14,py-0.3,0.14,matLatt,cx+s*(W/2+0.2),(py-0.3)/2,pz,true));}
+    contatto(g,cx,0.03,(ZT+ZB)/2,W+4,ZB-ZT+3,0.34);
+  })();
+
+  /* =================== 4) CANALE E LAGUNA ===============================
+     Un solo specchio d'acqua a forma libera: scende da nord come un canale
+     largo sei metri, si allarga a ovest nella laguna con la spiaggia, poi
+     prosegue a sud fino agli scivoli elicoidali. Il contorno e' ricalcato
+     sugli intervalli misurati riga per riga; il tratto fra laguna e canale
+     e' un ISTMO di pavimentazione, non acqua, e il perimetro gli gira
+     intorno. Centro di riferimento della sagoma: (86,5 · 12,5). */
+  const LGC=[86.5,12.5];
+  (function laguna(){
+    const P=(x,z)=>[x-LGC[0],-(z-LGC[1])];
     const sh=new THREE.Shape();
-    sh.moveTo(-10,-5);sh.quadraticCurveTo(-13,1,-6,5.5);sh.quadraticCurveTo(1,9,8,5);
-    sh.quadraticCurveTo(13,1.5,9,-4);sh.quadraticCurveTo(2,-8.5,-10,-5);
-    const b2=new THREE.Mesh(new THREE.ShapeGeometry(sh),matBordo);
-    b2.rotation.x=-Math.PI/2;b2.position.set(130,0.15,-4);b2.scale.set(1.1,1.1,1);g.add(b2);
-    const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),matAcqua);
-    m.rotation.x=-Math.PI/2;m.position.set(130,0.34,-4);g.add(m);
+    const q=(a,b)=>{const A=P(a[0],a[1]),B=P(b[0],b[1]);sh.quadraticCurveTo(A[0],A[1],B[0],B[1]);};
+    const l=p=>{const A=P(p[0],p[1]);sh.lineTo(A[0],A[1]);};
+    const s=P(90.4,-2.5); sh.moveTo(s[0],s[1]);
+    l([96.9,-2.5]); l([97.1,19.5]); l([94.1,22.5]); l([92.6,31.5]); l([88.4,32.5]);
+    l([87.2,20.0]); l([87.2,14.2]);
+    q([86.0,12.2],[84.5,11.8]);                 /* la laguna e' tonda a ovest */
+    q([80.7,11.4],[76.6,10.2]);
+    q([74.6,8.6],[75.3,6.4]);
+    q([75.8,3.6],[78.0,2.8]);
+    l([86.4,2.8]); l([86.6,5.8]); l([90.4,5.8]); sh.closePath();
+    const geo=new THREE.ShapeGeometry(sh,14);
+    const bo=new THREE.Mesh(geo,matBordo);
+    bo.rotation.x=-Math.PI/2;bo.position.set(LGC[0],0.16,LGC[1]);
+    bo.scale.set(1.06,1.06,1);bo.receiveShadow=true;g.add(bo);
+    const ac=new THREE.Mesh(geo,acquaLaguna);
+    ac.rotation.x=-Math.PI/2;ac.position.set(LGC[0],0.36,LGC[1]);g.add(ac);
+    /* la spiaggia: tre gradini a raggiera sul lobo ovest della laguna */
     for(let i=0;i<3;i++)
-      box(g,3.2-i*0.5,0.14,0.5,matBordo,122.5,0.30-i*0.09,-4,false);
-    contatto(g,130,0.04,-4,24,18,0.4);})();
-
-  /* --- 3) TORRE degli SCIVOLI: terrazza a +6,50 con la VASCA PICCOLA -----
-     §16: la vasca piccola (16 x 6) sta sei metri piu' in alto della grande.
-     E' il bacino di partenza da cui si lanciano i DUE scivoli elicoidali. */
-  const Y_TERR=6.5;
-  (function torreScivoli(){
-    const tx=100,tz=17;                        /* centro della terrazza */
-    /* podio in cemento con la scala di risalita a due rampe */
-    box(g,20,Y_TERR,10,lam(0xd8d4ca),tx,Y_TERR/2,tz,true);
-    box(g,20.8,0.34,10.8,lam(0xe6e2d8),tx,Y_TERR+0.17,tz,false);
-    for(let i=0;i<18;i++)                       /* rampa di scale sul fianco */
-      box(g,1.5,0.1,0.42,lam(0xcfcbc2),tx-10.6,0.36+i*0.36,tz-4.2+i*0.42,false);
-    [[-10.6,-4.4],[-10.6,3.4]].forEach(q=>
-      box(g,0.09,Y_TERR+1.05,0.09,lam(0x9aa0a5),tx+q[0],(Y_TERR+1.05)/2,tz+q[1],false));
-    /* parapetto della terrazza */
-    [[0,-5.3,20.4,0.1],[0,5.3,20.4,0.1],[-10.2,0,0.1,10.4],[10.2,0,0.1,10.4]].forEach(q=>{
-      box(g,q[2],0.1,q[3],lam(0xb9bdc2),tx+q[0],Y_TERR+1.15,tz+q[1],false);
-      box(g,q[2],1.0,0.04,new THREE.MeshBasicMaterial({color:0xdfe6ea,transparent:true,
-        opacity:0.35,side:THREE.DoubleSide,depthWrite:false}),tx+q[0],Y_TERR+0.65,tz+q[1],false);});
-    /* la VASCA PICCOLA quotata 16 x 6 sul piano +6,50 */
-    vascaRett(tx,tz-1.2,16,6,0,false,Y_TERR);
-    contatto(g,tx,0.03,tz,23,13,0.5);
+      box(g,0.6,0.13,4.2-i*0.9,matBordo,76.1+i*0.55,0.30-i*0.09,7.6,false);
+    contatto(g,90,0.04,14,26,40,0.34);
   })();
 
-  /* --- 4) DUE SCIVOLI ELICOIDALI, ~35 m di sviluppo ciascuno -------------
-     Elica di 1,5 giri, raggio 3,6 m, dislivello 6,2 m:
-     sviluppo = sqrt((2*pi*3.6*1.5)^2 + 6.2^2) = 34,5 m. Uno azzurro e uno
-     giallo, sfalsati di mezzo giro, come le due spirali dell'aerea. */
-  (function scivoli(){
-    /* DUE SCIVOLI DI FORMA DIVERSA (Andrea, confermato sulla zenitale): uno
-       DIRITTO E LARGO, uno a SPIRALE STRETTA violetta. Non due eliche uguali. */
-    /* Ogni scivolo: un breve tratto rettilineo che esce dalla terrazza, poi
-       l'elica (1,5 giri, r 3,6), poi la discesa nella vasca d'arrivo.
-       Sviluppo dell'elica = sqrt((2*pi*3,6*1,5)^2 + 5,4^2) = 34,4 m. */
-    const yA=Y_TERR+1.30, yB=1.05, cxE=84;
+  /* =================== 5) VASCA A CORSIE SUD ============================
+     x 66,9 . 83,7  z 16,4 . 40,7. Corde NORD-SUD: e' incrociata rispetto
+     a quella nord, e sull'ortofoto si conta bene. Rivestimento blu, quindi
+     acqua molto piu' scura. */
+  vasca(66.9,83.7,16.4,40.7,acquaSud,7,true,true);
 
-    /* (1) SCIVOLO DIRITTO E LARGO, azzurro: una scivolata aperta, quasi in
-       linea, con le sponde rialzate. Non un tubo. */
-    (function diritto(){
-      const cz=10.0;
-      const pts=[new THREE.Vector3(89.4,yA+0.15,cz),
-                 new THREE.Vector3(86.0,yA-0.45,cz+0.6),
-                 new THREE.Vector3(82.0,yA-2.10,cz+1.4),
-                 new THREE.Vector3(78.6,yB+0.35,cz+1.8),
-                 new THREE.Vector3(75.8,0.85,cz+2.0)];
-      const cu=new THREE.CatmullRomCurve3(pts);
-      const al=new THREE.Mesh(new THREE.TubeGeometry(cu,120,1.05,4,false),lam(0x2F8FD8));
-      al.castShadow=true;g.add(al);
-      [-1,1].forEach(s2=>{                            /* le due sponde */
-        const sp=new THREE.Mesh(new THREE.TubeGeometry(cu,120,0.16,8,false),lam(0x1F6FA8));
-        sp.position.set(0,0.52,s2*0.98);g.add(sp);});
-      for(let i=1;i<=5;i++){
-        const p=cu.getPoint(i/6);
-        if(p.y>1.4) box(g,0.13,p.y-0.7,0.13,lam(0x9aa0a5),p.x,(p.y-0.7)/2,p.z,false);}
-      contatto(g,82,0.03,cz+1.2,16,5,0.3);
-    })();
+  /* =================== 6) PADIGLIONE SUD-OVEST ==========================
+     x 47,6 . 62,1  z 21,6 . 48,4, alto 4,6. Tetto chiaro a NERVATURE
+     TRASVERSALI fitte, una ogni 1,9 m: se ne contano quattordici. Sta a
+     ponente della vasca sud, con la sua ombra sul fianco ovest. */
+  const PS={x0:47.6,x1:62.1,z0:21.6,z1:48.4,h:4.6};
+  (function padiglioneSud(){
+    const w=PS.x1-PS.x0,d=PS.z1-PS.z0,cx=(PS.x0+PS.x1)/2,cz=(PS.z0+PS.z1)/2,h=PS.h;
+    box(g,w+1.2,0.35,d+1.2,lam(0xDDD9D0),cx,0.17,cz,false);   /* platea */
+    box(g,w,h,d,matMuro,cx,h/2+0.3,cz,true);
+    box(g,w+0.7,0.26,d+0.7,matTetto,cx,h+0.43,cz,true);
+    const nn=Math.round(d/1.9);
+    for(let i=0;i<=nn;i++)
+      box(g,w+0.6,0.11,0.15,matLatt,cx,h+0.60,PS.z0+i*d/nn,false);
+    box(g,w+0.9,0.18,0.20,matLatt,cx,h+0.34,PS.z0-0.4,false);
+    box(g,w+0.9,0.18,0.20,matLatt,cx,h+0.34,PS.z1+0.4,false);
+    /* fascia di finestre a nastro sul fianco est, verso le vasche */
+    for(let i=0;i<7;i++)
+      box(g,0.10,1.2,2.6,matVetro,PS.x1+0.06,2.9,PS.z0+2.2+i*3.5,false);
+    solido(box(g,w,h,d,new THREE.MeshBasicMaterial({visible:false}),cx,h/2+0.3,cz,false));
+    contatto(g,cx,0.04,cz,w+4,d+4,0.5);
+  })();
 
-    /* (2) SCIVOLO A SPIRALE STRETTA, violetto: raggio piccolo e due giri e
-       mezzo, un tubo vero. E' quello che nella zenitale si legge come un
-       ricciolo compatto. */
-    (function spirale(){
-      const cz=23.5, r=2.5;
-      const pts=[new THREE.Vector3(89.4,yA+0.15,cz),
-                 new THREE.Vector3(87.0,yA,cz)];
-      for(let i=1;i<=120;i++){
-        const t=i/120, a=Math.PI*2*2.5*t;
-        pts.push(new THREE.Vector3(cxE+Math.cos(a)*r, yA-(yA-yB)*t, cz+Math.sin(a)*r));}
-      pts.push(new THREE.Vector3(79.0,0.85,cz-1.2));
-      const cu=new THREE.CatmullRomCurve3(pts);
-      const tu=new THREE.Mesh(new THREE.TubeGeometry(cu,220,0.58,12,false),lam(0x7A63B8));
+  /* =================== 7) I DUE SCIVOLI ELICOIDALI ======================
+     x 84,3 . 98,9  z 23,1 . 42,6. Due tubi che si avvolgono, di raggio e
+     colore diversi: uno viola stretto a nord-est, uno blu scuro piu' largo
+     a sud-ovest. A forte ingrandimento si legge anche la SCALA: una rampa
+     dritta e chiara che sale in diagonale da (85,8 · 27,2) verso sud-est,
+     fra il bordo della vasca sud e il canale, fino alla torretta che sta
+     FRA le due eliche, a (91,0 · 33,0). La prima volta l'avevo messa a
+     (87,5 · 26,0) e i gradini finivano sul bordo vasca. */
+  const TS={x:91.0,z:33.0,h:8.6};
+  (function elicoidali(){
+    box(g,4.2,TS.h,4.2,matMuro,TS.x,TS.h/2,TS.z,true);
+    box(g,4.8,0.30,4.8,matBordo,TS.x,TS.h+0.15,TS.z,false);
+    /* la rampa in diagonale: da nord-ovest verso la torretta */
+    (function scala(){
+      const A=V(85.8,0,27.2), B=V(TS.x-2.0,0,TS.z-2.0);
+      const n=22, dx=(B.x-A.x)/n, dz=(B.z-A.z)/n, ang=Math.atan2(B.x-A.x,B.z-A.z);
+      for(let i=0;i<n;i++){
+        const s=box(g,2.0,0.11,Math.hypot(dx,dz)+0.08,lam(0xCFCBC2),
+          A.x+dx*(i+0.5),0.42+i*(TS.h-0.4)/n,A.z+dz*(i+0.5),false);
+        s.rotation.y=ang;}
+      [[-1.1],[1.1]].forEach(q=>{
+        const p=box(g,0.07,TS.h+1.0,0.07,matLatt,(A.x+B.x)/2+q[0],(TS.h+1.0)/2,(A.z+B.z)/2,false);});
+      contatto(g,(A.x+B.x)/2,0.03,(A.z+B.z)/2,7,7,0.34);})();
+    [[0,-2.4,4.8,0.08],[0,2.4,4.8,0.08],[2.4,0,0.08,4.8]].forEach(p=>
+      box(g,p[2],1.0,p[3],matLatt,TS.x+p[0],TS.h+0.80,TS.z+p[1],false));
+    function elica(cx,cz,r,giri,col,fine){
+      const yA=TS.h+0.55,yB=1.10;
+      const a0=Math.atan2(TS.z-cz,TS.x-cx);
+      const pts=[V(TS.x+Math.cos(a0+Math.PI)*2.2,yA,TS.z+Math.sin(a0+Math.PI)*2.2)];
+      for(let i=0;i<=140;i++){
+        const t=i/140,a=a0+Math.PI*2*giri*t;
+        pts.push(V(cx+Math.cos(a)*r,yA-(yA-yB)*t,cz+Math.sin(a)*r));}
+      pts.push(V(fine[0],1.00,fine[1]));
+      const cu=new THREE.CatmullRomCurve3(pts,false,'centripetal');
+      const tu=new THREE.Mesh(new THREE.TubeGeometry(cu,260,0.62,10,false),lam(col));
       tu.castShadow=true;g.add(tu);
-      box(g,0.24,yA,0.24,lam(0xb8bcc0),cxE,yA/2,cz,false);
-      contatto(g,cxE,0.03,cz,r*2.6,r*2.6,0.34);
-    })();
-    /* VASCA D'ARRIVO: una sola, larga, che raccoglie tutte e due le uscite */
-    vascaRett(73,17,10,20,0,false,0);
+      box(g,0.26,yA,0.26,matLatt,cx,yA/2,cz,true);
+      contatto(g,cx,0.03,cz,r*2.8,r*2.8,0.34);}
+    elica(95.3,28.0,3.9,2.0,0x6B3F8C,[90.6,30.4]);   /* viola, a nord-est  */
+    elica(90.8,37.0,4.8,1.5,0x2B3E86,[89.4,30.8]);   /* blu scuro, a sud   */
   })();
 
-  /* --- 5) terrazza del bar: tende a braccio, ombrelloni rossi, fioriere --- */
+  /* =================== 8) BAR, LETTINI, BAGNINO =========================
+     Il bar stava a (94 · -27), cioe' DENTRO la copertura. Sta invece sul
+     piazzale di cotto a ponente della vasca nord, l'unica fascia libera. */
   (function bar(){
-    const bx=94,bz=-27;
-    const pav=new THREE.Mesh(new THREE.PlaneGeometry(22,12),
-      lam(0xffffff,{map:(()=>{const t=tex(texPunti('#dcae98',['#d2a48e','#e6b8a2','#c9997f'],31),true);
-        t.repeat.set(15,9);return t;})()}));
-    pav.rotation.x=-Math.PI/2;pav.position.set(bx,0.04,bz);pav.receiveShadow=true;g.add(pav);
-    /* corpo del bar con le TENDE A BRACCIO beige, grandi e sporgenti */
-    box(g,14,3.4,5,lam(0xe8e4da),bx+2,1.7,bz-5.6,true);
+    const bx=48.5,bz=-11.0;
+    box(g,8.6,3.3,4.4,lam(0xE8E4DA),bx,1.65,bz-4.2,true);
     for(let i=0;i<3;i++){
-      const tx2=bx-3.4+i*4.6;
-      const tenda=box(g,4.4,0.10,4.2,lam(0xE6DCC8),tx2,3.15,bz-1.9,true);
-      tenda.rotation.x=0.14;
-      box(g,0.07,0.07,4.2,lam(0xb8b4ac),tx2-2.1,3.05,bz-1.9,false);
-      box(g,0.07,0.07,4.2,lam(0xb8b4ac),tx2+2.1,3.05,bz-1.9,false);
-      box(g,4.5,0.16,0.16,lam(0xcfcbc2),tx2,3.42,bz-3.9,false);}
+      const tx=bx-2.9+i*2.9;
+      const t=box(g,2.8,0.10,3.6,lam(0xE6DCC8),tx,3.05,bz-0.5,true);
+      t.rotation.x=0.14;
+      box(g,0.07,0.07,3.6,lam(0xB8B4AC),tx-1.35,2.95,bz-0.5,false);
+      box(g,0.07,0.07,3.6,lam(0xB8B4AC),tx+1.35,2.95,bz-0.5,false);}
     const rnd=seme(211);
     for(let i=0;i<5;i++){
-      const tx2=bx-4+((i%2)?2.8:0), tz2=bz+3.6-i*1.9;
-      const top=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.05,16),lam(0x4a4a4c));
-      top.position.set(tx2,0.76,tz2);top.castShadow=true;g.add(top);
-      box(g,0.07,0.72,0.07,lam(0x4a4a4c),tx2,0.38,tz2,false);
-      box(g,0.5,0.03,0.5,lam(0x4a4a4c),tx2,0.03,tz2,false);
+      const tx=bx-3.2+((i%2)?2.6:0),tz=bz+3.4-i*1.9;
+      const top=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.05,16),lam(0x4A4A4C));
+      top.position.set(tx,0.76,tz);top.castShadow=true;g.add(top);
+      box(g,0.07,0.72,0.07,lam(0x4A4A4C),tx,0.38,tz,false);
       for(let k=0;k<2;k++){
-        const an=rnd()*6.28, sx=tx2+Math.cos(an)*0.78, sz=tz2+Math.sin(an)*0.78;
-        const sd=new THREE.Mesh(geoSmussata(0.4,0.04,0.4,0.03),lam(0x33373c));
+        const an=rnd()*6.28,sx=tx+Math.cos(an)*0.78,sz=tz+Math.sin(an)*0.78;
+        const sd=new THREE.Mesh(geoSmussata(0.4,0.04,0.4,0.03),lam(0x33373C));
         sd.position.set(sx,0.44,sz);sd.castShadow=true;g.add(sd);
-        const sc=new THREE.Mesh(geoSmussata(0.4,0.38,0.035,0.03),lam(0x33373c));
+        const sc=new THREE.Mesh(geoSmussata(0.4,0.38,0.035,0.03),lam(0x33373C));
         sc.position.set(sx,0.66,sz-0.19);g.add(sc);}
-      /* ombrellone rosso CHIUSO accanto al tavolino */
-      const ox=tx2+1.2, oz=tz2+0.3;
-      box(g,0.05,2.5,0.05,lam(0xb8bcc0),ox,1.25,oz,false);
-      const om=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.26,1.8,10),lam(0xD8321E));
-      om.position.set(ox,1.95,oz);om.castShadow=true;g.add(om);
-      const base=new THREE.Mesh(new THREE.CylinderGeometry(0.34,0.4,0.14,12),lam(0x8a8f95));
-      base.position.set(ox,0.07,oz);g.add(base);
-      contatto(g,tx2,0.05,tz2,2.6,2.2,0.45);}
-    /* fioriere alte rettangolari con piante */
-    for(let i=0;i<5;i++){
-      const fx=bx+6.2, fz=bz+4-i*2.1;
-      box(g,0.75,0.85,0.75,lam(0x5f8a52),fx,0.42,fz,true);
-      const pl=new THREE.Mesh(new THREE.SphereGeometry(0.46,9,7),lam(0x8a9a5a));
-      pl.position.set(fx,1.12,fz);pl.scale.y=1.25;pl.castShadow=true;g.add(pl);
-      contatto(g,fx,0.05,fz,1.5,1.5,0.5);}})();
+      contatto(g,tx,0.05,tz,2.4,2.0,0.42);}})();
 
-  /* --- 6) striscioni sponsor, recinzione e torretta del bagnino ---------- */
+  (function solarium(){
+    const rnd=seme(139);
+    /* due file: sul cemento fra il padiglione sud e la vasca sud, e sul
+       cotto a est della vasca nord. Sull'ortofoto sono li'. */
+    [[63.2,18.0,3.4,8],[84.5,-15.0,3.2,7]].forEach(q=>{
+      for(let i=0;i<q[3];i++){
+        const sx=q[0]+(i%2)*1.9+rnd()*0.5, sz=q[1]+((i/2)|0)*q[2]+rnd()*0.7;
+        const l=box(g,0.72,0.10,1.95,lam(0xDCD8D0),sx,0.30,sz,true);
+        l.rotation.y=(rnd()-0.5)*0.6;
+        box(g,0.08,0.30,0.08,lam(0x9AA0A5),sx-0.28,0.15,sz-0.8,false);
+        box(g,0.08,0.30,0.08,lam(0x9AA0A5),sx+0.28,0.15,sz+0.8,false);
+        contatto(g,sx,0.04,sz,1.5,2.6,0.38);}});
+    /* ombrelloni aperti, chiari, sul deck A PONENTE della laguna: dove li
+       avevo messi (x 78,5 · z 16,5) stavano dentro la vasca sud. */
+    for(let i=0;i<6;i++){
+      const ox=67.0+(i%3)*3.2, oz=3.5+((i/3)|0)*4.0;
+      box(g,0.06,2.4,0.06,lam(0xB8BCC0),ox,1.2,oz,false);
+      const om=new THREE.Mesh(new THREE.ConeGeometry(1.35,0.5,12),lam(0xE8E2D2));
+      om.position.set(ox,2.45,oz);om.castShadow=true;g.add(om);
+      contatto(g,ox,0.05,oz,2.8,2.8,0.34);}})();
+
+  (function bagnino(){
+    const bx=88.6,bz=4.3;                       /* sull'istmo, fra laguna e canale */
+    [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5]].forEach(q=>
+      box(g,0.08,2.4,0.08,lam(0xE8E4DC),bx+q[0],1.2,bz+q[1],false));
+    box(g,1.5,0.10,1.5,lam(0xE8E4DC),bx,2.45,bz,true);
+    const sd=new THREE.Mesh(geoSmussata(0.9,0.06,0.9,0.05),lam(0xD8D4CC));
+    sd.position.set(bx,2.6,bz);g.add(sd);
+    box(g,0.9,0.7,0.06,lam(0xD8D4CC),bx,2.95,bz-0.42,false);
+    contatto(g,bx,0.03,bz,2.4,2.4,0.5);})();
+
+  /* =================== 9) CONFINE =======================================
+     A est la recinzione corre a x=102, subito prima della siepe scura che
+     si legge sull'ortofoto (#20201B); a sud finisce sul prato, a z=49. */
+  reteAlta(44,-44,102,-44,2.4,0x6A7A8A,6);
+  reteAlta(102,-44,102,49,2.4,0x6A7A8A,6);
+  reteAlta(44,49,102,49,2.4,0x6A7A8A,6);
+  reteAlta(44,-44,44,49,2.4,0x6A7A8A,6);
   for(let i=0;i<7;i++){
     const st=new THREE.Mesh(new THREE.PlaneGeometry(4.4,1.0),
       lam(0xffffff,{map:texLavori(120+i,'#f6f4f0')}));
-    st.position.set(85+i*8,1.15,-31.6);g.add(st);}
-  reteAlta(27,-32,111,-32,2.4,0x6a7a8a,6);
-  reteAlta(111,-32,111,26,2.4,0x6a7a8a,6);
-  reteAlta(27,26,111,26,2.4,0x6a7a8a,6);
-  reteAlta(27,-32,27,26,2.4,0x6a7a8a,6);
-  (function bagnino(){
-    const bx=112,bz=-14;
-    [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5]].forEach(q=>
-      box(g,0.08,2.4,0.08,lam(0xe8e4dc),bx+q[0],1.2,bz+q[1],false));
-    box(g,1.5,0.10,1.5,lam(0xe8e4dc),bx,2.45,bz,true);
-    const sd=new THREE.Mesh(geoSmussata(0.9,0.06,0.9,0.05),lam(0xd8d4cc));
-    sd.position.set(bx,2.6,bz);g.add(sd);
-    box(g,0.9,0.7,0.06,lam(0xd8d4cc),bx,2.95,bz-0.42,false);
-    contatto(g,bx,0.03,bz,2.4,2.4,0.5);})();
-  /* lettini e ombrelloni aperti sul prato a nord, come nell'aerea */
-  (function solarium(){
-    const rnd=seme(139);
-    for(let i=0;i<11;i++){
-      const sx=116+(i%4)*3.4+rnd()*1.2, sz=6+((i/4)|0)*3.6+rnd()*1.4;
-      const l=box(g,0.7,0.1,1.9,lam(0xdcd8d0),sx,0.3,sz,true);
-      l.rotation.y=(rnd()-0.5)*0.7;
-      box(g,0.08,0.3,0.08,lam(0x9aa0a5),sx-0.28,0.15,sz-0.8,false);
-      box(g,0.08,0.3,0.08,lam(0x9aa0a5),sx+0.28,0.15,sz+0.8,false);
-      contatto(g,sx,0.04,sz,1.5,2.6,0.4);}})();
+    st.position.set(52+i*7,1.15,-43.6);g.add(st);}
 })();
+
 
 
 /* ---- 4861/4862/4863: sopra la corte sono tesi QUATTRO CAVI COLORATI, quasi
@@ -4101,12 +4297,12 @@ const TAPPE=[
     imparato:'Il campo grande è orientato nord-sud e protetto da due filari di alberi: fanno ombra al pomeriggio e fermano il vento. Il verde intorno alla scuola non è decorazione, è progetto.' },
 
   { titolo:'L\'acqua oltre il confine',
-    indizio:'Cammina lungo la facciata fino all\'ultima porta: da lì in poi non è più scuola. Ci sono due capannoni affiancati con la copertura di lamiera blu, una vasca lunga con le corsie e i blocchi di partenza, e in fondo una terrazza alta sei metri con una vasca piccola da cui partono due scivoli. La cassetta è sul bordo della vasca lunga, dal lato dei blocchi.',
-    pos:[45.2,0.60,-6.5], da:[40.0,3.4,-11.5],
+    indizio:'Cammina lungo la facciata fino all\'ultima porta: da lì in poi non è più scuola. Trovi una vasca lunga venticinque metri, sei corsie e i blocchi di partenza sul lato verso la scuola; subito a nord, ferma sui suoi binari, c\'è una costruzione bassa dal tetto bianco diviso in quattro campate. La cassetta è sul bordo della vasca, dalla parte dei blocchi.',
+    pos:[55.0,0.52,-11.6], da:[50.6,3.4,-15.4],
     zona:'Piscine Andreana, subito oltre l\'estremità del fronte.',
     cosa:'Una cassetta di legno sul bordo piastrellato della vasca, accanto a un blocco di partenza.',
-    zona3d:[42,74,-16,3],
-    imparato:'Le piscine non stanno lontane: toccano la scuola, separate solo dal piazzale. E non sono tutte alla stessa quota — la vasca piccola sta sei metri più in alto della grande, ed è da lì che partono gli scivoli. Il campus non finisce con un muro: finisce dove cambia chi si prende cura dello spazio.' },
+    zona3d:[53,84,-18,-2],
+    imparato:'Le piscine non stanno lontane: toccano la scuola, separate solo dal piazzale. E quella costruzione bassa non è un capannone qualsiasi: è la copertura della vasca, e cammina su due binari. D\'estate resta parcheggiata a nord e si nuota all\'aperto, d\'inverno scorre sopra l\'acqua. La stessa vasca serve tutto l\'anno perché qualcuno ha progettato un tetto che si sposta. Il campus non finisce con un muro: finisce dove cambia chi si prende cura dello spazio.' },
 
   { titolo:'Il cortile dei più piccoli',
     indizio:'C\'è un cortile chiuso su ogni lato, con l\'erba finta e il pavimento morbido e scuro. Da una parte una pergola bianca a listelli, dall\'altra uno scivolo giallo e rosso; in mezzo c\'è un fungo rosso a pois, alto quanto un adulto. La cassetta è ai piedi del fungo.',
@@ -4507,22 +4703,93 @@ function passabile(p){
    visitare un corridoio. Anche le mete a terra stanno a 1,62 e non a tre o
    quattro metri, cosi' si atterra e si prosegue camminando; restano in quota
    solo le due viste d'insieme, che servono a guardare, non a camminare.
-   "Primo piano · braccio nord" e' stato tolto (Andrea): il braccio nord si
-   attraversa comunque venendo da qualunque altra voce del piano, e in un
-   menu di dodici voci era una riga in piu' senza una meta sua. */
+   DELLE CINQUE VOCI DEL PRIMO PIANO NE RESTA UNA (Andrea). Arriva davanti
+   alla ZONA UFFICI, a meta' del corridoio lungo: da li' si vede il ballatoio
+   col vano scala, e camminando si raggiunge tutto il resto del piano — la
+   Primaria a ponente, la gradinata e la Secondaria a levante. Un piano che
+   si visita a piedi non ha bisogno di cinque porte d'ingresso.
+   Tolto anche "Portico e le due corti". */
 const LUOGHI=[
-  ['Vista dall\'alto',              [30,46,64],            [-25,0,0]],
+  ['Il giro del campus',            [30,46,64],            [-25,0,0]],
   ['Ingresso Scuola',               [-22.6,1.62,-33],      [-22.6,2.6,-19]],
   ['Campo Basket',                  [-8.6,1.62,18],        [-8.6,3.2,-2]],
-  ['Portico e le due corti',        [-28.1,1.62,26],       [-28.1,2.2,-4]],
   ['Campo Calcio',                  [-8.6,1.62,78],        [-8.6,2.5,40]],
-  ['Piscine Andreana',              [58,18,34],            [60,2,-8]],
-  ['Primo piano · Primaria',        [-58.6,5.04,18.0],     [-58.6,4.72,-5.0]],
-  ['Primo piano · Secondaria',      [12.7,5.41,24.0],      [12.7,5.24,-4.0]],
-  ['Primo piano · la gradinata',    [12.7,5.04,6.20],      [12.7,4.52,-3.0]],
-  ['Primo piano · uffici e scala',  [-18.5,5.04,-2.95],    [-31.0,4.72,-3.60]],
-  ['Primo piano · scala tabelline', [-45.0,5.04,-2.60],    [-53.0,5.12,-1.70]]
+  ['Piscine Andreana',              [70,24,52],            [74,2,-6]],
+  ['Primo piano',                   [-18.5,5.04,-2.95],    [-31.0,4.72,-3.60]]
 ];
+/* ==========================================================================
+   IL GIRO DEL CAMPUS — la prima voce del menu non e' piu' una vista ferma
+   --------------------------------------------------------------------------
+   E' un volo in circolo che non finisce mai. Si comincia alti e larghi sopra
+   tutto il campus, si scende sul campo da calcio e lo si attraversa raso,
+   si arriva sul campo da basket, si PASSA SOTTO IL PORTICO (che e' alto
+   3,45: ci si infila a 1,90), si entra nel giardino dell'infanzia, si
+   impenna e si va a prendere la facciata della chiesa, poi si risale e si
+   ricomincia.
+
+   LA VELOCITA' LA DECIDE LA QUOTA: 7 m/s a cinquanta metri, 30 m/s a terra.
+   E' il contrario di quello che verrebbe da fare, ed e' il motivo per cui
+   funziona: da lontano il campus si guarda, raso terra ci si passa dentro.
+
+   Due curve CENTRIPETAL Catmull-Rom chiuse (la centripeta non fa cappi ne'
+   sbandate fra due punti vicini: in un passaggio da 3,10 m di luce conta),
+   una per dove sta l'occhio e una per dove
+   guarda, percorse con `getPointAt` — che e' parametrizzata sulla LUNGHEZZA
+   e non sull'indice dei punti: senza, il volo rallenterebbe dove i punti
+   sono fitti e sfreccerebbe dove sono radi.
+   Ogni riga: occhio [x,y,z] · mira [x,y,z].
+   ========================================================================== */
+const GIRO=[
+  [  62, 52, -62,   -10,  2,  -8],   /* larghi da nord-est, altissimi       */
+  [  78, 46,  26,   -18,  2,  12],
+  [  34, 42,  92,   -12,  2,  40],
+  [ -52, 38,  96,   -12,  2,  46],
+  [ -30, 16,  92,    -8.6, 3,  62],  /* si punta il campo da calcio         */
+  [  -8.6, 6,   78,  -8.6, 3,  44],  /* giu' sul campo, e lo si attraversa  */
+  [  -8.6, 3.4, 46,  -8.6, 2.6, 16],
+  [  -8.6, 3.2, 18,  -8.6, 2.2,  2], /* arrivo sul campo da basket          */
+  [  -8.6, 2.6,  4,  -24,  2.2,  6.9],
+  [ -20,   2.0,  6.9,-34,  2.0,  6.9],
+  /* SOTTO IL PORTICO. I pilastri stanno a x=-28,65 e -25,55, in fila ogni
+     3,05 m a z = -0,7 · 2,35 · 5,40 · 8,45 · 11,50 …: si passa IN MEZZO A
+     UNA CAMPATA, a z=6,90, non a caso. Il tetto e' a 3,10: ci si infila a
+     1,90. La prima stesura passava a z=8, cioe' a 45 cm da un pilastro, e
+     il collaudo del percorso l'ha trovato subito. */
+  [ -28.1, 1.9,  6.9,-42,  2.0,  6.9],
+  [ -38,   1.95, 6.9,-50,  2.2,  5],  /* dentro il giardino dell'infanzia   */
+  [ -45,   1.90, 6.0,-52,  2.0,  3.0], /* sotto le chiome, che partono a 3,20 */
+  /* IMPENNATA. Fra il giardino e la chiesa ci sono, nell'ordine: le CHIOME
+     del giardino (da 3,20 a 9,30, x da -48,1 a -39,9), la PERGOLA (2,66),
+     il CORRIDOIO del primo piano (parapetto e vetrata da 3,42 a 6,42) e LA
+     PALESTRA (tetto a 9,70). La prima stesura passava dentro tutti e quattro.
+     Si sale nella fascia libera a ponente delle chiome (x=-51), si vira a
+     nord gia' a quattordici metri, si scavalca tutto e si scende sul fronte
+     della chiesa da nord, tenendosi a ovest della facciata — che e' larga
+     11,60 e arriva a x=-42,8. Non si puo' impennare piu' stretti: a z=-0,50
+     c'e' la vetrata del corridoio, e per scavalcarla serve gia' quota. */
+  /* Il giardino e' pieno: sotto le chiome si passa a 1,90, ma appena
+     finiscono (x=-48,1) si e' sopra il FUNGO — cappello a 2,20 su
+     x[-51,05 · -48,95] — e poi sopra la PERGOLA (2,66). Si sale a tre metri
+     e mezzo appena le chiome lo consentono: e' l'inizio dell'impennata. */
+  [ -48.8, 1.90, 4.4,-53,  2.5,  2.0], /* ancora basso: le chiome finiscono a x=-48,1 */
+  [ -50.5, 3.80, 2.4,-53,  5.0,  1.0], /* sopra il fungo (2,20) e la pergola (2,66) */
+  [ -52.5, 5.0,  0.6,-52,  7.0,  5],
+  [ -51,   8.0,  6.0,-50, 10.0, 12],
+  [ -51,  12,   11.0,-48, 12,    0],
+  [ -52,  14,    0.0,-48, 12,  -14],
+  [ -51,  14,  -14,  -44, 11,  -32],
+  [ -49,  14,  -32,  -40,  9,  -47],
+  [ -46,  11,  -54,  -37,  7,  -49],
+  [ -37,   8,  -64,  -37,  7,  -49],  /* il fronte della chiesa             */
+  [ -20,  20,  -80,    0,  5,  -40], /* si risale                           */
+  [  22,  38,  -84,    0,  0,  -16]
+];
+const curvaOcchio=new THREE.CatmullRomCurve3(GIRO.map(q=>V(q[0],q[1],q[2])),true,'centripetal');
+const curvaMira  =new THREE.CatmullRomCurve3(GIRO.map(q=>V(q[3],q[4],q[5])),true,'centripetal');
+const LGIRO=curvaOcchio.getLength();
+let giroAttivo=false, giroU=0;
+function fermaGiro(){ if(giroAttivo){ giroAttivo=false; verificaAppoggio(); } }
+
 let voloDa=null, voloA=null, voloT=1;
 const mira=new THREE.Vector3();
 function guardaVerso(t){
@@ -4538,6 +4805,8 @@ function verificaAppoggio(){
 }
 window.vaiA=function(i){
   const m=LUOGHI[i]; if(!m) return;
+  if(i===0){ giroAttivo=true; inVolo=true; voloT=1; return; }  /* il giro */
+  giroAttivo=false;
   voloDa=pos.clone(); voloA=V(m[1][0],m[1][1],m[1][2]);
   mira.set(m[2][0],m[2][1],m[2][2]); voloT=0;
 };
@@ -4719,7 +4988,23 @@ function anima(){
   requestAnimationFrame(anima);
   const dt=Math.min(0.05,orologio.getDelta());
 
-  if(voloT<1){
+  if(giroAttivo && velo.style.display!=='flex'){
+    /* IL GIRO DEL CAMPUS. Basta toccare un comando per riprendere in mano
+       la navigazione: il volo non si subisce. */
+    if(tasti['KeyW']||tasti['KeyS']||tasti['KeyA']||tasti['KeyD']||tasti['KeyE']||
+       tasti['KeyQ']||tasti['Space']||tasti['ArrowUp']||tasti['ArrowDown']||
+       tasti['ArrowLeft']||tasti['ArrowRight']||jM.x||jM.y||jV.x||jV.y||salgo){
+      fermaGiro();
+    } else {
+      const p=curvaOcchio.getPointAt(giroU);
+      /* LENTI IN ALTO, VELOCI IN BASSO: 7 m/s a 50 m, 30 m/s a terra */
+      const k=Math.max(0,Math.min(1,(p.y-2.0)/44));
+      const vel=30-(30-7)*k;
+      giroU+=dt*vel/LGIRO; if(giroU>=1) giroU-=1;
+      pos.copy(p); guardaVerso(curvaMira.getPointAt(giroU));
+      inVolo=true;
+    }
+  } else if(voloT<1){
     /* spostamento guidato (menu Luoghi, "ti porto sul posto") */
     voloT=Math.min(1,voloT+dt/1.6);
     const k=voloT<0.5?2*voloT*voloT:1-Math.pow(-2*voloT+2,2)/2;
@@ -4802,7 +5087,13 @@ function anima(){
   qv.textContent = inVolo ? 'in volo' : (q>1 ? 'primo piano' : 'a terra');
   qm.textContent = '+'+(inVolo?pos.y:q).toFixed(2).replace('.',',')+' m';
   renderer.render(scene,camera);
+  /* la shadow map si disegna nei primi fotogrammi e poi si congela: il sole
+     non si muove, e ricalcolarla significa rifare tutte le draw call una
+     seconda volta per ottenere sempre la stessa immagine (vedi la nota in
+     fondo al file) */
+  if(ombre<3){ if(++ombre===3) renderer.shadowMap.autoUpdate=false; }
 }
+let ombre=0;
 
 /* ==========================================================================
    LA LUCE DEGLI INTERNI — misurata, non a occhio
@@ -5131,6 +5422,28 @@ window.collaudo=function(){
                       : '— COLLAUDO: nessun problema —');
   return R;
 };
+
+/* ==========================================================================
+   DUE CONGELAMENTI, CHE SONO QUASI TUTTA LA FLUIDITA'
+   --------------------------------------------------------------------------
+   Il campus e' fatto di seimila mesh e non si muove: quello che rallentava
+   il giro non era il numero di triangoli (centoventimila e' poco), erano due
+   cose rifatte inutilmente sessanta volte al secondo.
+
+   1. LE MATRICI. Three ricompone la matrice di OGNI oggetto a ogni
+      fotogramma. Con seimila oggetti fermi e' lavoro di CPU buttato: si
+      calcolano una volta e si spegne `matrixAutoUpdate`. Restano accesi solo
+      i pezzi che si muovono davvero — i battenti del portone e le tapparelle
+      — che si dichiarano con `userData.animato`.
+   2. LA SHADOW MAP. Il sole e' fermo. Ricalcolarla vuol dire rifare TUTTE le
+      draw call una seconda volta, ogni fotogramma, per ottenere sempre la
+      stessa immagine. Si disegna una volta e si congela.
+   Nessuna delle due toglie niente a quello che si vede.
+   ========================================================================== */
+(function congelaMatrici(){
+  mondo.updateMatrixWorld(true);
+  mondo.traverse(o=>{ if(!o.userData.animato) o.matrixAutoUpdate=false; });
+})();
 
 /* ============================== avvio =================================== */
 pos.set(LUOGHI[0][1][0],LUOGHI[0][1][1],LUOGHI[0][1][2]);
