@@ -27,32 +27,46 @@
   --head:'Lexend',sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;min-height:100%;background:#0B1118;color:var(--testo);
-  font-family:var(--body);font-size:17px}
+/* LA PAGINA STA IN UNO SCHERMO, SENZA SCROLL. La tela non si dimensiona
+   più sulla larghezza (che sforava in altezza): si prende lo spazio che
+   avanza fra intestazione e striscia, e dentro quello sceglie il lato
+   più stretto fra larghezza e altezza. */
+html,body{margin:0;height:100%;overflow:hidden;background:#0B1118;
+  color:var(--testo);font-family:var(--body);font-size:17px}
 h1,h2,h3{font-family:var(--head);margin:0;line-height:1.22}
 button{font-family:var(--body);font-size:1rem;color:inherit;cursor:pointer;border:0;background:none}
-.wrap{max-width:1280px;margin:0 auto;padding:12px 14px 26px}
-header{display:flex;align-items:center;gap:13px;flex-wrap:wrap;padding:10px 15px;
-  background:var(--pann);border:1px solid var(--linea);border-radius:13px;margin-bottom:11px}
+.wrap{max-width:1440px;height:100%;margin:0 auto;padding:10px 12px;
+  display:flex;flex-direction:column;gap:8px}
+header{flex:0 0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:7px 13px;background:var(--pann);border:1px solid var(--linea);border-radius:12px}
 header b{font-family:var(--head);font-weight:700;letter-spacing:.045em}
 .occ{font-family:var(--head);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
   color:var(--oro)}
 header .occ{display:block;color:var(--muto)}
 .spazio{flex:1 1 auto}
-.btn{min-height:46px;padding:10px 17px;border-radius:10px;background:var(--pann2);
-  border:1px solid var(--linea);font-weight:700;font-size:.93rem}
+.btn{min-height:42px;padding:8px 14px;border-radius:10px;background:var(--pann2);
+  border:1px solid var(--linea);font-weight:700;font-size:.88rem}
 .btn:hover{border-color:var(--blu2)}
 .btn.oro{background:var(--oro);border-color:var(--oro);color:#1a1206}
 .btn:focus-visible{outline:3px solid var(--oro);outline-offset:2px}
 .cont{display:flex;gap:8px;flex-wrap:wrap}
 .c{background:var(--pann2);border:1px solid var(--linea);border-radius:10px;
-  padding:5px 12px;text-align:center;min-width:80px}
-.c b{display:block;font-family:var(--head);font-size:1.26rem;line-height:1.1}
+  padding:3px 11px;text-align:center;min-width:74px}
+.c b{display:block;font-family:var(--head);font-size:1.14rem;line-height:1.1}
 .c span{font-size:.63rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muto)}
 .c.oro b{color:var(--oro)} .c.ambra{border-color:var(--ambra)} .c.ambra b{color:var(--ambra)}
-#telaio{position:relative;border-radius:13px;overflow:hidden;border:1px solid var(--linea);
-  line-height:0;background:#0D1620}
-canvas{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
+#telaio{flex:1 1 auto;min-height:0;border-radius:13px;overflow:hidden;
+  border:1px solid var(--linea);background:#0D1620;
+  display:flex;align-items:center;justify-content:center}
+canvas{display:block;touch-action:none;cursor:crosshair}
+/* la striscia in basso: la legenda essenziale in una riga sola */
+.striscia{flex:0 0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:7px 13px;background:var(--pann);border:1px solid var(--linea);
+  border-radius:12px;font-size:.82rem;color:var(--muto)}
+.striscia b{color:var(--testo)}
+.chip{display:inline-flex;align-items:center;gap:6px}
+.chip i{width:20px;height:8px;border-radius:3px;display:block;
+  border:1px solid rgba(255,255,255,.22)}
 .sotto{display:grid;gap:11px;grid-template-columns:1.2fr 1fr;margin-top:11px}
 @media(max-width:820px){.sotto{grid-template-columns:1fr}}
 .card{background:var(--pann);border:1px solid var(--linea);border-radius:13px;padding:13px 16px}
@@ -99,16 +113,16 @@ canvas{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
   <div><span class="occ">Campus Sacra Famiglia</span><b>LA TALPA</b></div>
   <div class="spazio"></div>
   <div class="cont" id="cont"></div>
+  <button class="btn" id="bMusica" aria-pressed="true">Musica</button>
   <button class="btn" id="bAiuto">Come si guida</button>
   <button class="btn" id="bRicomincia">Riprova</button>
   <button class="btn" id="bTorna">Torna al campus</button>
 </header>
 <div id="telaio"><canvas id="tela"></canvas></div>
-<div class="sotto">
-  <div class="card" id="leg"></div>
-  <div class="card" id="note"></div>
+<div class="striscia" id="striscia"></div>
 </div>
-</div>
+<div id="yt" style="position:fixed;left:-9999px;top:0;width:1px;height:1px;
+     opacity:0;pointer-events:none" aria-hidden="true"></div>
 <div id="velo"><div class="modale" id="modale"></div></div>
 
 <script>
@@ -138,8 +152,14 @@ const ALA    ={da:-32,a:-16};
 const STORICO={da:-16,a:  6};
 const CHIESA ={da:  8,a: 16.7};
 const PORTALE=-5, LESENA=-16;
-let   CENTRALE={da:20,a:27};
-const POSTI_CENTRALE=[[20,27],[26,33],[31,38]];
+let   CENTRALE={da:18,a:24};
+/* LE POSIZIONI DELLA CENTRALE DEVONO AVERE IL CIELO LIBERO DA TUBI.
+   La prima stesura ne aveva tre, e due erano attraversate dall'acqua e
+   dal cavo: bucare un tubo chiude la partita come persa, quindi quei
+   livelli erano IRRISOLVIBILI. Adesso i tratti di condotta passano
+   NEGLI SPAZI FRA una posizione e l'altra, e collaudoCentrali() lo
+   verifica — se un domani si sposta un tubo, il test lo dice subito. */
+const POSTI_CENTRALE=[[-37.5,-32.5],[18,24],[27,33]];
 const EDIFICI=[PISCINA,ALA,STORICO,CHIESA];
 const sottoEdificio=x=>EDIFICI.some(e=>x>e.da-0.5&&x<e.a+0.5);
 
@@ -157,9 +177,18 @@ const TUBI=[
  {r:'elet', da: 34,a: 39},
  {r:'gas',  da:-30,a:-20},{r:'gas',  da:-12,a:  2},
  {r:'acqua',da:-53,a:-41},{r:'acqua',da:-31,a:-17},{r:'acqua',da:-13,a: 5},
- {r:'acqua',da: 28,a: 39},
- {r:'fogna',da:-50,a:-40},{r:'fogna',da:-28,a:-18},{r:'fogna',da: 10,a: 16}
+ {r:'acqua',da: 24.6,a: 26.4},
+ {r:'fogna',da:-50,a:-41},{r:'fogna',da:-28,a:-18},{r:'fogna',da: 10,a: 17}
 ];
+
+/* ogni posizione della centrale dev'essere libera da tubi: senza cielo
+   libero il traguardo non si raggiunge senza rompere qualcosa. */
+function collaudoCentrali(){
+  return POSTI_CENTRALE.map(function(q){
+    const sopra=TUBI.filter(function(t){return t.a>q[0]&&t.da<q[1];});
+    return {posto:q, ok:sopra.length===0,
+            bloccanti:sopra.map(function(t){return RETI[t.r].nome;})};});
+}
 const STRATI=[
  {fino:0.9, c:'#6E5A3C',c2:'#7E6944'},{fino:4.2, c:'#8A7048',c2:'#9A7F55'},
  {fino:11.0,c:'#9A8560',c2:'#A8926B'},{fino:22.0,c:'#7C6A52',c2:'#8A7860'},
@@ -180,13 +209,15 @@ const S={ seme:'', nick:'', rocce:[], gemme:[], sacca:{x:0,y:0}, x:0,y:0, dir:0,
 const tela=document.getElementById('tela'), ctx=tela.getContext('2d');
 let LARG=1200, SUOLO=250, ALT=700, MPX=1;
 const YSPACCO=3, FRAZ=0.24;
+const RAPPORTO=0.725;                 /* altezza / larghezza della scena */
 function dimensiona(){
-  const w=Math.min(document.querySelector('.wrap').clientWidth-2,1250);
-  LARG=Math.max(560,w);
+  const box=document.getElementById('telaio');
+  const W=Math.max(320,box.clientWidth-2), H=Math.max(240,box.clientHeight-2);
+  LARG=Math.floor(Math.min(W, H/RAPPORTO));
+  ALT=Math.round(LARG*RAPPORTO);
   SUOLO=Math.round(LARG*0.225);
-  ALT=SUOLO+Math.round(LARG*0.50);
   tela.width=LARG; tela.height=ALT;
-  tela.style.width='100%'; tela.style.height='auto';
+  tela.style.width=LARG+'px'; tela.style.height=ALT+'px';
   MPX=LARG/(X1-X0);
 }
 const px=x=>(x-X0)*MPX;
@@ -579,17 +610,61 @@ function gemme(){
     ctx.strokeStyle='rgba(255,238,190,.8)'; ctx.lineWidth=1.4; ctx.stroke();});
 }
 function tubi(){
+  /* CONDOTTI, non barre. Nei primi tre metri il disegno è ingrandito,
+     quindi il diametro vero (fino a 84 cm) diventava una fascia da venti
+     pixel: sembravano travi. Lo spessore a video è limitato fra 5 e 11 px
+     — il tubo resta alla sua quota vera, ma si legge come un tubo.
+     I raccordi sono due soli e semplici: un COLLARE ogni tanto lungo il
+     tratto, e a ciascuna estremità un GOMITO corto che scende. */
   TUBI.forEach(t=>{
-    const R=RETI[t.r], a=px(Math.max(t.da,X0)), b=px(Math.min(t.a,X1));
-    const y=py(R.prof), h=Math.max(6,(py(R.prof+R.r)-py(R.prof-R.r)));
-    ctx.fillStyle='rgba(228,216,184,.32)'; ctx.fillRect(a,y-h/2-3,b-a,h+6);
-    ctx.fillStyle=R.col; ctx.fillRect(a,y-h/2,b-a,h);
-    const g=ctx.createLinearGradient(0,y-h/2,0,y+h/2);
-    g.addColorStop(0,'rgba(255,255,255,.55)'); g.addColorStop(.35,'rgba(255,255,255,0)');
-    g.addColorStop(1,'rgba(0,0,0,.45)');
-    ctx.fillStyle=g; ctx.fillRect(a,y-h/2,b-a,h);
-    ctx.fillStyle='rgba(255,255,255,.2)';
-    for(let p=a+30;p<b;p+=58) ctx.fillRect(p,y-h/2-1.5,3,h+3);});
+    const R=RETI[t.r];
+    const a=px(Math.max(t.da,X0)), b=px(Math.min(t.a,X1));
+    if(b-a<4) return;
+    const y=py(R.prof);
+    const vero=py(R.prof+R.r)-py(R.prof-R.r);
+    const sp=Math.max(5,Math.min(11,vero*0.42));
+    const scuro=ombreggia(R.col,-0.42), chiaro=ombreggia(R.col,0.40);
+
+    /* il letto di sabbia: appena accennato, non una fascia piena */
+    ctx.strokeStyle='rgba(226,214,182,.22)'; ctx.lineWidth=1;
+    ctx.setLineDash([3,4]);
+    ctx.beginPath(); ctx.moveTo(a,y+sp*0.9+3); ctx.lineTo(b,y+sp*0.9+3); ctx.stroke();
+    ctx.setLineDash([]);
+
+    /* il corpo del condotto */
+    ctx.fillStyle=R.col; ctx.fillRect(a,y-sp/2,b-a,sp);
+    ctx.fillStyle=chiaro; ctx.fillRect(a,y-sp/2,b-a,Math.max(1,sp*0.22));
+    ctx.fillStyle=scuro;  ctx.fillRect(a,y+sp/2-Math.max(1,sp*0.20),b-a,Math.max(1,sp*0.20));
+
+    /* i collari: uno ogni sei metri, sporgono di un pelo */
+    const passo=Math.max(38,6*MPX);
+    for(let p=a+passo*0.6;p<b-4;p+=passo){
+      ctx.fillStyle=scuro; ctx.fillRect(p,y-sp/2-1.5,3,sp+3);
+      ctx.fillStyle=chiaro; ctx.fillRect(p,y-sp/2-1.5,1,sp+3);}
+
+    /* i due terminali: collare e gomito corto verso il basso */
+    [[a,1],[b,-1]].forEach(q=>{
+      const X=q[0], v=q[1];
+      ctx.fillStyle=scuro; ctx.fillRect(X-(v>0?0:3),y-sp/2-2,3,sp+4);
+      const g=sp*1.5;
+      ctx.fillStyle=R.col; ctx.fillRect(X+(v>0?0:-sp),y-sp/2,sp,g);
+      ctx.fillStyle=scuro; ctx.fillRect(X+(v>0?0:-sp),y-sp/2+g-2,sp,2);});
+
+    /* il nastro segnalatore, mezzo metro sopra: sottile, tratteggiato */
+    ctx.strokeStyle=R.col; ctx.globalAlpha=.5; ctx.lineWidth=1.6;
+    ctx.setLineDash([9,6]);
+    const yn=py(Math.max(0.20,R.prof-0.42));
+    ctx.beginPath(); ctx.moveTo(a,yn); ctx.lineTo(b,yn); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha=1;});
+}
+/* schiarisce o scurisce un colore esadecimale: serve a dare il tondo al
+   tubo senza definire tre colori a mano per ogni rete */
+function ombreggia(hex,f){
+  const n=parseInt(hex.slice(1),16);
+  let r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+  if(f>0){ r+=(255-r)*f; g+=(255-g)*f; b+=(255-b)*f; }
+  else   { r*=(1+f); g*=(1+f); b*=(1+f); }
+  return 'rgb('+(r|0)+','+(g|0)+','+(b|0)+')';
 }
 function arrivo(){
   const a=px(CENTRALE.da), b=px(CENTRALE.a);
@@ -644,6 +719,13 @@ function etichette(){
    sterzata a rendere la guida una cosa che si impara.
    ==================================================================== */
 const VEL=3.6, STERZO=1.6;
+/* L'ENERGIA NON FERMA PIÙ LA TALPA: era un limite arbitrario, chi
+   sbagliava strada si vedeva chiudere la partita senza poter rimediare.
+   Resta come PUNTEGGIO — decide le stelle — ma si ferma a zero.
+   Il taglio sta QUI, in un posto solo: metterlo in fondo a passo() non
+   bastava, perché sulle collisioni la funzione esce prima e l'energia
+   scendeva a meno seicento. */
+function consuma(n){ S.energia=Math.max(0,S.energia-n); }
 function avvisa(t){ S.msg=t; S.msgT=performance.now(); }
 
 /* ---- la musichetta della vittoria ---------------------------------
@@ -661,20 +743,90 @@ function suona(){
   try{ suonoVinta.currentTime=0; const pr=suonoVinta.play();
        if(pr&&pr.catch) pr.catch(function(){}); }catch(e){}
 }
+
+/* ---- IL RUMORE DELLA FRESA -----------------------------------------
+   Non è un file: è rumore bianco filtrato a banda stretta, che è come
+   suona davvero una punta nella terra. Costa zero byte e si accende e
+   spegne con una rampa, senza scatti. L'AudioContext si crea solo dopo
+   un gesto dell'utente, altrimenti il browser lo tiene sospeso. */
+let ac=null, gainFresa=null;
+function avviaAudio(){
+  if(ac) return;
+  try{
+    ac=new (window.AudioContext||window.webkitAudioContext)();
+    const n=ac.sampleRate*2, buf=ac.createBuffer(1,n,ac.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<n;i++) d[i]=Math.random()*2-1;
+    const src=ac.createBufferSource(); src.buffer=buf; src.loop=true;
+    const bp=ac.createBiquadFilter(); bp.type='bandpass';
+    bp.frequency.value=300; bp.Q.value=0.8;
+    const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=850;
+    gainFresa=ac.createGain(); gainFresa.gain.value=0;
+    src.connect(bp); bp.connect(lp); lp.connect(gainFresa); gainFresa.connect(ac.destination);
+    src.start();
+  }catch(e){ ac=null; }
+}
+function fresa(accesa){
+  if(!ac||!gainFresa) return;
+  gainFresa.gain.setTargetAtTime((accesa&&audioAcceso)?0.15:0, ac.currentTime, 0.07);
+}
+
+/* ---- LA MUSICA DI SOTTOFONDO ---------------------------------------
+   YouTube in un iframe invisibile, coi parametri di casa:
+   rel=0 · playsinline=1 · enablejsapi=1. Si rimette in moto da sola a
+   fine video, così non serve un file audio nel progetto. */
+const VIDEO_MUSICA='QBp3ggb8QB0';
+let yt=null;
+function avviaMusica(){
+  if(yt||!audioAcceso) return;
+  if(!window.YT){
+    const t=document.createElement('script');
+    t.src='https://www.youtube.com/iframe_api';
+    document.head.appendChild(t);
+    window.onYouTubeIframeAPIReady=creaYT;
+  } else creaYT();
+}
+function creaYT(){
+  if(yt) return;
+  yt=new YT.Player('yt',{ videoId:VIDEO_MUSICA, height:'1', width:'1',
+    playerVars:{autoplay:1,controls:0,rel:0,playsinline:1,enablejsapi:1,
+                loop:1,playlist:VIDEO_MUSICA,modestbranding:1},
+    events:{
+      onReady:function(e){ e.target.setVolume(22);
+        if(audioAcceso) e.target.playVideo(); else e.target.pauseVideo(); },
+      onStateChange:function(e){
+        if(e.data===YT.PlayerState.ENDED) e.target.playVideo(); }}});
+}
+function musica(accesa){
+  if(!yt||!yt.playVideo) return;
+  try{ accesa?yt.playVideo():yt.pauseVideo(); }catch(e){}
+}
+function commutaAudio(){
+  audioAcceso=!audioAcceso;
+  localStorage.setItem('talpa-audio',audioAcceso?'1':'0');
+  if(!audioAcceso){ suonoVinta.pause(); fresa(false); }
+  musica(audioAcceso);
+  if(audioAcceso) avviaMusica();
+  segnaMusica();
+}
+function segnaMusica(){
+  const b=document.getElementById('bMusica'); if(!b) return;
+  b.textContent = audioAcceso ? 'Musica accesa' : 'Musica spenta';
+  b.setAttribute('aria-pressed',String(audioAcceso));
+}
 function passo(dt){
   if(S.mira){
     const dx=S.mira[0]-S.x, dy=S.mira[1]-S.y;
     let d=Math.atan2(dx,-dy)-S.dir;
     while(d>Math.PI) d-=6.283; while(d<-Math.PI) d+=6.283;
     const max=STERZO*dt, g=Math.max(-max,Math.min(max,d));
-    S.dir+=g; S.energia-=Math.abs(g)*6;
+    S.dir+=g; consuma(Math.abs(g)*6);
   }
   S.dir=Math.max(-1.4,Math.min(1.4,S.dir));
   const nx=S.x+Math.sin(S.dir)*VEL*dt, ny=S.y-Math.cos(S.dir)*VEL*dt;
-  S.energia-=VEL*dt*0.85;
+  consuma(VEL*dt*0.85);
   if(nx<X0+1||nx>X1-1){ S.dir=-S.dir*.6; avvisa('Sei al bordo dello scavo.'); return; }
   const t=tuboA(nx,ny);
-  if(t){ S.energia-=20; S.attiva=false;
+  if(t){ consuma(20); S.attiva=false;
     avvisa('Hai rotto: '+RETI[t.r].nome.toLowerCase()+'.'); finisci(false,'tubo'); return; }
   const o=ostacoloA(nx,ny);
   if(o){
@@ -683,7 +835,7 @@ function passo(dt){
        ritentava la stessa cella bloccata a ogni fotogramma — 5458 urti
        e l'energia a meno quarantamila. Adesso si prende la NORMALE
        dell'ostacolo e la si costeggia. */
-    S.colpi++; S.energia-=6;
+    S.colpi++; consuma(6);
     if(o.t==='roccia'){
       const lato=(S.x-o.q.x)>=0?1:-1;
       S.dir=Math.max(-1.4,Math.min(1.4,S.dir+lato*0.55));
@@ -697,7 +849,6 @@ function passo(dt){
     if(!ostacoloA(sx,sy)&&!tuboA(sx,sy)&&sx>X0+1&&sx<X1-1){ S.x=sx; S.y=sy; }
     avvisa(o.t==='roccia'?'Roccia: la talpa la costeggia e perde energia.'
                          :'Fondazione dell\'edificio: di qui non si passa.');
-    if(S.energia<=0){ S.attiva=false; finisci(false,'energia'); }
     return; }
   S.x=nx; S.y=ny;
   const u=S.tunnel[S.tunnel.length-1];
@@ -705,7 +856,6 @@ function passo(dt){
   S.gemme.forEach(g=>{ if(!g.presa && Math.hypot(g.x-S.x,g.y-S.y)<1.5){
     g.presa=true; S.raccolte++; S.energia=Math.min(170,S.energia+g.v);
     avvisa('Sacca di calore: +'+g.v+' di energia.');}});
-  if(S.energia<=0){ S.attiva=false; finisci(false,'energia'); return; }
   if(S.y<=0.15){ S.attiva=false;
     const dentro=S.x>=CENTRALE.da&&S.x<=CENTRALE.a;
     finisci(dentro,dentro?'arrivo':'fuori'); }
@@ -721,14 +871,12 @@ function finisci(vinta,perche){
   const verdetto = vinta
     ? (n===3?'Strada pulita.':n===2?'Sei arrivato.':'Arrivato per un soffio.')
     : (perche==='tubo'?'Hai rotto un tubo.'
-      :perche==='energia'?'Energia finita.'
       :'Uscito fuori posto.');
   const riga = vinta
     ? (n===3?'La scuola si scalda, e ti è avanzata energia.'
       :n===2?'Con qualche virata in meno prendevi la terza stella.'
       :'Ce l\'hai fatta, ma con il serbatoio quasi vuoto.')
     : (perche==='tubo'?'Era disegnato: i tubi si vedono.'
-      :perche==='energia'?'Ogni virata consuma più che andare dritti.'
       :'Sei uscito a '+dist.toFixed(0)+' m dalla centrale.');
 
   let h='<div class="esito">';
@@ -750,7 +898,6 @@ function finisci(vinta,perche){
   h+='<div class="passi"><button class="btn oro" style="flex:1 1 180px" id="bNu">'
     +'Un altro sottosuolo</button>'
     +'<button class="btn" style="flex:1 1 150px" id="bAn">Rigioca questo</button>'
-    +'<button class="btn" id="bAud" style="flex:0 0 auto" aria-label="musica"></button>'
     +'</div></div>';
   modale(h);
 
@@ -760,12 +907,6 @@ function finisci(vinta,perche){
     box.children[k].classList.add('on'); },260+k*300);
   if(vinta) setTimeout(suona,240);
 
-  const bAud=document.getElementById('bAud');
-  function segnaAudio(){ bAud.textContent=audioAcceso?'Musica accesa':'Musica spenta'; }
-  segnaAudio();
-  bAud.onclick=function(){ audioAcceso=!audioAcceso;
-    localStorage.setItem('talpa-audio',audioAcceso?'1':'0');
-    if(!audioAcceso) suonoVinta.pause(); segnaAudio(); };
   document.getElementById('bAn').onclick=function(){chiudi();nuovo(S.seme);};
   document.getElementById('bNu').onclick=function(){chiudi();nuovo();};
 
@@ -824,29 +965,19 @@ function contatori(){
     '<div class="c'+(S.colpi?' ambra':'')+'"><b>'+S.colpi+'</b><span>urti</span></div>';
 }
 function legenda(){
-  $('leg').innerHTML='<div class="occ">Che cosa incontri salendo</div>'
-    +Object.keys(RETI).map(function(k){const R=RETI[k];
-      return '<div class="voce"><span class="q" style="background:'+R.col+'"></span>'
-        +'<span><b>'+R.nome+'</b> — a −'+R.prof.toFixed(2).replace('.',',')
-        +' m. Romperlo ferma tutto.</span></div>';}).join('')
-    +'<div class="voce"><span class="q" style="background:#6E6A64"></span>'
-    +'<span><b>Roccia</b> — la talpa rimbalza e perde energia</span></div>'
-    +'<div class="voce"><span class="q" style="background:#7A7A76"></span>'
-    +'<span><b>Fondazioni</b> — sotto gli edifici non si passa</span></div>'
-    +'<div class="voce"><span class="q" style="background:#F2B23C"></span>'
-    +'<span><b>Sacche di calore</b> — restituiscono energia, ma stanno fuori strada</span></div>'
-    +'<p>I tubi <b>si vedono</b>: stanno sulle tavole di rilievo della scuola. Non è un '
-    +'indovinello, è una strada da scegliere.</p>';
+  /* una riga sola: i quattro colori e la regola che serve mentre si gioca.
+     Il resto è nella scheda "Come si guida" — non deve rubare schermo. */
+  $('striscia').innerHTML=
+    Object.keys(RETI).map(function(k){const R=RETI[k];
+      return '<span class="chip"><i style="background:'+R.col+'"></i>'+R.nome
+        +' <b>−'+R.prof.toFixed(2).replace('.',',')+'</b></span>';}).join('')
+    +'<span class="chip"><i style="background:#6E6A64"></i>Roccia</span>'
+    +'<span class="chip"><i style="background:#F2B23C"></i>Sacche di calore</span>'
+    +'<span style="flex:1 1 auto"></span>'
+    +'<span><b>Tieni premuto</b> dove vuoi andare · vira piano, non frena</span>';
 }
-function note(){
-  $('note').innerHTML='<div class="occ">La talpa</div>'
-    +'<p style="margin-top:0"><b>Tieni premuto</b> dove vuoi andare: la talpa punta lì. Ma '
-    +'vira <b>piano</b> e non frena mai — le curve si cominciano prima.</p>'
-    +'<p>Virare consuma più che andare dritti. Le <b>sacche di calore</b> lungo il percorso '
-    +'restituiscono energia: conviene deviare solo se la deviazione costa meno di quello '
-    +'che rende. <b>È tutta lì la scelta.</b></p>'
-    +'<p style="font-size:.78rem">sottosuolo <b>'+S.seme+'</b></p>';
-}
+function note(){}
+
 /* ====================================================================
    LA BACHECA DELLA GIORNATA — Google Sheets via Apps Script.
    Chiamate in JSONP: Apps Script non manda intestazioni CORS.
@@ -925,6 +1056,9 @@ function guida(){
   $('bVia').onclick=function(){
     if(inp){ S.nick=inp.value.trim().slice(0,14);
       localStorage.setItem('talpa-nick',S.nick); }
+    /* è QUI che si può accendere l'audio: prima del gesto dell'utente il
+       browser tiene l'AudioContext sospeso e blocca la riproduzione */
+    avviaAudio(); avviaMusica();
     chiudi();};
 }
 
@@ -938,9 +1072,14 @@ function nuovo(seme){
   S.x=S.sacca.x; S.y=S.sacca.y; S.dir=0; S.energia=130;
   S.tunnel=[[S.x,S.y]]; S.raccolte=0; S.colpi=0;
   S.attiva=false; S.finita=false; S.vinta=false; S.mira=null; S.msg='';
-  dimensiona(); legenda(); note(); contatori();
+  /* prima si riempiono intestazione e striscia, POI si misura lo spazio
+     che resta: misurare prima dava una tela più alta del contenitore. */
+  legenda(); note(); contatori(); dimensiona();
+  requestAnimationFrame(dimensiona);
 }
 $('bAiuto').onclick=guida;
+$('bMusica').onclick=commutaAudio;
+segnaMusica();
 $('bRicomincia').onclick=function(){nuovo(S.seme);};
 $('bTorna').onclick=function(){location.href='index.html';};
 $('velo').onclick=function(e){ if(e.target===$('velo')) chiudi(); };
@@ -957,6 +1096,7 @@ let ultimo=performance.now();
   requestAnimationFrame(ciclo);
   const dt=Math.min(.045,(t-ultimo)/1000); ultimo=t;
   if(S.attiva&&!S.finita){ passo(dt); contatori(); }
+  fresa(S.attiva && !!S.mira && !S.finita);
   disegna();
 })(performance.now());
 </script>
