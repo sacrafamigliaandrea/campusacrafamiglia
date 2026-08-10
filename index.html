@@ -161,6 +161,10 @@
   #bAudio.spento{opacity:.5}
   @media(max-width:780px){ #quota{display:none}
     #marchio{width:132px;height:64px} #carta{top:92px} }
+#immersione{position:fixed;inset:0;pointer-events:none;opacity:0;z-index:60;
+  background:radial-gradient(120% 90% at 50% 42%,rgba(96,182,214,.30),rgba(16,88,130,.72));
+  transition:opacity .18s linear}
+#immersione.giu{opacity:1}
 </style>
 </head>
 <body>
@@ -234,6 +238,10 @@
 </div>
 
 <div id="mirino"><i></i><i></i><i></i><i></i></div>
+<!-- IL TUFFO: velo azzurro quando la testa va sotto il pelo dell'acqua.
+     Non e' un effetto: e' l'unico modo, con una camera sola, di far capire
+     che si e' sott'acqua e non semplicemente bassi. -->
+<div id="immersione"></div>
 <div id="avviso">Clicca per guardarti intorno · <span style="opacity:.7">Esc per uscire</span></div>
 <div id="vicino">Clicca la cassetta</div>
 
@@ -242,7 +250,7 @@
   <div class="sep"></div>
   <button id="bStoria">La Fondatrice</button>
   <button id="bMappa">Luoghi</button>
-  <button id="bRicomincia">Ricomincia</button>
+  <button id="bInizia">Inizia</button>
   <button id="bSotto">Sottosuolo</button>
   <div class="sep"></div>
   <button id="bAudio" title="Musica di sottofondo" aria-label="Attiva o spegni la musica">
@@ -283,7 +291,13 @@ const TOCCO = /[?&]touch=1/.test(location.search)
 if(TOCCO) document.body.classList.add('tocco');
 
 const canvas=document.getElementById('scena');
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+/* BUFFER DI PROFONDITA' LOGARITMICO. Il campus va da un muro a mezzo
+   metro dall'occhio fino al frutteto a duecento: con la profondita'
+   lineare le superfici lontane si contendono lo stesso valore di z e
+   sfarfallano durante il volo. Costa qualche punto percentuale di resa
+   e risolve il problema alla radice. */
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,
+  logarithmicDepthBuffer:true});
 /* PIXEL RATIO A 1,5, NON A 2. Su uno schermo Retina il 2 vuol dire quattro
    volte i pixel di un fotogramma normale, ed e' il primo posto dove se ne
    va la fluidita' del giro del campus. A 1,5 il bordo resta pulito e si
@@ -302,7 +316,11 @@ const scene=new THREE.Scene();
 /* la nebbia e' quella degli esterni (300-1100): quella del primo piano
    partiva a 60 m e avrebbe cancellato meta' campus dopo il campo da basket. */
 scene.fog=new THREE.Fog(0xe6ecef,300,1100);
-const camera=new THREE.PerspectiveCamera(62,window.innerWidth/window.innerHeight,0.1,2400);
+/* Il piano vicino era a 0,10 con quello lontano a 2400: rapporto 24000,
+   cioe' precisione buttata via. A 0,35 il rapporto scende a 6900 e non
+   si taglia niente — l'occhio sta a 1,62 e per arrivare a 35 cm da un
+   muro bisogna infilarcisi dentro. */
+const camera=new THREE.PerspectiveCamera(62,window.innerWidth/window.innerHeight,0.35,2400);
 
 /* Le cose che si muovono da sole (per ora: i battenti del portone) si
    iscrivono qui e il ciclo le chiama a ogni fotogramma. Serve perche' chi le
@@ -1008,6 +1026,11 @@ const mondo=new THREE.Group(); scene.add(mondo);
      c'era gia' sotto. */
   tappeto(matAsfalto,95,11,34.5,-29.5,0.02);       /* piazzale lungo il fronte */
   tappeto(matAsfalto,91,20,32.5,-45,0.02);         /* striscia del parcheggio  */
+  /* PIAZZALE SOTTO IL COLONNATO DELLE PISCINE. La copertura scorrevole,
+     quando si apre, va a stendersi qui sopra e fa ombra alle automobili
+     (fotografia annotata): i posti auto arrivano quindi fin sotto l'ultima
+     campata, e senza questo tratto il tetto aperto finiva sul prato. */
+  tappeto(matAsfalto,36,26,65.5,-54,0.021);
   tappeto(matAsfalto,6,190,-82,10,0.02);
   tappeto(matAsfalto,5,32,-41,45,0.02);
   tappeto(matGhiaia,91,3.4,32.5,-25.4,0.03);      /* anche la ghiaia si ferma */
@@ -1097,16 +1120,30 @@ albero(-44,4,1.35);
      su file doppie, come nell'aerea etichettata */
   const cols=[0xd8d8d8,0x8a9098,0x2a2e34,0x4a5a78,0xb0b6bc,0x6a6e74,0xe8e8e8,0x3a4148];
   const rnd=seme(87);
+  /* Le due file di pilastri del colonnato delle piscine corrono a x 50,1 e
+     x 81,3: senza questo filtro un paio di auto della fila nascevano
+     infilzate su un pilastro. Un posto auto non si disegna dove c'e' un
+     sostegno. */
+  const PILASTRI=[50.1,81.3];
+  const liberoDaiPilastri=x=>PILASTRI.every(px=>Math.abs(x-px)>2.8);
   [-50.5,-44.5,-40.5,-34.5].forEach((z,k)=>{
-    for(let i=0;i<24;i++){ const px=-34+i*5;
-      /* NIENTE AUTO A PONENTE DELLA ROTATORIA (Andrea, IMG_5001): da li' fino
-         alla chiesa e' tutto prato, e la prima auto della fila finiva
+    for(let i=0;i<24;i++){
+      const px=-34+i*5;
+      /* NIENTE AUTO A PONENTE DELLA ROTATORIA (Andrea, IMG_5001): da li'
+         fino alla chiesa e' tutto prato, e la prima auto della fila finiva
          addirittura dentro la navata (x[-41,3 · -32,6]). I posti auto
          cominciano dove finisce la rotatoria, a x=14. */
       if(px<14) continue;
       /* e nemmeno dentro la rotatoria, che adesso sta qui in mezzo */
       if(Math.hypot(px-(-0.3),z-(-53.4))<15) continue;
-      if(rnd()<0.66) auto(px,z,(k%2)?Math.PI:0,cols[(rnd()*cols.length)|0]);}});})();
+      /* E NEMMENO DENTRO IL PADIGLIONE DELLE PISCINE. Le due file di
+         mezzeria (z -40,5 e -34,5) proseguono verso levante ed entravano
+         nell'impronta della copertura scorrevole (x 50,3 . 81,1 ·
+         z -41 . -17): si vedevano le automobili in mezzo alla vasca
+         grande. I posti auto finiscono dove comincia il padiglione. */
+      if(px>48 && z>-42) continue;
+      if(rnd()<0.66 && liberoDaiPilastri(px))
+        auto(px,z,(k%2)?Math.PI:0,cols[(rnd()*cols.length)|0]);}});})();
 /* NIENTE auto lungo il viale alberato dietro la scuola (correzione di Andrea):
    li' non c'e' parcheggio, e' solo la strada di servizio verso l'Arena. */
 /* FRUTTETO 80x60 oltre il parcheggio (§16): filari regolari di alberi bassi.
@@ -2795,10 +2832,19 @@ function faroLed(x,y,z,ry){
     contatto(g,cx,0.03,cz,w+4,d+4,0.40);
   }
 
-  /* =================== 1) VASCA A CORSIE NORD, 25 m ======================
-     x 56,0 . 81,3  z -16,6 . -3,0. Sei corsie, corde EST-OVEST, blocchi
-     sul filo ovest: e' il lato da cui si legge la partenza sull'ortofoto. */
-  vasca(56.0,81.3,-16.6,-3.0,acquaNord,6,false,true);
+  /* =================== 1) QUI NON C'E' NESSUNA VASCA =====================
+     CORREZIONE DI ANDREA. Avevo letto sull'ortofoto uno specchio d'acqua a
+     x 56,0 . 81,3  z -16,6 . -3,0 e ci avevo messo una seconda vasca a sei
+     corsie, appena fuori dalle vetrate. Non esiste: quell'acqua ERA LA
+     VASCA GRANDE SCOPERTA, cioe' la stessa vasca che sta sotto la
+     copertura, fotografata in un momento in cui il tetto era ritirato.
+     Le vasche sono una sola, e sta dentro il padiglione.
+
+     La lezione e' la stessa dei due corridoi paralleli: quando una fonte
+     mostra una cosa in UNA delle sue posizioni possibili, disegnarla li'
+     E ANCHE dove si pensa che stia fa nascere un doppione. Un impianto che
+     si muove va letto sapendo che si muove.
+     (Il deck di cotto che c'era intorno resta: quello c'e' davvero.) */
 
   /* =================== 2) LA COPERTURA SCORREVOLE =======================
      x 50,5 . 80,9  z -40,7 . -17,2, alta 5,6. Sull'ortofoto il tetto e'
@@ -2808,10 +2854,23 @@ function faroLed(x,y,z,ry){
      Sta fermo a nord della vasca: quando si chiude scende sui binari e ci
      va sopra. E' la struttura che si vede dal parcheggio. */
   const PN={x0:50.5,x1:80.9,z0:-40.7,z1:-17.2,h:5.6};
+  /* SOTTO IL TETTO SCORREVOLE C'E' LA VASCA GRANDE (vista aerea annotata
+     da Andrea: "Tetto scorrevole su vasca grande"). Avevo letto quel
+     volume bianco come un padiglione vuoto parcheggiato ACCANTO alla
+     vasca: e' invece la copertura, e la vasca ci sta dentro. I binari
+     proseguono verso nord, ed e' li' che il tetto scorre quando si apre. */
+  vasca(PN.x0+3.2,PN.x1-3.2,PN.z0+3.4,PN.z1-3.4,acquaNord,6,false,true);
   (function copertura(){
     const w=PN.x1-PN.x0,d=PN.z1-PN.z0,cx=(PN.x0+PN.x1)/2,cz=(PN.z0+PN.z1)/2,h=PN.h;
-    /* zoccolo scuro: e' il carrello su cui il capannone cammina */
-    box(g,w+0.5,0.55,d+0.5,lam(0x6E7278),cx,0.28,cz,true);
+    /* IL CARRELLO SU CUI IL CAPANNONE CAMMINA — CORNICE, NON PIASTRA.
+       Era un blocco pieno w x d: quando la copertura era un padiglione
+       vuoto non dava fastidio, ma adesso la VASCA GRANDE ci sta dentro, e
+       quel blocco alto 56 cm la seppelliva tutta. Dell'acqua non si vedeva
+       niente: solo una superficie grigia. Il telaio di scorrimento va
+       fatto per quello che e' — quattro travi sul perimetro. */
+    [[cx,PN.z0-0.25,w+0.5,0.5],[cx,PN.z1+0.25,w+0.5,0.5],
+     [PN.x0-0.25,cz,0.5,d+0.5],[PN.x1+0.25,cz,0.5,d+0.5]].forEach(q=>
+      box(g,q[2],0.55,q[3],lam(0x6E7278),q[0],0.28,q[1],true));
     /* montanti e vetrate sui quattro lati */
     const nm=Math.round(w/3.0);
     for(let i=0;i<=nm;i++){
@@ -2824,13 +2883,46 @@ function faroLed(x,y,z,ry){
     [[PN.x0-0.06],[PN.x1+0.06]].forEach(q=>{
       const v=new THREE.Mesh(new THREE.PlaneGeometry(d,h-0.7),matVetro);
       v.rotation.y=Math.PI/2;v.position.set(q[0],h/2+0.55,cz);g.add(v);});
-    /* IL TETTO: quattro campate bianche, giunti nord-sud, leggerissima
-       monta al centro. Non e' vetro e non e' lamiera blu: e' bianco. */
-    for(let i=0;i<4;i++){
-      const px=PN.x0+(i+0.5)*w/4;
-      const p=box(g,w/4-0.16,0.26,d+0.6,matTetto,px,h+0.62,cz,true);
-      p.rotation.z=0;                       /* piatto, come sull'ortofoto */
-      box(g,0.12,0.10,d+0.6,matLatt,px-w/8,h+0.78,cz,false);}
+    /* IL TETTO E' UN PEZZO UNICO DI LAMIERA BLU, e scorre tutto intero.
+       (Fotografia da terra annotata da Andrea.) Tre correzioni insieme:
+       - NON e' telescopico a quattro campate che si annidano: e' una
+         falda sola che cammina;
+       - NON e' bianco: e' LAMIERA BLU. Il blu che avevo tolto dicendo che
+         era del capannone accanto era proprio questo;
+       - aperto NON si raccoglie a nord dell'impronta: slitta SOPRA IL
+         PARCHEGGIO, e fa ombra alle automobili. E' il motivo per cui la
+         struttura coi binari prosegue cosi' a lungo verso nord.
+       La corsa e' pari alla profondita' del tetto: chiuso copre la vasca,
+       aperto la libera tutta e si stende sui posti auto. */
+    const matBlu=new THREE.MeshPhongMaterial({color:0x2E5F94,shininess:60,
+      specular:0x8FB4D8});
+    const CORSA=d+0.6;
+    const gTetto=new THREE.Group(); g.add(gTetto);
+    gTetto.userData.animato=true;
+    box(gTetto,w+1.2,0.26,d+0.6,matBlu,cx,h+0.62,cz,true);
+    /* le nervature della lamiera, nel senso della larghezza */
+    for(let k=0;k<Math.round((d+0.6)/1.5);k++)
+      box(gTetto,w+1.1,0.08,0.13,lam(0x24507E),cx,h+0.79,
+          cz-(d+0.6)/2+0.75+k*1.5,false);
+    /* bordo di lattoneria e le due travi che corrono sui binari */
+    box(gTetto,w+1.5,0.18,0.20,lam(0x1E4570),cx,h+0.50,cz-(d+0.6)/2,false);
+    box(gTetto,w+1.5,0.18,0.20,lam(0x1E4570),cx,h+0.50,cz+(d+0.6)/2,false);
+    [-1,1].forEach(sg=>box(gTetto,0.26,0.40,d+0.6,matLatt,
+      cx+sg*(w/2+0.6),h+0.34,cz,false));
+
+    /* il ciclo: 9 s chiuso, 7 per aprirsi, 9 aperto, 7 per chiudersi */
+    let tCiclo=0;
+    AGGIORNA.push(function(dt){
+      tCiclo=(tCiclo+dt)%32;
+      let u;                                  /* 0 = chiuso, 1 = aperto */
+      if(tCiclo<9)        u=0;
+      else if(tCiclo<16)  u=(tCiclo-9)/7;
+      else if(tCiclo<25)  u=1;
+      else                u=1-(tCiclo-25)/7;
+      u=u*u*(3-2*u);                          /* parte e si ferma piano */
+      gTetto.position.z=-CORSA*u;             /* verso nord, sul parcheggio */
+    });
+
     /* lattoneria perimetrale e colmo */
     box(g,w+0.8,0.20,0.24,matLatt,cx,h+0.60,PN.z0-0.35,false);
     box(g,w+0.8,0.20,0.24,matLatt,cx,h+0.60,PN.z1+0.35,false);
@@ -2850,7 +2942,12 @@ function faroLed(x,y,z,ry){
      come sole rotaie a terra: sul deck di cotto, a bordo vasca, non c'e'
      nessuna ombra di pilastro da leggere sull'ortofoto. */
   (function binari(){
-    const ZA=-43.0, ZM=PN.z1, ZB=-1.6, YT=4.55;
+    /* La struttura coi binari arriva fin SOPRA IL PARCHEGGIO (z -53,5 .
+       -36,5): e' li' che il tetto va a finire quando si apre, e nella
+       fotografia si vede il colonnato proseguire per tutta quella
+       lunghezza. Prima si fermava a -43 e il tetto sarebbe scivolato nel
+       vuoto. Le travi stanno appena sotto il filo del tetto. */
+    const ZA=-65.0, ZM=PN.z1, YT=PN.h+0.34;
     const mPil=lam(0xE0D8BE), mTrave=lam(0xD8D2C2);
     [PN.x0-0.42,PN.x1+0.42].forEach(bx=>{
       for(let z=ZA;z<=ZM;z+=3.55){
@@ -2858,10 +2955,10 @@ function faroLed(x,y,z,ry){
         contatto(g,bx,0.03,z,1.3,1.3,0.42);}
       box(g,0.66,0.62,ZM-ZA+0.8,mTrave,bx,YT-0.24,(ZA+ZM)/2,true);
       box(g,0.78,0.13,ZM-ZA+0.8,lam(0xC6BFAD),bx,YT+0.13,(ZA+ZM)/2,false);
-      /* la rotaia a terra, dal padiglione fino a oltre il bordo vasca */
-      box(g,0.30,0.16,ZB-ZM,lam(0xA8ACB2),bx,0.62,(ZM+ZB)/2,false);
-      for(let z=ZM;z<=ZB;z+=3.4)
-        box(g,0.40,0.50,0.40,lam(0xCFCBC2),bx,0.25,z,true);});
+      /* Le rotaie a terra verso sud servivano a portare il tetto sopra la
+         vasca che credevo stesse li' fuori. La vasca e' una sola e sta
+         sotto il padiglione: il tetto si muove solo VERSO NORD, e quel
+         binario non ha piu' niente da raggiungere. */});
   })();
 
   /* =================== 3) PISTA A QUATTRO CORSIE ========================
@@ -2878,8 +2975,14 @@ function faroLed(x,y,z,ry){
       box(g,1.5,0.10,0.42,lam(0xCFCBC2),cx-4.4,0.40+i*0.39,ZT-4.6+i*0.44,false);
     [[-3.6,-4.7],[-3.6,3.1]].forEach(q=>
       box(g,0.08,YT+1.0,0.08,matLatt,cx+q[0],(YT+1.0)/2,ZT-2.4+q[1],false));
-    [[0,-2.3,W+2.4,0.08],[-(W/2+1.2),0,0.08,4.9],[W/2+1.2,0,0.08,4.9]].forEach(q=>
-      box(g,q[2],1.0,q[3],matLatt,cx+q[0],YT+0.78,ZT-2.4+q[1],false));
+    /* PARAPETTO A GIORNO, non pannelli pieni. Erano tre lastre alte un
+       metro: da sopra la piattaforma — che e' il punto da cui il giocatore
+       guarda il campus prima di buttarsi — facevano muro su meta'
+       inquadratura. Una torre-scivolo ha corrimano e traversa, e sotto si
+       vede attraverso. */
+    [[0,-2.3,W+2.4,0.09],[-(W/2+1.2),0,0.09,4.9],[W/2+1.2,0,0.09,4.9]].forEach(q=>
+      [1.05,0.55].forEach(hh=>
+        box(g,q[2],0.09,q[3],matLatt,cx+q[0],YT+hh,ZT-2.4+q[1],false)));
     /* le quattro corsie */
     for(let i=0;i<4;i++){
       const px=cx-W/2+(i+0.5)*W/4;
@@ -2935,12 +3038,15 @@ function faroLed(x,y,z,ry){
      acqua molto piu' scura. */
   vasca(66.9,83.7,16.4,40.7,acquaSud,7,true,true);
 
-  /* =================== 6) PADIGLIONE SUD-OVEST ==========================
+  /* =================== 6) GLI SPOGLIATOI ================================
      x 47,6 . 62,1  z 21,6 . 48,4, alto 4,6. Tetto chiaro a NERVATURE
      TRASVERSALI fitte, una ogni 1,9 m: se ne contano quattordici. Sta a
-     ponente della vasca sud, con la sua ombra sul fianco ovest. */
+     ponente della vasca a corsie sud.
+     E' l'edificio che la vista aerea annotata da Andrea indica come
+     SPOGLIATOI — non un secondo padiglione delle vasche, come avevo
+     scritto: e' il servizio, e infatti guarda il piazzale. */
   const PS={x0:47.6,x1:62.1,z0:21.6,z1:48.4,h:4.6};
-  (function padiglioneSud(){
+  (function spogliatoi(){
     const w=PS.x1-PS.x0,d=PS.z1-PS.z0,cx=(PS.x0+PS.x1)/2,cz=(PS.z0+PS.z1)/2,h=PS.h;
     box(g,w+1.2,0.35,d+1.2,lam(0xDDD9D0),cx,0.17,cz,false);   /* platea */
     box(g,w,h,d,matMuro,cx,h/2+0.3,cz,true);
@@ -4649,14 +4755,23 @@ $('bMappa').addEventListener('click',()=>{
     +LUOGHI.map((m,i)=>'<div class="bottoni" style="margin-top:7px"><button class="chiaro" onclick="vaiA('+i+');chiudiFoglio()">'+m[0]+'</button></div>').join('')
     +'<div class="bottoni"><button onclick="chiudiFoglio()">Chiudi</button></div>');});
 
-$('bRicomincia').addEventListener('click',()=>{
+/* INIZIA — da' il via alla caccia: ferma il giro del campus, azzera il
+   diario e posa la PRIMA TAPPA al portale. Prima questo bottone diceva
+   "Ricomincia" e serviva solo a ripartire da capo; adesso e' il modo
+   normale di cominciare, perche' all'ingresso si vola e basta. */
+$('bInizia').addEventListener('click',()=>{
+  const gia = G.i>0 || (G.fatte&&G.fatte.length);
+  if(!gia){ inizia(); return; }
   apriFoglio('<div class="occhiello">Ricominciare</div><h1>Riparti dalla prima tappa?</h1>'
     +'<p>Il diario si svuota e torni al portale di pietra. Il campus resta lo stesso: '
     +'cambia solo il tuo percorso.</p>'
-    +'<div class="bottoni"><button onclick="azzera()">Sì, ricomincio</button>'
+    +'<div class="bottoni"><button onclick="inizia()">Sì, dalla prima</button>'
     +'<button class="chiaro" onclick="chiudiFoglio()">No, continuo</button></div>');});
-window.azzera=function(){G.i=0;G.aiuti=0;G.fatte=[];G.usati=[];livAiuto=0;salva();
-  chiudiFoglio();mostraTappa();vaiA(1);};
+window.inizia=function(){G.i=0;G.aiuti=0;G.fatte=[];G.usati=[];livAiuto=0;salva();
+  chiudiFoglio();
+  if(typeof fermaGiro==='function') fermaGiro();
+  mostraTappa(); vaiA(1);};
+window.azzera=window.inizia;   /* il vecchio nome resta valido */
 window.chiudiFoglio=chiudiFoglio;
 
 /* ---- trovata la cassetta: si apre la DOMANDA sulla Fondatrice ----
@@ -4948,11 +5063,120 @@ function guardaVerso(t){
 function verificaAppoggio(){
   inVolo = Math.abs(pos.y-(quotaSotto(pos.x,pos.z)+ALTEZZA)) > 0.60;
 }
+/* ==========================================================================
+   LA SCIVOLATA — che cosa succede quando dal menu si sceglie "Piscine"
+   --------------------------------------------------------------------------
+   Non ci si arriva volando: ci si arriva SCIVOLANDO. Il giocatore si trova
+   in cima alla pista dritta a quattro corsie, parte, scende, entra in acqua,
+   va sotto, riemerge — e da li' cammina dove vuole a cercare la cassetta.
+
+   I NUMERI SONO QUELLI DELLA PISTA, non inventati: corsie x 90,2 . 95,0
+   (la seconda ha l'asse a x=92,0), testa a z -25,5 quota 7,40, piede a
+   z -3,0 quota 0,95; il pelo dell'acqua del canale sta a 0,36 (misurato
+   con un raggio verticale, non a occhio). Se un giorno la pista si sposta,
+   questi cinque numeri sono gli unici da rifare.
+
+   La velocita' NON e' costante: si parte fermi e si arriva lanciati, che e'
+   il motivo per cui uno scivolo diverte. Sotto, la curva "t*t" fa esattamente
+   questo senza bisogno di simulare niente.
+   ========================================================================== */
+const SCIV={x:92.0, zTesta:-25.5, yTesta:7.40, zPiede:-3.0, yPiede:0.95,
+            pelo:0.36, zFine:2.6, occhio:0.55};
+/* Il tuffo era un lampo: 0,55 s per scendere da 1,50 a 0,02 vuol dire che
+   la testa passa sotto il pelo per meno di tre decimi, e il velo azzurro
+   non fa in tempo nemmeno a comparire. Sott'acqua ci si RESTA un attimo:
+   e' quella la parte che i ragazzi aspettano. */
+/* PRIMA DI BUTTARSI SI GUARDA IL CAMPUS (Andrea). Dalla cima della pista si
+   sta a otto metri, ed e' l'unico punto della caccia da cui si vede la
+   piscina coperta per intero con la scuola dietro: buttarsi subito butta via
+   anche quello. Quindi due tempi — un attimo a ponente, poi la testa gira
+   verso il basso e si parte. */
+const FASI={sguardo:2.0, giroTesta:1.0, discesa:2.3, tuffo:0.45, sotto:0.45,
+            risalita:1.1};
+const T0=FASI.sguardo, T1=T0+FASI.giroTesta, T2=T1+FASI.discesa,
+      T3=T2+FASI.tuffo,  T4=T3+FASI.sotto;
+const TSCIV=T4+FASI.risalita;
+/* IN PIEDI, POI SEDUTI. Con l'occhio a 7,95 — cioe' gia' seduti sulla
+   pista — il parapetto di ponente sta esattamente davanti agli occhi: il
+   ventaglio di raggi lo trovava a 3 metri (pannello 7,68 . 8,68). Chi si
+   ferma a guardare il campus e' ancora IN PIEDI, con l'occhio a 9,05, e
+   guarda oltre la ringhiera; si siede mentre gira la testa verso il basso.
+   Quota della piattaforma 7,40 + statura 1,65. */
+const OCCHIO_SU=1.65;
+/* E SI STA SULLA TESTA DELLA PISTA, non in mezzo alla piattaforma. Da
+   z -26,4 il parapetto pieno della torretta (pannelli da 1 m, non una
+   ringhiera a giorno) copriva mezza inquadratura. A z -25,4 la torretta
+   e' alle spalle e davanti resta solo il campus. */
+const MIRA_OVEST=V(52,7.3,-26.0);                /* la copertura e la scuola */
+const MIRA_GIU  =V(SCIV.x, SCIV.yPiede+1.2, SCIV.zPiede);
+const miraSciv=new THREE.Vector3();
+let scivT=-1;                      /* <0 = non si sta scivolando */
+const veloAcqua=document.getElementById('immersione');
+
+function partiScivolata(){
+  giroAttivo=false; voloT=1; scivT=0; inVolo=true;
+  pos.set(SCIV.x, SCIV.yTesta+OCCHIO_SU, SCIV.zTesta-0.9);
+  if(typeof segnaVista==='function') segnaVista();
+}
+
+function passoScivolata(dt){
+  scivT+=dt;
+  const t=scivT;
+  let y, z, guarda;
+  if(t<T0){                                            /* si guarda a ovest  */
+    z=SCIV.zTesta+0.15; y=SCIV.yTesta+OCCHIO_SU;
+    guarda=MIRA_OVEST;
+  } else if(t<T1){                            /* ci si siede e si gira la testa */
+    const u=(t-T0)/FASI.giroTesta, k=u*u*(3-2*u);      /* parte e si ferma piano */
+    z=SCIV.zTesta+0.15;
+    y=SCIV.yTesta+OCCHIO_SU+(SCIV.occhio-OCCHIO_SU)*k;
+    guarda=miraSciv.lerpVectors(MIRA_OVEST,MIRA_GIU,k);
+  } else if(t<T2){                                     /* giu' per la pista  */
+    const u=(t-T1)/FASI.discesa, k=u*u;                /* si parte fermi     */
+    z=SCIV.zTesta+(SCIV.zPiede-SCIV.zTesta)*k;
+    y=SCIV.yTesta+(SCIV.yPiede-SCIV.yTesta)*k+SCIV.occhio;
+    /* il beccheggio dei salti sulle giunzioni: piccolo, ma si sente */
+    y+=Math.sin(u*34)*0.045*(1-u);
+    guarda=V(SCIV.x+Math.sin(u*7)*0.5, y-1.6, z+6);
+  } else if(t<T3){                                     /* si va sotto        */
+    const u=(t-T2)/FASI.tuffo;
+    z=SCIV.zPiede+(SCIV.zFine-SCIV.zPiede)*u*0.8;
+    y=SCIV.yPiede+SCIV.occhio+(0.02-(SCIV.yPiede+SCIV.occhio))*Math.sin(u*Math.PI/2);
+    guarda=V(SCIV.x, y+0.2, z+4);
+  } else if(t<T4){                                     /* immersi            */
+    const u=(t-T3)/FASI.sotto;
+    z=SCIV.zPiede+(SCIV.zFine-SCIV.zPiede)*(0.8+0.2*u);
+    y=0.02+0.05*Math.sin(u*Math.PI);                   /* si galleggia un po' */
+    /* sott'acqua lo sguardo va verso l'alto, dove c'e' la luce */
+    guarda=V(SCIV.x+0.6*Math.sin(u*4), y+1.4, z+2.4);
+  } else {                                             /* si torna a galla   */
+    const u=Math.min(1,(t-T4)/FASI.risalita);
+    const k=1-Math.pow(1-u,3);
+    z=SCIV.zFine+0.9*k;
+    y=0.02+(ALTEZZA-0.02)*k;
+    /* riemergendo ci si gira verso il campus, che e' da dove si e' venuti
+       e dov'e' la cassetta da cercare */
+    guarda=V(SCIV.x-14*k, y+0.1, z+2.2-6*k);
+  }
+  pos.set(SCIV.x, y, z);
+  guardaVerso(guarda);
+  if(veloAcqua) veloAcqua.classList.toggle('giu', pos.y < SCIV.pelo);
+  if(scivT>=TSCIV){
+    scivT=-1;
+    if(veloAcqua) veloAcqua.classList.remove('giu');
+    verificaAppoggio();
+    if(typeof segnaVista==='function') segnaVista();
+  }
+}
+
 window.vaiA=function(i){
   const m=LUOGHI[i]; if(!m) return;
   if(i===0){ giroAttivo=true; inVolo=true; voloT=1;
     if(typeof segnaVista==='function') segnaVista(); return; }  /* il giro */
-  giroAttivo=false;
+  /* LE PISCINE NON SI GUARDANO DA LONTANO: ci si arriva scivolando. */
+  if(m[0].indexOf('Piscine')===0){ partiScivolata(); return; }
+  giroAttivo=false; scivT=-1;
+  if(veloAcqua) veloAcqua.classList.remove('giu');
   voloDa=pos.clone(); voloA=V(m[1][0],m[1][1],m[1][2]);
   mira.set(m[2][0],m[2][1],m[2][2]); voloT=0;
 };
@@ -4978,7 +5202,8 @@ const carta=$('carta');
    dal menu "Luoghi": il volo non ha bisogno di istruzioni sopra. */
 function segnaVista(){
   const inGioco = velo.style.display!=='flex';
-  const volando = (typeof giroAttivo!=='undefined') && giroAttivo;
+  const volando = ((typeof giroAttivo!=='undefined') && giroAttivo) ||
+                  ((typeof scivT!=='undefined') && scivT>=0);
   mirino.style.display      = (agganciato||TOCCO) && inGioco && !volando ? 'block':'none';
   avvisoMouse.style.display = 'none';
   if(carta) carta.style.display = volando ? 'none' : '';
@@ -5137,14 +5362,15 @@ function apriIntro(){
         +'<b>W A S D</b> camminare · <b>E</b> stacchi da terra e voli · <b>Q</b> scendi<br>'
         +'<b>Esc</b> libera il mouse · punta la cassetta col <b>mirino</b> e fai clic')
     +'</div>'
-    +'<div class="bottoni"><button onclick="viaAlGioco()">Comincia dal portale</button></div>'
-    +'<div class="nota">Dentro il corridoio del primo piano si cammina: il pavimento '
-    +'cambia quota, e i 37 cm della gradinata si salgono a piedi. Se ti blocchi, '
-    +'<strong>Chiedi un aiuto</strong>. Nessun punteggio.</div>'
+    +'<div class="bottoni"><button onclick="viaAlGioco()">Guarda il campus</button></div>'
     +'</div>','card');}
-window.viaAlGioco=function(){ chiudiFoglio(); $('carta').style.display='block';
+/* SI ENTRA COL GIRO DEL CAMPUS (Andrea). Prima si atterrava al portale e
+   la caccia partiva subito; adesso la prima cosa che si vede e' il volo,
+   e la caccia comincia quando lo studente preme INIZIA. */
+window.viaAlGioco=function(){ chiudiFoglio();
   avviaMusica();               /* gesto utente reale: e' qui che l'autoplay e' concesso */
-  mostraTappa(); vaiA(1); };
+  mostraTappa();               /* la carta c'e', ma il volo la tiene nascosta */
+  vaiA(0); };
 
 /* ============================== il ciclo ================================ */
 const orologio=new THREE.Clock(), qv=$('qv'), qm=$('qm'), vicino=$('vicino');
@@ -5168,6 +5394,12 @@ function anima(){
       pos.copy(p); guardaVerso(curvaMira.getPointAt(giroU));
       inVolo=true;
     }
+  } else if(scivT>=0 && velo.style.display!=='flex'){
+    /* LA SCIVOLATA. Si interrompe con qualunque comando, come il giro: se
+       uno l'ha gia' vista due volte non deve subirla una terza. */
+    if(tasti['KeyW']||tasti['KeyS']||tasti['KeyA']||tasti['KeyD']||tasti['KeyE']||
+       tasti['KeyQ']||tasti['Space']||jM.x||jM.y||jV.x||jV.y||salgo) scivT=TSCIV;
+    passoScivolata(dt);
   } else if(voloT<1){
     /* spostamento guidato (menu Luoghi, "ti porto sul posto") */
     voloT=Math.min(1,voloT+dt/1.6);
@@ -5606,6 +5838,145 @@ window.collaudo=function(){
       stessa immagine. Si disegna una volta e si congela.
    Nessuna delle due toglie niente a quello che si vede.
    ========================================================================== */
+/* ===== I PIANI COMPLANARI SI SEPARANO DI TRE MILLIMETRI ==============
+   Quarantasei coppie di superfici orizzontali stavano ESATTAMENTE alla
+   stessa quota (y=0,02): terreno, campi, piazzali, deck. Due superfici
+   opache complanari si contendono il pixel e sfarfallano — e' lo stesso
+   difetto del pavimento del corridoio, gia' in CLAUDE.md. Invece di
+   correggere quarantasei punti nel codice, li si scosta qui, una volta
+   sola, di tre millimetri per volta: invisibile, e il conflitto sparisce.
+   ==================================================================== */
+/* ===== IL CANESTRO APPESO AL PORTICO NON CI VA ======================
+   Sotto il soffitto della pensilina, in fondo al portico, era rimasto
+   appeso un tabellone col canestro (l'anello a -27,1 · 2,33 · 11,8).
+   Li' non c'e' nessun canestro: il portico e' un passaggio coperto, e i
+   due canestri veri stanno sul campo. Si toglie tutto quello che gli sta
+   attorno entro un metro e mezzo, e si scrive che cosa si e' tolto —
+   le rimozioni silenziose non si fanno. */
+(function togliCanestroPortico(){
+  scene.updateMatrixWorld(true);
+  const centro=new THREE.Vector3(-27.1,2.45,11.8), p=new THREE.Vector3();
+  const via=[];
+  mondo.traverse(function(m){
+    if(!m.isMesh||!m.geometry) return;
+    m.getWorldPosition(p);
+    if(p.distanceTo(centro)>1.6) return;
+    const t=m.geometry.type;
+    /* l'anello, il tabellone e i bracci: non le campate dipinte del
+       soffitto, che sono larghe piu' di due metri */
+    const b=new THREE.Box3().setFromObject(m);
+    const w=b.max.x-b.min.x, d=b.max.z-b.min.z;
+    if(Math.max(w,d)>2.2) return;
+    via.push({m:m,t:t,d:Math.max(w,d).toFixed(2)});});
+  via.forEach(function(q){
+    console.log('  tolto dal portico: '+q.t+' '+q.d+' m');
+    if(q.m.parent) q.m.parent.remove(q.m);});
+  console.log('canestro del portico: '+via.length+' pezzi rimossi');
+})();
+
+(function separaComplanari(){
+ try{
+  scene.updateMatrixWorld(true);
+  const bb=new THREE.Box3(), gruppi={};
+  mondo.traverse(m=>{
+    if(!m.isMesh||!m.geometry) return;
+    const mm=m.material; if(!mm||mm.visible===false) return;
+    bb.setFromObject(m);
+    const h=bb.max.y-bb.min.y, w=bb.max.x-bb.min.x, d=bb.max.z-bb.min.z;
+    if(h>0.06 || w*d<9) return;                 /* solo i piani larghi   */
+    const k=(Math.round(bb.max.y*100)/100).toFixed(2);
+    (gruppi[k]=gruppi[k]||[]).push({m:m,a:w*d});});
+  let mossi=0;
+  Object.keys(gruppi).forEach(k=>{
+    const g=gruppi[k]; if(g.length<2) return;
+    /* il piu' grande resta dov'e' (e' il terreno), gli altri salgono */
+    g.sort((p,q)=>q.a-p.a);
+    for(let i=1;i<g.length;i++){ g[i].m.position.y+=0.003*i; mossi++; }});
+  console.log('piani complanari separati: '+mossi);
+
+  /* ---- E ADESSO I PANNELLI VERTICALI ------------------------------
+     Finestre, zoccolature e rivestimenti sono posati A FILO del muro: la
+     faccia del pannello e quella della parete stanno sullo stesso piano e
+     si contendono il pixel. Sul corpo sud (il laboratorio di informatica)
+     erano dodici, sulla faccia nord z=24,5 e su quella sud z=32,7 — le
+     finestre e il rivestimento di base segnalati da Andrea.
+
+     ATTENZIONE AL SISTEMA DI RIFERIMENTO: position sta nello spazio del
+     GENITORE, e questi pannelli stanno dentro gruppi ruotati. Sommare
+     0,004 a position.z li spostava DI LATO invece che in fuori, e infatti
+     al primo tentativo il conteggio dei conflitti non era calato di uno.
+     Lo spostamento va calcolato nel mondo e riportato nel genitore. */
+  let sporti=0;
+  const pA=new THREE.Vector3(), pB=new THREE.Vector3();
+  function scosta(m,asse,verso){
+    m.getWorldPosition(pA);
+    pB.copy(pA); pB[asse]+=verso*0.005;
+    if(m.parent){ m.parent.worldToLocal(pA); m.parent.worldToLocal(pB); }
+    m.position.add(pB.sub(pA));
+    m.updateMatrix(); m.updateMatrixWorld(true);
+  }
+  ['x','z'].forEach(function(asse){
+    const spessi=[], sottili=[];
+    const altro = (asse==='x') ? 'z' : 'x';
+    mondo.traverse(function(m){
+      if(!m.isMesh||!m.geometry) return;
+      const mm=m.material; if(!mm||mm.visible===false) return;
+      bb.setFromObject(m);
+      if(bb.max.y-bb.min.y < 0.4) return;              /* non e' un muro */
+      const sp=bb.max[asse]-bb.min[asse];
+      const q={m:m, a:bb.min[asse], b:bb.max[asse], c:(bb.min[asse]+bb.max[asse])/2,
+               y0:bb.min.y, y1:bb.max.y, o0:bb.min[altro], o1:bb.max[altro]};
+      /* "sottile" fino a 35 cm: lo zoccolo del corpo sud e' spesso 12 cm
+         e con la soglia a 8 restava fuori da tutte e due le liste — era
+         proprio lui a sfarfallare. */
+      if(sp<0.35) sottili.push(q); else if(sp>0.4) spessi.push(q);
+    });
+    sottili.forEach(function(p2){
+      for(let i=0;i<spessi.length;i++){
+        const g=spessi[i];
+        if(p2.y1<g.y0-0.2 || p2.y0>g.y1+0.2) continue;
+        if(p2.o1<g.o0-0.2 || p2.o0>g.o1+0.2) continue;
+        const vA=Math.abs(p2.c-g.a)<0.008, vB=Math.abs(p2.c-g.b)<0.008;
+        if(!vA&&!vB) continue;
+        scosta(p2.m, asse, vA?-1:1);
+        sporti++; break;}});
+  });
+  console.log('pannelli verticali scostati dal muro: '+sporti);
+
+  /* ---- I VOLUMI DUPLICATI ------------------------------------------
+     Nel corpo sud c'erano DUE mesh identiche nello stesso posto
+     (29,24 x 2,90 x 4,72 contro se stessa). Due superfici opache
+     perfettamente coincidenti si contendono ogni pixel, e nessuno
+     scostamento le salva: una delle due va tolta. Si cancella la
+     seconda e si scrive che cosa si e' cancellato — le rimozioni
+     silenziose non si fanno. */
+  (function togliDoppioni(){
+    scene.updateMatrixWorld(true);
+    const visti={}, daTogliere=[];
+    mondo.traverse(function(m){
+      if(!m.isMesh||!m.geometry) return;
+      const mm=m.material; if(!mm||mm.visible===false) return;
+      bb.setFromObject(m);
+      if((bb.max.x-bb.min.x)*(bb.max.y-bb.min.y)<0.5) return;   /* solo i grossi */
+      const k=[bb.min.x,bb.min.y,bb.min.z,bb.max.x,bb.max.y,bb.max.z]
+        .map(function(v){return Math.round(v*200);}).join('_')+'|'+m.geometry.type;
+      if(visti[k]) daTogliere.push({m:m,k:k,
+        d:(bb.max.x-bb.min.x).toFixed(2)+'x'+(bb.max.y-bb.min.y).toFixed(2)
+          +'x'+(bb.max.z-bb.min.z).toFixed(2)});
+      else visti[k]=m;});
+    daTogliere.forEach(function(q){
+      console.log('  doppione rimosso: '+q.d);
+      if(q.m.parent) q.m.parent.remove(q.m);});
+    console.log('volumi duplicati rimossi: '+daTogliere.length);
+  })();
+ }catch(e){
+  /* senza questo la pulizia moriva in silenzio e si portava via anche la
+     separazione dei piani orizzontali, che invece funzionava */
+  console.log('SEPARAZIONE INTERROTTA: '+e.message+' @ '
+    +(e.stack||'').split('\n')[1]);
+ }
+})();
+
 (function congelaMatrici(){
   mondo.updateMatrixWorld(true);
   mondo.traverse(o=>{ if(!o.userData.animato) o.matrixAutoUpdate=false; });
@@ -5631,6 +6002,40 @@ console.log('[Primo piano] pavimento '+PAV+' · soffitto '+SOF+
             ' — scrivi collaudo() per il test completo');
 setTimeout(()=>{console.log('[Campus3D] triangoli:',renderer.info.render.triangles,
   '| draw call:',renderer.info.render.calls);},1500);
+
+/* ==========================================================================
+   LA COPERTURA SCORREVOLE DELLE PISCINE — collaudo
+   Il tetto e' un pezzo unico che cammina sui binari verso nord e, aperto,
+   va a fare ombra al parcheggio. Tre cose che a occhio non si vedono e che
+   qui si misurano: (a) il colonnato non deve piantare un pilastro dentro
+   un'auto in sosta; (b) da chiuso il tetto deve stare SOPRA la vasca;
+   (c) da aperto deve stare SOPRA i posti auto, non nel vuoto.
+   Si scrive collaudoCopertura() nella console.
+   ========================================================================== */
+window.collaudoCopertura=function(){
+  scene.updateMatrixWorld(true);
+  const b=new THREE.Box3(), v=new THREE.Vector3();
+  const pil=[], vei=[], R=[];
+  mondo.traverse(o=>{ if(!o.isMesh||!o.geometry) return;
+    b.setFromObject(o); b.getSize(v);
+    const cxx=(b.min.x+b.max.x)/2, czz=(b.min.z+b.max.z)/2;
+    if(czz<-14 && czz>-72 && cxx>8 && cxx<86){
+      if(v.y>2.5 && v.x<1.5 && v.z<1.5) pil.push([cxx,czz]);
+      if(v.y>0.8&&v.y<2.6 && v.x>1.2&&v.x<6.4 && v.z>1.2&&v.z<6.4) vei.push([cxx,czz]);
+    }});
+  let urti=0;
+  pil.forEach(p=>vei.forEach(a=>{
+    if(Math.abs(p[0]-a[0])<2.2 && Math.abs(p[1]-a[1])<2.6) urti++; }));
+  R.push('pilastri del colonnato: '+pil.length+
+         (pil.length?('  (z da '+Math.min.apply(null,pil.map(p=>p[1])).toFixed(1)+
+          ' a '+Math.max.apply(null,pil.map(p=>p[1])).toFixed(1)+')'):''));
+  R.push('veicoli nella fascia: '+vei.length+
+         ' · pilastri piantati dentro un\'auto: '+urti);
+  R.push(urti? 'DA CORREGGERE: sposta i posti auto o il passo dei pilastri'
+             : 'colonnato libero');
+  console.log('[copertura]\n  '+R.join('\n  '));
+  return R.join(' | ');
+};
 
 </script>
 </body>
