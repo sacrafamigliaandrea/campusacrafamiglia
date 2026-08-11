@@ -165,6 +165,23 @@
   background:radial-gradient(120% 90% at 50% 42%,rgba(96,182,214,.30),rgba(16,88,130,.72));
   transition:opacity .18s linear}
 #immersione.giu{opacity:1}
+/* I LUOGHI: griglia 3x3 di tessere quadrate ad angoli tondi. */
+.griglia-luoghi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  /* i margini sono tarati: con 14/4 la card sforava di QUATTRO pixel — non
+     era la dimensione delle tessere, come avevo creduto due volte, era il
+     margine. Misurare l'eccedenza invece di rimpicciolire a occhio. */
+  margin:8px auto 2px;max-width:392px}
+.tessera{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:10px;border:2px solid #C9D3E6;border-radius:18px;
+  background:#F4F7FC;color:#123E90;cursor:pointer;
+  font:600 15px/1.25 'Lexend','Atkinson Hyperlegible',sans-serif;
+  transition:background .14s,border-color .14s,transform .14s}
+.tessera span{display:block}
+.tessera:hover,.tessera:focus-visible{background:#E4ECF9;border-color:#123E90;
+  transform:translateY(-2px);outline:none}
+.tessera:active{transform:translateY(0)}
+@media (max-width:560px){.griglia-luoghi{gap:8px}.tessera{font-size:13.5px;
+  border-radius:15px;padding:7px}}
 #guasto{display:none}
 #guasto.visibile{display:flex;flex-direction:column;gap:8px;position:fixed;
   left:50%;top:50%;transform:translate(-50%,-50%);z-index:9999;max-width:min(560px,88vw);
@@ -3911,7 +3928,8 @@ function faroLed(x,y,z,ry){
     contatto(mondo,hx,0.035,hz,1.0,1.0,0.34);
     mossi.push({g:g,anche:anche,ginocchia:ginocchia,caviglie:caviglie,
                 spalle:spalle,gomiti:gomiti,hx:hx,hz:hz,y0:O.y0||0,
-                a:fase,f:fase*1.7,r:raggio,v:vel});
+                a:fase,f:fase*1.7,r:raggio,v:vel,
+                campo:O.campo||null, sq:sq, x:hx, z:hz, dir:Math.PI, salto:0});
     if(O.statura&&O.statura!==1) g.scale.setScalar(O.statura);
     return g;}
 
@@ -3925,9 +3943,10 @@ function faroLed(x,y,z,ry){
       const r=cfg.r0+((i*3)%4)*cfg.dr;
       const hx=Math.max(cfg.x0+r,Math.min(cfg.x1-r,p[0]));
       const hz=Math.max(cfg.z0+r,Math.min(cfg.z1-r,p[1]));
+      const o=Object.assign({},cfg.opz||{},{campo:cfg.campo||null});
       giocatore(hx,hz,cfg.divise,p[2],i+(cfg.tono||0),
                 ((i*1.37)+(cfg.tono||0))%(Math.PI*2),r,
-                cfg.v0+((i*5)%3)*cfg.dv,cfg.opz);});}
+                cfg.v0+((i*5)%3)*cfg.dv,o);});}
 
   /* OGNI PALLONE SI MUOVE COME IL SUO GIOCO (Andrea). Ne avevo fatti tre
      uguali, che strisciavano a terra: giusto per il calcio, sbagliato per
@@ -3948,7 +3967,7 @@ function faroLed(x,y,z,ry){
                 tipo:tipo||'terra',d:dati||{}});}
 
   /* ---- CALCIO: cinque contro cinque, sparsi come in una partita vera --- */
-  schiera({divise:DIV_CALCIO, x0:CX-14+3.5, x1:CX+14-3.5,
+  schiera({divise:DIV_CALCIO, campo:'calcio', x0:CX-14+3.5, x1:CX+14-3.5,
            z0:CZ-27.5+4.5, z1:CZ+27.5-4.5, r0:1.6, dr:0.7, v0:1.5, dv:0.45,
            posti:[[-16,44,0],[-11,50,0],[-4,47,0],[-14,58,0],[-6,62,0],
                   [-13,66,1],[-5,70,1],[-16,74,1],[-8,78,1],[-2,56,1]]});
@@ -3958,7 +3977,7 @@ function faroLed(x,y,z,ry){
      z[-3 · 12] — le stesse quote con cui si collauda la tappa 2. Canotta e
      braccia scoperte, giro piu' stretto e piu' svelto del calcio: in un
      campo da basket non si fanno quaranta metri. */
-  schiera({divise:DIV_BASKET, x0:-22.6, x1:5.4, z0:-3, z1:12,
+  schiera({divise:DIV_BASKET, campo:'basket', x0:-22.6, x1:5.4, z0:-3, z1:12,
            r0:1.3, dr:0.5, v0:1.9, dv:0.4, tono:2, opz:{canotta:true},
            posti:[[-16.5,1.5,0],[-11,6.5,0],[-4.5,3.0,0],
                   [-18,7.5,1],[-9,10.0,1],[-3,8.5,1]]});
@@ -3970,11 +3989,11 @@ function faroLed(x,y,z,ry){
      ogni squadra resta dalla sua parte, e il raggio del giro e' scelto
      perche' nessuna passi sotto la rete. In pallavolo non si corre in giro:
      ci si sposta di un passo, quindi raggi piccoli e andatura lenta. */
-  schiera({divise:DIV_VOLLEY, x0:-17.6, x1:-9.8, z0:21.3, z1:30.3,
+  schiera({divise:DIV_VOLLEY, campo:'volley', x0:-17.6, x1:-9.8, z0:21.3, z1:30.3,
            r0:0.7, dr:0.25, v0:0.85, dv:0.3, tono:1,
            opz:{coda:true, statura:0.97},
            posti:[[-15.4,23.2,0],[-15.4,28.4,0],[-11.4,25.8,0]]});
-  schiera({divise:DIV_VOLLEY, x0:-7.4, x1:0.4, z0:21.3, z1:30.3,
+  schiera({divise:DIV_VOLLEY, campo:'volley', x0:-7.4, x1:0.4, z0:21.3, z1:30.3,
            r0:0.7, dr:0.25, v0:0.85, dv:0.3, tono:3,
            opz:{coda:true, statura:0.97},
            posti:[[-2.2,23.2,1],[-2.2,28.4,1],[-6.0,25.8,1]]});
@@ -3983,21 +4002,133 @@ function faroLed(x,y,z,ry){
   pallone(0xE8E4DA,0.105,-8.6,25.8,0,0,1.05,'volo',
           {ax:-13.8,az:24.2,bx:-3.6,bz:27.4,h:3.1});
 
+  /* ======================================================================
+     ADESSO SI GIOCA — la palla comanda, i giocatori la seguono
+     ----------------------------------------------------------------------
+     Prima ognuno girava su un cerchio suo e la palla su un altro: dieci
+     traiettorie indipendenti che per caso stavano nello stesso campo. Da
+     lontano sembra movimento, ma non e' una partita — non c'e' nessuna
+     relazione fra dove va uno e dov'e' il pallone.
+     Il principio nuovo e' uno solo: LA PALLA E' LO STATO, e la posizione di
+     ognuno si ricava da lei.
+       calcio  — chi ha il pallone lo porta avanti; ogni tanto PASSA a un
+                 compagno e la palla vola verso di lui. Gli avversari piu'
+                 vicini vanno sulla palla, gli altri si smarcano.
+       basket  — chi palleggia va verso il canestro; ogni tanto TIRA, e la
+                 palla fa una parabola sul ferro; poi si riparte dal rimbalzo.
+       volley  — la palla vola da una parte all'altra: chi sta piu' vicino al
+                 punto di caduta ci va sotto e SALTA quando arriva.
+     Il passo delle gambe non e' piu' costante: segue la velocita' VERA, e
+     chi e' fermo sta fermo. Era l'altro segno che tradiva il giro a vuoto.
+     ====================================================================== */
+  const CAMPI={
+    calcio:{x0:-19,x1:2,z0:38,z1:84, cx:-8.6,cz:59.5,
+            bx:-8.6,bz:59.5, tx:-8.6,tz:59.5, chi:0, t:0, vol:0},
+    basket:{x0:-20,x1:3,z0:-1,z1:10, cx:-8.6,cz:4.5,
+            bx:-9,bz:4.5, tx:-9,tz:4.5, chi:0, t:0, vol:0},
+    volley:{x0:-16,x1:-1,z0:22,z1:29.5, cx:-8.6,cz:25.8,
+            ax:-13.8,az:24.2, bx2:-3.6,bz2:27.4, k:0, t:0}};
+  const SQUADRA={};
+  mossi.forEach(function(m,i){ if(!m.campo) return;
+    (SQUADRA[m.campo]=SQUADRA[m.campo]||[]).push(m); });
+
+  function versoLaPalla(m,c,peso){
+    m.tx=m.hx+(c.bx-c.cx)*peso; m.tz=m.hz+(c.bz-c.cz)*peso;}
+
+  function pensaCalcio(c,g,dt,rnd2){
+    c.t-=dt;
+    const port=g[c.chi];
+    if(c.vol>0){                       /* il pallone e' in volo verso uno */
+      c.vol-=dt;
+      if(c.vol<=0){ c.bx=c.tx; c.bz=c.tz; c.t=1.2+((c.chi*7)%5)*0.4; }
+      else { const k=Math.min(1,dt*6.0);
+        c.bx+=(c.tx-c.bx)*k; c.bz+=(c.tz-c.bz)*k; }
+    } else if(c.t<=0){                 /* si passa a un compagno */
+      const miei=g.filter(function(q){return q.sq===port.sq && q!==port;});
+      const r=miei[(Math.abs(Math.round(c.bx*7+c.bz*13))||0)%miei.length];
+      c.chi=g.indexOf(r); c.tx=r.x; c.tz=r.z; c.vol=0.55+Math.abs(c.bx%1)*0.5;
+    } else {                           /* si conduce verso la porta */
+      const av=(port.sq?-1:1);
+      c.bx+=(port.x-c.bx)*Math.min(1,dt*5); 
+      c.bz+=(port.z+av*1.1-c.bz)*Math.min(1,dt*5);
+    }
+    g.forEach(function(m,i){
+      const dpx=c.bx-m.x, dpz=c.bz-m.z, d=Math.hypot(dpx,dpz);
+      if(m===g[c.chi]){ m.tx=c.bx+(m.sq?-3:3)*0; m.tz=c.bz+(m.sq?-2.2:2.2); }
+      else if(d<11 && m.sq!==g[c.chi].sq){ m.tx=c.bx; m.tz=c.bz; }
+      else versoLaPalla(m,c,0.55);
+      m.tx=Math.max(c.x0,Math.min(c.x1,m.tx));
+      m.tz=Math.max(c.z0,Math.min(c.z1,m.tz));});}
+
+  function pensaBasket(c,g,dt){
+    c.t-=dt;
+    const port=g[c.chi];
+    if(c.vol>0){                        /* tiro in parabola */
+      c.vol-=dt;
+      const k=Math.min(1,dt*3.4);
+      c.bx+=(c.tx-c.bx)*k; c.bz+=(c.tz-c.bz)*k;
+      if(c.vol<=0){ c.chi=(c.chi+3)%g.length; c.t=2.6; }
+    } else if(c.t<=0){                  /* si tira al canestro */
+      c.tx=-8.6; c.tz=(port.z<4.5?-0.6:9.6); c.vol=1.5;
+    } else {
+      const cz=(port.sq?9.6:-0.6);
+      c.bx+=(port.x+0.45-c.bx)*Math.min(1,dt*7);
+      c.bz+=(port.z-c.bz)*Math.min(1,dt*7);
+      port.tx=port.x+(-8.6-port.x)*0.3; port.tz=port.z+(cz-port.z)*0.22;}
+    g.forEach(function(m){
+      if(m===g[c.chi]) return;
+      const d=Math.hypot(c.bx-m.x,c.bz-m.z);
+      if(d<6 && m.sq!==g[c.chi].sq){ m.tx=c.bx; m.tz=c.bz; }
+      else versoLaPalla(m,c,0.7);
+      m.tx=Math.max(c.x0,Math.min(c.x1,m.tx));
+      m.tz=Math.max(c.z0,Math.min(c.z1,m.tz));});}
+
+  function pensaVolley(c,g,dt){
+    /* la palla la muove gia' la sua parabola: qui si legge dove CADRA' e ci
+       si manda sotto chi sta piu' vicino, di quella meta' campo. */
+    const arr=(c.k? [c.ax,c.az] : [c.bx2,c.bz2]);
+    g.forEach(function(m){ m.tx=m.hx; m.tz=m.hz; });
+    [0,1].forEach(function(lato){
+      const suo=g.filter(function(m){return m.sq===lato;});
+      if(!suo.length) return;
+      const meta=(lato? [c.bx2,c.bz2] : [c.ax,c.az]);
+      let best=suo[0], bd=1e9;
+      suo.forEach(function(m){ const d=Math.hypot(meta[0]-m.hx,meta[1]-m.hz);
+        if(d<bd){bd=d;best=m;} });
+      best.tx=meta[0]; best.tz=meta[1];
+      best.vuoleSaltare=true;});}
+
   let tP=0;
   AGGIORNA.push(function(dt){
     tP+=dt;
+    if(SQUADRA.calcio) pensaCalcio(CAMPI.calcio,SQUADRA.calcio,dt);
+    if(SQUADRA.basket) pensaBasket(CAMPI.basket,SQUADRA.basket,dt);
+    if(SQUADRA.volley) pensaVolley(CAMPI.volley,SQUADRA.volley,dt);
     mossi.forEach(function(m,i){
-      m.a+=dt*m.v/m.r;
-      const x=m.hx+Math.cos(m.a)*m.r, z=m.hz+Math.sin(m.a)*m.r;
-      m.g.position.set(x,0,z);
-      m.g.rotation.y=Math.PI-m.a;          /* si guarda dove si corre */
+      /* si va verso il proprio bersaglio, non su un cerchio */
+      if(m.tx===undefined){ m.tx=m.hx; m.tz=m.hz; }
+      const dx=m.tx-m.x, dz=m.tz-m.z, d=Math.hypot(dx,dz);
+      const vmax=m.v*1.55, passo=Math.min(d,vmax*dt);
+      if(d>0.06){ m.x+=dx/d*passo; m.z+=dz/d*passo;
+                  m.dir=Math.atan2(dx,dz); }
+      m.vel=(dt>0? passo/dt : 0);
+      /* il salto della schiacciata */
+      if(m.vuoleSaltare && d<0.9){ m.salto=Math.min(1,m.salto+dt*3.2); }
+      else m.salto=Math.max(0,m.salto-dt*2.4);
+      m.vuoleSaltare=false;
+      m.g.position.set(m.x,0,m.z);
+      m.g.rotation.y=m.dir+Math.PI;       /* si guarda dove si corre */
       /* LA FALCATA. fase = 0 quando la gamba passa sotto il corpo.
          anca      = seno puro, avanti e indietro
          ginocchio = SEMPRE flesso all'indietro (mai negativo al contrario),
                      col massimo mentre la gamba torna avanti (cos > 0) e
                      quasi disteso quando sta per appoggiare
          caviglia  = compensa, cosi' la suola non punta al cielo */
-      const f=tP*m.v*2.6+m.f;
+      /* IL PASSO SEGUE LA VELOCITA' VERA. Prima era costante: uno fermo
+         continuava a correre sul posto, ed era il secondo segno — dopo le
+         traiettorie circolari — che tradiva il giro a vuoto. */
+      m.and=(m.and||0)+dt*Math.max(0.0,m.vel)*2.35;
+      const f=m.and+m.f;
       let piuBasso=9;
       for(let k=0;k<2;k++){
         const ph=f+k*Math.PI;
@@ -4017,14 +4148,25 @@ function faroLed(x,y,z,ry){
       }
       /* il rimbalzo della corsa non e' un seno inventato: e' quanto deve
          calare il bacino, e viene fuori da solo due volte per ciclo */
-      m.g.position.y=(m.y0||0)+Math.min(0,0.08-piuBasso);
+      m.g.position.y=(m.y0||0)+Math.min(0,0.08-piuBasso)+m.salto*0.55;
     });
     palle.forEach(function(b){
       const u=tP*b.v, d=b.d;
+      if(b.tipo==='rimbalzo'||b.tipo==='terra'){
+        /* la posizione della palla la decide il campo, non un cerchio */
+        const c=(b.tipo==='rimbalzo')?CAMPI.basket:CAMPI.calcio;
+        b.m.position.x=c.bx; b.m.position.z=c.bz;
+        b.m.position.y=(b.tipo==='rimbalzo')
+          ? b.y+(c.vol>0 ? Math.sin((1-c.vol/1.5)*Math.PI)*3.1
+                         : d.h*Math.abs(Math.sin(tP*d.f)))
+          : b.y+(c.vol>0 ? Math.sin((1-Math.max(0,c.vol))*Math.PI)*1.1 : 0);
+        b.m.rotation.x+=dt*4.6; b.m.rotation.z+=dt*1.8;
+        return;}
       if(b.tipo==='volo'){
         /* mezzo periodo per ogni traversata; il verso si inverte a ogni
            tocco, ed e' quello che fa leggere "battuta" invece di "giro" */
         const k=Math.floor(u/Math.PI)%2, t=(u%Math.PI)/Math.PI;
+        CAMPI.volley.k=k;   /* da che parte sta andando: lo legge chi ci va sotto */
         const t1=k?1-t:t;
         b.m.position.set(d.ax+(d.bx-d.ax)*t1, b.y+d.h*4*t*(1-t),
                          d.az+(d.bz-d.az)*t1);
@@ -4226,6 +4368,107 @@ function faroLed(x,y,z,ry){
      67,2: tutto dentro la parete sud (68,1). */
   const ZT=Z1-3.4;
   for(let k=0;k<6;k++) tribuna(X0+3.6+k*6.2, ZT, true, -1);
+})();
+
+/* ==========================================================================
+   LA CASA FAMIGLIA — a ponente del QdV Arena, staccata da tutto
+   --------------------------------------------------------------------------
+   MISURATA SULL'ORTOFOTO ZENITALE, non stimata dalle oblique: il tetto in
+   coppi va da z=54,7 a z=96,9 (42,1 m) e il corpo e' largo 13,5 fra x=-138,5
+   e x=-125,0. Dal tratto z=71 in giu' la sagoma si allarga a 17,5 verso
+   PONENTE: quei quattro metri e mezzo in piu' sono la LOGGIA, che dall'alto
+   si legge come un allargamento del tetto e da terra e' un portico su
+   pilastri quadrati (fotografia del fronte ovest).
+
+   LA BICROMIA. Dalle viste dall'alto sembrava tutto di un colore perche' si
+   vede quasi solo il tetto: la fotografia del fronte dice che i due corpi di
+   TESTA sono a intonaco ROSSO TERRACOTTA e l'ala di mezzo, dietro la loggia,
+   e' BIANCA. Senza quella lettura sarebbe una stecca beige.
+
+   Un piano fuori terra, falda bassa in coppi con la gronda molto sporgente,
+   e davanti — a ponente — un giardino formale: prato diviso in quarti da
+   vialetti, siepi basse di bosso, filare di alberelli lungo il portico e una
+   piazzola pavimentata al centro. Il giardino non e' contorno: nella foto
+   occupa quanto l'edificio.
+   ========================================================================== */
+(function casaFamiglia(){
+  const g=new THREE.Group(); mondo.add(g);
+  const ZN=55.0, ZS=96.5, XW=-138.5, XE=-125.0;   /* corpo di fabbrica    */
+  const XL=-143.3, ZL0=70.0, ZL1=92.0;            /* filo pilastri, loggia*/
+  const H=4.30, CXC=(XW+XE)/2;
+  const ROSSO=lam(0xA8482E), BIANCO=lam(0xEDE9DE),
+        PIETRA=lam(0xD8D4C8), SCURO=lam(0x3A3630);
+
+  /* i due corpi di testa, rosso terracotta */
+  [[ZN,ZL0],[ZL1,ZS]].forEach(q=>
+    solido(box(g,XE-XW,H,q[1]-q[0],ROSSO,CXC,H/2,(q[0]+q[1])/2,true)));
+  /* l'ala di mezzo, bianca, arretrata dietro il portico */
+  solido(box(g,XE-XW,H,ZL1-ZL0,BIANCO,CXC,H/2,(ZL0+ZL1)/2,true));
+  /* zoccolo continuo */
+  box(g,XE-XW+0.2,0.45,ZS-ZN+0.2,PIETRA,CXC,0.22,(ZN+ZS)/2,false);
+
+  /* --- LA LOGGIA: pilastri quadrati e falda che sporge a coprirli ------ */
+  const np=Math.round((ZL1-ZL0)/2.75);
+  for(let i=0;i<=np;i++){
+    const pz=ZL0+i*(ZL1-ZL0)/np;
+    solido(box(g,0.40,H-0.10,0.40,BIANCO,XL,(H-0.10)/2,pz,true));}
+  box(g,0.46,0.34,ZL1-ZL0+0.8,BIANCO,XL,H-0.05,(ZL0+ZL1)/2,false);  /* trave */
+  /* la falda del portico: dal muro al filo dei pilastri */
+  (function(){
+    const w=XW-XL+0.5, cx=(XL+XW)/2-0.25;
+    const f=box(g,w,0.22,ZL1-ZL0+1.0,lam(0xA85A3C),cx,H+0.42,(ZL0+ZL1)/2,true);
+    f.rotation.z=-Math.atan2(0.55,w);})();
+  /* pavimento del portico */
+  box(g,XW-XL+0.3,0.12,ZL1-ZL0+0.6,PIETRA,(XL+XW)/2,0.30,(ZL0+ZL1)/2,false);
+  /* le aperture sotto il portico: porte-finestra scure */
+  for(let i=0;i<8;i++)
+    box(g,0.10,2.35,1.30,SCURO,XW-0.06,1.35,ZL0+1.8+i*2.6,false);
+  /* e le finestre sui due corpi rossi */
+  [[ZN+2.6,4],[ZL1+1.3,2]].forEach(q=>{ for(let i=0;i<q[1];i++){
+    box(g,0.10,1.35,1.15,SCURO,XW-0.06,2.35,q[0]+i*2.9,false);
+    box(g,0.10,1.35,1.15,SCURO,XE+0.06,2.35,q[0]+i*2.9,false);}});
+
+  /* --- IL TETTO in coppi, a padiglione, con la gronda sporgente -------- */
+  tetto(g,CXC,(ZN+ZS)/2,XE-XW+1.5,ZS-ZN+1.5,H,2.35,{pluviali:0,
+    comignoli:[[-3,-14,1.1],[2,13,1.0]]});
+
+  /* --- il corpo minore bianco a levante (ortofoto: x -124 . -117) ------ */
+  solido(box(g,7.0,3.05,8.4,BIANCO,-120.6,1.52,63.4,true));
+  box(g,7.4,0.20,8.8,lam(0xC9C4B6),-120.6,3.14,63.4,false);
+  contatto(g,-120.6,0.04,63.4,9.5,11,0.45);
+
+  /* --- IL GIARDINO FORMALE, a ponente della loggia --------------------- */
+  const GX0=-166.0, GX1=-144.5, GZ0=53.0, GZ1=96.0;
+  (function(){
+    const pr=new THREE.Mesh(new THREE.PlaneGeometry(GX1-GX0,GZ1-GZ0),
+      lam(0x4E8A46));
+    pr.rotation.x=-Math.PI/2; pr.position.set((GX0+GX1)/2,0.04,(GZ0+GZ1)/2);
+    g.add(pr);})();
+  /* i vialetti in ghiaia che dividono il prato in quarti */
+  const GCX=(GX0+GX1)/2, GCZ=(GZ0+GZ1)/2, VIA=lam(0xCFC8B6);
+  [[GX1-GX0,1.6,GCX,GCZ],[1.6,GZ1-GZ0,GCX,GCZ]].forEach(q=>{
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(q[0],q[1]),VIA);
+    m.rotation.x=-Math.PI/2; m.position.set(q[2],0.05,q[3]); g.add(m);});
+  /* le siepi basse di bosso che bordano le quattro aiuole */
+  const SIEPE=lam(0x2E5E30);
+  [[GX0+1.2,GCX-1.6,GZ0+1.2,GCZ-1.6],[GCX+1.6,GX1-1.2,GZ0+1.2,GCZ-1.6],
+   [GX0+1.2,GCX-1.6,GCZ+1.6,GZ1-1.2],[GCX+1.6,GX1-1.2,GCZ+1.6,GZ1-1.2]]
+   .forEach(q=>{
+    const w=q[1]-q[0], d=q[3]-q[2], cx=(q[0]+q[1])/2, cz=(q[2]+q[3])/2;
+    [[w,0.5,cx,q[2]],[w,0.5,cx,q[3]],[0.5,d,q[0],cz],[0.5,d,q[1],cz]]
+      .forEach(r=>box(g,r[0],0.55,r[1],SIEPE,r[2],0.28,r[3],false));});
+  /* la piazzola pavimentata al centro, con l'elemento in mezzo */
+  box(g,5.2,0.10,5.2,VIA,GCX,0.07,GCZ,false);
+  box(g,1.5,0.55,1.5,PIETRA,GCX,0.30,GCZ,true);
+  box(g,0.9,0.28,0.9,lam(0xBFB9A8),GCX,0.70,GCZ,false);
+  /* il filare di alberelli lungo il portico */
+  for(let i=0;i<8;i++) albero(XL-2.6, ZL0+1.2+i*3.0, 0.62);
+  /* gli arbusti conici sul bordo esterno del giardino */
+  for(let i=0;i<16;i++){
+    const cz=GZ0+1.0+i*(GZ1-GZ0-2)/15;
+    const c=new THREE.Mesh(new THREE.ConeGeometry(0.45,1.7,7),SIEPE);
+    c.position.set(GX0-0.8,0.85,cz); c.castShadow=true; g.add(c);}
+  contatto(g,CXC,0.05,(ZN+ZS)/2,XE-XW+7,ZS-ZN+4,0.45);
 })();
 
 /* ===================== I TOMBINI DEL PIANO TERRA =======================
@@ -5791,11 +6034,20 @@ $('bRileggi').addEventListener('click',()=>{
 $('bStoria').addEventListener('click',()=>apriStoria());
 $('bMappa').addEventListener('click',()=>{
   apriFoglio('<div class="occhiello">Muoversi</div><h1>I luoghi del campus</h1>'
-    +'<p>Dentro il primo piano si <strong>cammina</strong>; fuori, se serve, '
-    +'si <strong>vola</strong> (E per staccarsi da terra, Q per scendere). '
-    +'Questi sono i punti di partenza più comodi: servono a spostarti, non a '
-    +'risolvere gli indizi.</p>'
-    +LUOGHI.map((m,i)=>'<div class="bottoni" style="margin-top:7px"><button class="chiaro" onclick="vaiA('+i+');chiudiFoglio()">'+m[0]+'</button></div>').join('')
+    /* testo asciutto: con nove tessere sotto, tre righe di spiegazione
+       facevano uscire la card dallo schermo e tornava lo scroll. */
+    +'<p>Servono a spostarti, non a risolvere gli indizi. Dentro si '
+    +'<strong>cammina</strong>, fuori si <strong>vola</strong>: E sale, Q scende.</p>'
+    /* GRIGLIA 3x3, NON ELENCO (Andrea). Con nove voci la colonna verticale
+       usciva dallo schermo e bisognava scrollare. Nove riquadri quadrati ad
+       angoli tondi ci stanno tutti in un colpo d'occhio, e in piu' si
+       toccano bene su iPad: 96 px di lato sono ben oltre i 44 del minimo.
+       La griglia e' a tre colonne fisse, non `auto-fit`, cosi' resta 3x3
+       anche se un giorno le voci diventassero otto o dieci. */
+    +'<div class="griglia-luoghi">'
+    +LUOGHI.map((m,i)=>'<button class="tessera" onclick="vaiA('+i
+      +');chiudiFoglio()"><span>'+m[0]+'</span></button>').join('')
+    +'</div>'
     +'<div class="bottoni"><button onclick="chiudiFoglio()">Chiudi</button></div>');});
 
 /* INIZIA — da' il via alla caccia: ferma il giro del campus, azzera il
@@ -6014,16 +6266,21 @@ function passabile(p){
    si visita a piedi non ha bisogno di cinque porte d'ingresso.
    Tolto anche "Portico e le due corti". */
 const LUOGHI=[
-  ['Il giro del campus',            [30,46,64],            [-25,0,0]],
+  ['Tour del Campus',               [30,46,64],            [-25,0,0]],
   ['Ingresso Scuola',               [-22.6,1.62,-33],      [-22.6,2.6,-19]],
-  ['Campo Basket',                  [-8.6,1.62,18],        [-8.6,3.2,-2]],
+  ['Basket - Volley',               [-8.6,1.62,18],        [-8.6,3.2,-2]],
   ['Campo Calcio',                  [-8.6,1.62,78],        [-8.6,2.5,40]],
   ['Piscine Andreana',              [70,24,52],            [74,2,-6]],
-  ['Primo piano',                   [-18.5,5.04,-2.95],    [-31.0,4.72,-3.60]],
+  ['Scuola - primo piano',          [-18.5,5.04,-2.95],    [-31.0,4.72,-3.60]],
   /* I DUE INTERNI NUOVI. Il punto d'occhio sta appena dentro la porta e la
      mira e' quello che si e' venuti a vedere: il palco e l'altare. */
   ['QdV Arena',                     [-49.5,1.85,56.0],     [-70.0,2.60,50.0]],
-  ['Chiesa',                        [-36.95,1.70,-46.0],   [-36.95,2.40,-21.5]]
+  ['Chiesa',                        [-36.95,1.70,-46.0],   [-36.95,2.40,-21.5]],
+  /* La Casa Famiglia si guarda dal giardino, cioe' dal FRONTE OVEST: e' la
+     stessa inquadratura della fotografia — la loggia coi pilastri, i due
+     corpi rossi di testa e il prato in quarti in primo piano. Da qualunque
+     altro lato e' una stecca col tetto in coppi. */
+  ['Casa Famiglia',                 [-162.0,8.5,74.5],     [-133.0,3.6,76.0]]
 ];
 
 /* ==========================================================================
