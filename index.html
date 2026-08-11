@@ -165,6 +165,17 @@
   background:radial-gradient(120% 90% at 50% 42%,rgba(96,182,214,.30),rgba(16,88,130,.72));
   transition:opacity .18s linear}
 #immersione.giu{opacity:1}
+#guasto{display:none}
+#guasto.visibile{display:flex;flex-direction:column;gap:8px;position:fixed;
+  left:50%;top:50%;transform:translate(-50%,-50%);z-index:9999;max-width:min(560px,88vw);
+  background:#FFFDF6;border-top:6px solid #B8860B;border-radius:14px;
+  padding:22px 24px;box-shadow:0 18px 60px rgba(0,0,0,.45);
+  font:400 16px/1.5 'Atkinson Hyperlegible',system-ui,sans-serif;color:#23262B}
+#guasto b{font:700 19px/1.3 'Lexend','Atkinson Hyperlegible',sans-serif;color:#123E90}
+#guasto span{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13.5px;
+  background:#F2EFE4;border-radius:8px;padding:8px 10px;word-break:break-word}
+#guasto span.dove{background:none;padding:0;font-family:inherit;font-size:14px;
+  color:#5A5E66}
 </style>
 </head>
 <body>
@@ -242,6 +253,45 @@
      Non e' un effetto: e' l'unico modo, con una camera sola, di far capire
      che si e' sott'acqua e non semplicemente bassi. -->
 <div id="immersione"></div>
+<!-- ==========================================================================
+     LA SPIA DI GUASTO
+     Se il blocco <script> principale muore, l'HTML resta in piedi ma vuoto:
+     si vede la cornice della card senza testo, e sembra un problema di rete
+     o di cache. Non lo e' mai: e' sempre un errore di programmazione.
+     Questo blocco sta in uno <script> SUO, prima del principale, per due
+     motivi — sopravvive anche a un errore di sintassi del principale (che
+     in quel caso non viene eseguito affatto), e installa il gestore prima
+     che qualunque altra riga giri.
+     Due controlli:
+       1. window.onerror  → errore in esecuzione, con riga e messaggio
+       2. una sentinella  → se dopo 4 s il principale non ha scritto
+                            __campusOk, vuol dire che non e' proprio partito
+     ========================================================================== -->
+<div id="guasto"></div>
+<script>
+(function(){
+  var d=document.getElementById('guasto'), mostrato=false;
+  function mostra(t,dove){
+    if(mostrato) return; mostrato=true;
+    d.innerHTML='<b>La pagina non si e\' caricata del tutto.</b>'+
+      '<span>'+String(t).replace(/</g,'&lt;')+'</span>'+
+      (dove?'<span class="dove">'+dove+'</span>':'')+
+      '<span class="dove">Non e\' la cache ne\' la rete: e\' un errore nel '+
+      'codice. Ricaricare non serve.</span>';
+    d.className='visibile';
+  }
+  window.addEventListener('error',function(e){
+    mostra(e.message||e.error, e.filename?('riga '+e.lineno+', colonna '+e.colno):'');
+  });
+  window.addEventListener('unhandledrejection',function(e){
+    mostra((e.reason&&e.reason.message)||e.reason,'promessa non gestita');
+  });
+  setTimeout(function(){
+    if(!window.__campusOk) mostra('Lo script non e\' arrivato in fondo.',
+      'probabile errore di sintassi: il blocco non viene eseguito affatto');
+  },4000);
+})();
+</script>
 <div id="avviso">Clicca per guardarti intorno · <span style="opacity:.7">Esc per uscire</span></div>
 <div id="vicino">Clicca la cassetta</div>
 
@@ -1085,18 +1135,66 @@ function albero(x,z,s){
 function siepe(x,z,w,d,h){
   box(mondo,w,h||1.1,d,lam(0x4a6e3a),x,(h||1.1)/2,z);
   contatto(mondo,x,0.025,z,w+0.6,d+0.6,0.5);}
-function auto(x,z,ry,col){
+/* ==========================================================================
+   LE AUTOMOBILI — sagome diverse, non lo stesso saponetta ottanta volte
+   --------------------------------------------------------------------------
+   Erano tutte identiche: stessa lunghezza, stessa altezza, stesso tetto, e
+   cambiava solo il colore. In un parcheggio da ottanta posti si vede subito.
+   Quello che rende riconoscibile un'automobile a venti metri NON e' il
+   dettaglio: sono le PROPORZIONI (quanto e' alta rispetto a quanto e' lunga),
+   quanto e' arretrato l'abitacolo, e due o tre segni — barre sul tetto,
+   calandra, fari. Qui ci sono cinque sagome, e ognuna ha i suoi numeri veri.
+   ========================================================================== */
+const SAGOME={
+  /* SUV compatto: le misure sono quelle di una Ford Kuga — 4,61 x 1,88,
+     alta 1,68, cioe' una trentina di centimetri piu' di una berlina. Barre
+     sul tetto, ruote grandi, padiglione arretrato. */
+  /* Lo sbalzo dietro (dalla fine del padiglione al portellone) e' IL numero
+     che decide che cosa sembra: 1,0 m e diventa un pick-up col cassone,
+     0,35 m e' un SUV col portellone verticale. Sulla Kuga il lunotto e'
+     quasi sul paraurti. */
+  suv:       {L:4.61,W:1.88,ruota:0.36,corpo:0.72,cab:0.60,cabL:2.85,cabW:1.72,
+              zcab:-0.55,barre:true, calandra:0.30},
+  berlina:   {L:4.55,W:1.80,ruota:0.32,corpo:0.52,cab:0.50,cabL:2.20,cabW:1.64,
+              zcab:-0.25,barre:false,calandra:0.18},
+  utilitaria:{L:3.68,W:1.66,ruota:0.29,corpo:0.56,cab:0.52,cabL:2.25,cabW:1.52,
+              zcab:-0.35,barre:false,calandra:0.20},
+  familiare: {L:4.72,W:1.82,ruota:0.32,corpo:0.54,cab:0.52,cabL:2.90,cabW:1.66,
+              zcab:-0.45,barre:true, calandra:0.18},
+  furgone:   {L:4.90,W:1.94,ruota:0.33,corpo:1.28,cab:0.46,cabL:1.50,cabW:1.80,
+              zcab:1.05, barre:false,calandra:0.26}
+};
+const CHIAVI_SAGOME=Object.keys(SAGOME);
+
+function auto(x,z,ry,col,nome){
+  const m=SAGOME[nome]||SAGOME.berlina;
   const g=new THREE.Group();
-  const c=new THREE.Mesh(geoSmussata(1.75,0.55,4.1,0.12),lam(col));
-  c.position.y=0.55;c.castShadow=true;g.add(c);
-  const t=new THREE.Mesh(geoSmussata(1.6,0.5,2.1,0.16),lam(col));
-  t.position.set(0,1.03,-0.2);t.castShadow=true;g.add(t);
-  box(g,1.55,0.32,1.9,lam(0x2a3540),0,1.06,-0.2,false);
-  [[-.8,1.35],[.8,1.35],[-.8,-1.35],[.8,-1.35]].forEach(p=>{
-    const r=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.22,10),lam(0x1e1e22));
-    r.rotation.z=Math.PI/2;r.position.set(p[0],0.3,p[1]);g.add(r);});
+  const vernice=lam(col), scuro=lam(0x23262B), vetro=lam(0x2A3540);
+  const yCorpo=m.ruota+m.corpo/2, yTetto=m.ruota+m.corpo;
+  const c=new THREE.Mesh(geoSmussata(m.W,m.corpo,m.L,0.12),vernice);
+  c.position.y=yCorpo; c.castShadow=true; g.add(c);
+  const t=new THREE.Mesh(geoSmussata(m.cabW,m.cab,m.cabL,0.16),vernice);
+  t.position.set(0,yTetto+m.cab/2,m.zcab); t.castShadow=true; g.add(t);
+  /* la fascia dei vetri, un filo piu' stretta: cosi' resta il montante */
+  box(g,m.cabW+0.02,m.cab*0.60,m.cabL-0.34,vetro,0,yTetto+m.cab*0.54,m.zcab,false);
+  /* calandra e fari: due segni soli, ma sono quelli che si leggono da lontano */
+  box(g,m.W*0.62,m.calandra,0.06,scuro,0,yCorpo+0.06,m.L/2-0.02,false);
+  [-1,1].forEach(sg=>{
+    box(g,0.34,0.13,0.05,lam(0xF2F0E6),sg*m.W*0.32,yCorpo+0.20,m.L/2-0.01,false);
+    box(g,0.30,0.12,0.05,lam(0x8A3A12),sg*m.W*0.32,yCorpo+0.18,-m.L/2+0.01,false);});
+  if(m.barre) [-1,1].forEach(sg=>box(g,0.07,0.05,m.cabL*0.86,lam(0x3A3E44),
+      sg*m.cabW*0.40,yTetto+m.cab+0.03,m.zcab,false));
+  [[-1,1],[1,1],[-1,-1],[1,-1]].forEach(p=>{
+    const px=p[0]*(m.W/2-0.09), pz=p[1]*(m.L*0.32);
+    const r=new THREE.Mesh(new THREE.CylinderGeometry(m.ruota,m.ruota,0.22,12),
+      lam(0x1E1E22));
+    r.rotation.z=Math.PI/2; r.position.set(px,m.ruota,pz); g.add(r);
+    const cer=new THREE.Mesh(new THREE.CylinderGeometry(m.ruota*0.60,m.ruota*0.60,0.24,10),
+      lam(0xB9BCC0));
+    cer.rotation.z=Math.PI/2; cer.position.set(px,m.ruota,pz); g.add(cer);});
   g.position.set(x,0,z);g.rotation.y=ry||0;mondo.add(g);
-  contatto(mondo,x,0.03,z,2.6,4.8,0.6);}
+  contatto(mondo,x,0.03,z,m.W+0.7,m.L+0.7,0.6);
+  return g;}
 /* I DUE FILARI DEL CAMPO DA CALCIO — misurati sull'ortofoto zenitale, non
    stimati: nella foto il prato e' racchiuso fra due file di alberi fitte, una
    per lato. Il filare est stava a x=-6,6, cioe' IN MEZZO al campo (Andrea:
@@ -1142,8 +1240,12 @@ albero(-44,4,1.35);
          z -41 . -17): si vedevano le automobili in mezzo alla vasca
          grande. I posti auto finiscono dove comincia il padiglione. */
       if(px>48 && z>-42) continue;
+      if(px===26 && z===-34.5) continue;      /* posto riservato: la Kuga */
       if(rnd()<0.66 && liberoDaiPilastri(px))
-        auto(px,z,(k%2)?Math.PI:0,cols[(rnd()*cols.length)|0]);}});})();
+        auto(px,z,(k%2)?Math.PI:0,cols[(rnd()*cols.length)|0],
+             CHIAVI_SAGOME[(rnd()*CHIAVI_SAGOME.length)|0]);}});
+  /* LA KUGA VERDE (Andrea). Prima fila, quella verso la scuola. */
+  auto(26,-34.5,Math.PI,0x2F5A3C,'suv');})();
 /* NIENTE auto lungo il viale alberato dietro la scuola (correzione di Andrea):
    li' non c'e' parcheggio, e' solo la strada di servizio verso l'Arena. */
 /* FRUTTETO 80x60 oltre il parcheggio (§16): filari regolari di alberi bassi.
@@ -1292,9 +1394,15 @@ function figura(x,z,ry,cm,cp){
   cp2.position.y=1.08;g.add(cp2);
   g.position.set(x,0,z);g.rotation.y=ry||0;mondo.add(g);
   contatto(mondo,x,0.05,z,0.8,0.8,0.5);}
-figura(-10,4,0.6,0xd8b23a);figura(-4,6,-1.2,0xc23a34);figura(-7,1.5,2.4,0x3a8a3a);
-figura(1,3,-0.5,0xe8e0d0);figura(-13,8,1.8,0x2255aa,0x3a3a3a);
-figura(-6,21,0.4,0xd87a2e);figura(-2,25,-2.2,0xdcb23a);
+/* LE VECCHIE SAGOME NON STANNO PIU' SUI CAMPI (Andrea). Erano cinque sul
+   basket — (-10 · 4) (-4 · 6) (-7 · 1,5) (1 · 3) (-13 · 8) — e due sul
+   volley — (-6 · 21) (-2 · 25): cilindri fermi, senza articolazioni e senza
+   viso, rimasti sotto i giocatori veri. Quando una cosa viene sostituita, la
+   vecchia si cancella nello stesso passaggio: sommare le due versioni e' il
+   nome dell'errore, non una strategia.
+   Restano le DUE lungo il viale di camminamento, a ponente dei campi: li'
+   non giocano, passano, e nessuno le confonde coi giocatori. Sono anche le
+   due che avevo scambiato per pezzi d'albero in un controllo di ieri. */
 figura(-27,50,0.8,0xd87a2e,0x2a3040);figura(-25,58,-1.4,0x3f6fae);
 (function dettagliCortile(){
   for(let i=0;i<4;i++) box(mondo,1.6,0.02,0.24,lam(0x3a3d40),-16+i*8,0.055,-5.2,false);
@@ -2112,12 +2220,9 @@ function faroLed(x,y,z,ry){
       for(let i=0;i<8;i++) box(mondo,0.05,0.36,0.05,lam(0x8E8A82),
         IX0+3.0+i*1.5,0.18,IZ1-0.9,false);
     })();
-    /* i paracarri gialli sul lato della scuola (rotatoria.jpg) */
-    for(let i=0;i<5;i++){
-      const x=IX1+3.2+i*3.4;
-      const b3=new THREE.Mesh(new THREE.CylinderGeometry(0.30,0.36,0.85,8),lam(0xC9A83E));
-      b3.position.set(x,0.42,IZ0-3.2); b3.castShadow=true; mondo.add(b3);
-      contatto(mondo,x,0.05,IZ0-3.2,1.2,1.2,0.5);}
+    /* I PARACARRI GIALLI NON CI SONO PIU' (Andrea). Cinque cilindri gialli
+       in fila davanti alla rotatoria: erano l'unica cosa gialla di tutto il
+       fronte e si prendevano l'occhio. */
   })();
 
   contatto(mondo,-22.6,0.03,z0-4.6,26,9,0.40);
@@ -2377,7 +2482,16 @@ function faroLed(x,y,z,ry){
      Accanto, verso l'esterno, il GARAGE DEI BUS. */
   const g=new THREE.Group();mondo.add(g);
   const cx=-66,cz=56,w=40,d=25,hM=8.6,alt=2.2;
-  const mur=lam(0xE4E0D6), lam1=lam(0xD8DCE0), lam2=lam(0xC2C8CE);
+  /* LA FOTOGRAFIA DELL'INGRESSO (Andrea) dice di che cosa e' fatto: NON e'
+     muratura ne' lamiera, e' un TELONE BIANCO di PVC teso su un'ossatura, con
+     una FASCIA BLU lungo la gronda, i teli verticali cuciti uno accanto
+     all'altro, e l'ingresso chiuso da due tende bianche scostate ai lati e
+     zavorrate in basso col nastro blu. Sopra il varco corre uno STRISCIONE
+     NERO con la scritta. Intorno, erba sintetica verde.
+     Il volume resta quello misurato sull'aerea: qui cambia la pelle, non
+     l'ingombro — un volume non si tocca senza una fonte che lo misuri. */
+  const mur=lam(0xF0EDE6), lam1=lam(0xF4F2EC), lam2=lam(0xDEDBD3);
+  const BLU=lam(0x1F5FA8), TELO=lam(0xF4F2EC), TENDA=lam(0xEAE6DC);
   solido(box(g,w,hM,d,mur,cx,hM/2,cz,true));
   box(g,w+0.4,0.8,d+0.4,lam(0xCFCABE),cx,0.4,cz,false);
   /* copertura metallica a due falde, con le nervature */
@@ -2400,11 +2514,64 @@ function faroLed(x,y,z,ry){
   /* L'ACCESSO E' SUL LATO EST, non sul lato nord (Andrea). Il portale e la
      fila di finestre alte vanno quindi sulla testata a x = cx + w/2. */
   const xE = cx + w/2;
-  const por = box(g,0.20,4.2,7.0,lam(0x6E747A),xE+0.12,2.1,cz,false);
-  box(g,0.34,0.34,7.4,lam(0xCFCABE),xE+0.14,4.35,cz,false);
-  for(let i=0;i<5;i++) box(g,0.10,1.5,2.2,lam(0x9FB6C4),xE+0.06,6.6,cz-9+i*4.6,false);
-  /* le finestre alte restano anche sul fronte nord, ma senza portale */
+  /* --- la fascia blu di gronda, su tutto il perimetro --------------- */
+  [[cx,cz-d/2-0.22,w+0.9,0.30],[cx,cz+d/2+0.22,w+0.9,0.30],
+   [cx-w/2-0.22,cz,0.30,d+0.9],[xE+0.22,cz,0.30,d+0.9]].forEach(q=>
+    box(g,q[2],0.85,q[3],BLU,q[0],hM-0.30,q[1],false));
+  /* --- i teli verticali: le cuciture sono cio' che dice "telone" ----- */
+  for(let i=1;i<16;i++){
+    const zz=cz-d/2+i*d/16;
+    box(g,0.06,hM-1.0,0.05,lam2,xE+0.11,(hM-1.0)/2,zz,false);}
+  for(let i=1;i<24;i++){
+    const xx=cx-w/2+i*w/24;
+    box(g,0.05,hM-1.0,0.06,lam2,xx,(hM-1.0)/2,cz-d/2-0.11,false);}
+
+  /* --- IL VARCO D'INGRESSO, a misura d'uomo (3,2 x 4,4) ------------- */
+  const HP=3.2, LP=4.4;
+  box(g,0.26,HP,LP,lam(0x141518),xE+0.14,HP/2,cz,false);   /* il buio dentro */
+  /* i due montanti dell'ossatura che si vedono nel varco */
+  [-1,1].forEach(sg=>box(g,0.10,HP,0.10,lam(0x3A3E44),xE-0.10,HP/2,
+    cz+sg*LP*0.30,false));
+  /* le due tende scostate ai lati, con la piega e il piede nastrato di blu */
+  [-1,1].forEach(sg=>{
+    const zz=cz+sg*(LP/2+0.34);
+    box(g,0.20,HP+0.55,0.62,TENDA,xE+0.16,(HP+0.55)/2,zz,true);
+    box(g,0.23,HP+0.20,0.16,lam(0xDCD7CB),xE+0.17,(HP+0.20)/2,zz+sg*0.20,false);
+    box(g,0.24,0.22,0.66,BLU,xE+0.17,0.11,zz,false);});     /* zavorra blu */
+
+  /* --- LO STRISCIONE NERO sopra il varco ---------------------------- */
+  const cs=mkCanvas(1024,168), q=cs.getContext('2d');
+  q.fillStyle='#141416'; q.fillRect(0,0,1024,168);
+  q.fillStyle='rgba(255,255,255,0.05)';
+  q.beginPath(); q.arc(560,84,66,0,Math.PI*2); q.fill();
+  q.textBaseline='middle';
+  q.font='bold 62px Arial Black, Arial, sans-serif';
+  q.lineWidth=7; q.strokeStyle='#C8511E'; q.fillStyle='#EFEDE7';
+  q.textAlign='center';
+  q.strokeText('QDV',300,52);  q.fillText('QDV',300,52);
+  q.font='bold 86px Arial Black, Arial, sans-serif';
+  q.lineWidth=8;
+  q.strokeText('ARENA',300,120); q.fillText('ARENA',300,120);
+  /* la seconda riga in corsivo NON la trascrivo: nella fotografia e'
+     tagliata a "Dove nascono i s...", e non si inventa quello che non si
+     legge. Resta il posto, vuoto. */
+  const str=new THREE.Mesh(new THREE.PlaneGeometry(9.6,1.58),
+    new THREE.MeshBasicMaterial({map:tex(cs,false)}));
+  /* il telo va DAVANTI al pannello, non dentro: il pannello e' spesso 10 cm
+     e sta a +0,26, quindi arriva a +0,31. A +0,30 il piano col testo era
+     sepolto e si vedeva solo il nero. */
+  str.rotation.y=Math.PI/2; str.position.set(xE+0.36,HP+1.15,cz); g.add(str);
+  box(g,0.10,1.70,9.8,lam(0x1A1B1E),xE+0.26,HP+1.15,cz,false);
+
+  /* le finestre alte restano anche sul fronte nord */
   for(let i=0;i<8;i++) box(g,2.2,1.5,0.10,lam(0x9FB6C4),cx-16+i*4.6,6.6,cz-d/2-0.06,false);
+  /* l'erba sintetica davanti all'ingresso, e il marciapiede di cemento.
+     (tappeto() vive dentro un'altra IIFE e qui non c'e': i due piani si
+     fanno a mano. Lo script era morto sul primo `tappeto is not defined`,
+     e la pagina restava vuota.) */
+  [[0x3E7A46,13,16,xE+6.6,0.024],[0xC6C3BC,3.2,17,xE+14.0,0.026]].forEach(q=>{
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(q[1],q[2]),lam(q[0]));
+    m.rotation.x=-Math.PI/2; m.position.set(q[3],q[4],cz); g.add(m);});
   contatto(mondo,cx,0.03,cz,w+4,d+4,0.5);
   /* ---- GARAGE BUS: capannone piu' basso, subito accanto --------------- */
   const bx=-66,bz=78,bw=26,bd=14,bh=5.6,ba=1.5;
@@ -3207,6 +3374,257 @@ function faroLed(x,y,z,ry){
       const c=box(mondo,0.09,4.4,0.09,lam(0xE0DCD4),px,1.62,-2.28,false);
       c.rotation.z=v*Math.PI/3.6;});
     box(mondo,0.16,0.16,0.14,lam(0xB8B4AC),px,1.62,-2.26,false);}})();
+
+/* ==========================================================================
+   LA PARTITA — dieci ragazzi sul campo da calcio
+   --------------------------------------------------------------------------
+   Il campo e' il tappeto 28 x 55 centrato in (-8,6 · 59,5), quindi
+   x[-22,6 · 5,4]  z[32 · 87]. I giocatori stanno DENTRO quel rettangolo con
+   tre metri di margine: non si mettono a occhio, si ricavano dai numeri del
+   campo — e' lo stesso errore degli ombrelloni finiti in vasca.
+
+   PERCHE' SI MUOVONO. Dieci sagome ferme in mezzo al prato sembrano statue e
+   fanno l'effetto contrario: si nota che sono finte. Bastano due cose per
+   dire "partita": le GAMBE che vanno (rotazione all'anca, braccia in
+   controtempo) e uno spostamento lento su un giro breve, ognuno col suo
+   raggio e la sua fase. Il pallone si muove per conto suo e rotola.
+
+   Statura 1,45: sono ragazzi delle medie, non adulti. Se li faccio alti 1,80
+   il campo sembra piccolo.
+   ========================================================================== */
+(function partita(){
+  const CX=-8.6, CZ=59.5, MW=28/2-3.5, MD=55/2-4.5;
+  /* Tre campi, tre divise. Nel basket canotta e calzoncini sono dello
+     stesso colore e le braccia restano scoperte; nella pallavolo le maglie
+     sono piu' accese e i calzoncini corti. */
+  const DIV_CALCIO=[{maglia:0x1D4E9C,calz:0xF2F0EA,calze:0x1D4E9C},
+                    {maglia:0xE8E4DA,calz:0x2A3038,calze:0xE8E4DA}];
+  const DIV_BASKET=[{maglia:0xC8862A,calz:0xC8862A,calze:0xF2F0EA},
+                    {maglia:0x2E4E8C,calz:0x2E4E8C,calze:0xF2F0EA}];
+  const DIV_VOLLEY=[{maglia:0x7A2E6B,calz:0x2A3038,calze:0xF2F0EA},
+                    {maglia:0xE8E4DA,calz:0x2E6E5A,calze:0xE8E4DA}];
+  const PELLE=[0xE4C3A0,0xC98F63,0x8B5A38,0xD9AE86];
+  const CAPELLI=[0x2B2118,0x4A3524,0x8A6A3A,0x1A1512];
+  const mossi=[];
+
+  /* SPIGOLI SMUSSATI. Con box() puri i ragazzi erano dieci parallelepipedi:
+     a venti metri e' proprio quello che si vede, perche' lo spigolo vivo
+     prende un filo di luce netto lungo tutto il bordo. geoSmussata arrotonda
+     il profilo XY e le geometrie restano in cache (le taglie si ripetono
+     dieci volte), quindi non costa niente. Il raggio e' un terzo del lato
+     corto: piu' di cosi' e diventano salsicce. */
+  function sm(par,w,h,d,mat,x,y,z,ombra,r){
+    const m=new THREE.Mesh(geoSmussata(w,h,d,
+      r!==undefined?r:Math.min(w,h)*0.34),mat);
+    m.position.set(x,y,z); if(ombra) m.castShadow=true; par.add(m); return m;}
+
+  function giocatore(hx,hz,dv,sq,tono,fase,raggio,vel,opz){
+    const d=dv[sq], O=opz||{};
+    const g=new THREE.Group(); g.userData.animato=true;
+    const maglia=lam(d.maglia), calz=lam(d.calz), calze=lam(d.calze),
+          pelle=lam(PELLE[tono%PELLE.length]),
+          cap=lam(CAPELLI[(tono+sq)%CAPELLI.length]), scarpa=lam(0x24282E);
+    /* busto e testa */
+    sm(g,0.36,0.46,0.20,maglia,0,1.06,0,true,0.11);
+    sm(g,0.30,0.17,0.19,calz  ,0,0.79,0,false,0.07);
+    const collo=new THREE.Mesh(
+      new THREE.CylinderGeometry(0.055,0.062,0.09,8),pelle);
+    collo.position.y=1.32; g.add(collo);
+    const testa=new THREE.Mesh(new THREE.SphereGeometry(0.115,12,10),pelle);
+    testa.position.y=1.44; testa.castShadow=true; g.add(testa);
+    const capelli=new THREE.Mesh(new THREE.SphereGeometry(0.122,12,8,0,
+      Math.PI*2,0,Math.PI*0.58),cap);
+    capelli.position.y=1.45; g.add(capelli);
+    /* DA CHE PARTE E' GIRATO. Senza niente in faccia, una testa e' una
+       sfera e correre avanti o all'indietro e' lo stesso (Andrea). Servono
+       due segni a due distanze diverse, perche' funzionano in due momenti
+       diversi:
+       - DA VICINO il viso: occhi, naso, bocca. Il fronte del modello e' -Z.
+       - DA LONTANO, dove gli occhi sono due pixel, il NUMERO sulla schiena
+         e la nuca scura. E' quello che si legge a venti metri. */
+    const buio=lam(0x2A2622);
+    [-1,1].forEach(sg=>{
+      const oc=new THREE.Mesh(new THREE.SphereGeometry(0.020,8,6),buio);
+      oc.position.set(sg*0.043,1.462,-0.099); g.add(oc);
+      sm(g,0.040,0.011,0.02,cap,sg*0.045,1.497,-0.098,false,0.004);});
+    sm(g,0.032,0.045,0.035,pelle,0,1.432,-0.104,false,0.012);   /* naso   */
+    sm(g,0.048,0.011,0.02,buio ,0,1.394,-0.103,false,0.005);    /* bocca  */
+    const nuca=new THREE.Mesh(new THREE.SphereGeometry(0.098,10,8),cap);
+    nuca.position.set(0,1.415,0.046); g.add(nuca);
+    if(O.coda){                       /* capelli raccolti dietro */
+      const el=new THREE.Mesh(new THREE.SphereGeometry(0.052,8,6),cap);
+      el.position.set(0,1.455,0.105); g.add(el);
+      const cd=new THREE.Mesh(new THREE.CylinderGeometry(0.040,0.022,0.26,8),cap);
+      cd.position.set(0,1.315,0.128); cd.rotation.x=-0.30; g.add(cd);}
+    /* il numero sulla schiena: una placca nel colore dei calzoncini */
+    sm(g,0.19,0.21,0.02,calz,0,1.105,0.104,false,0.03);
+    /* LA CATENA DELLE ARTICOLAZIONI. Prima la gamba era UN pezzo solo che
+       ruotava all'anca: e' il motivo per cui il movimento sembrava di un
+       burattino. Nella corsa il ginocchio fa quasi tutto — si piega fino a
+       ottanta gradi mentre la gamba torna avanti, e si distende appena prima
+       di appoggiare. Senza quello il piede descrive un arco di cerchio, cosa
+       che nessuno fa camminando.
+       Quote della catena (statura 1,45): anca 0,72 · coscia 0,34 ·
+       tibia 0,30 · caviglia 0,08 → a gamba dritta la suola tocca lo zero. */
+    const anche=[],ginocchia=[],caviglie=[],spalle=[],gomiti=[];
+    [-1,1].forEach(sg=>{
+      const an=new THREE.Group(); an.position.set(sg*0.10,0.72,0);
+      an.userData.animato=true; g.add(an); anche.push(an);
+      sm(an,0.13,0.15,0.14,calz ,0,-0.075,0,false,0.055);   /* alto coscia  */
+      sm(an,0.125,0.22,0.135,pelle,0,-0.24,0,false,0.050);  /* coscia       */
+      const gi=new THREE.Group(); gi.position.set(0,-0.34,0);
+      gi.userData.animato=true; an.add(gi); ginocchia.push(gi);
+      sm(gi,0.115,0.20,0.125,pelle,0,-0.10,0,false,0.048);  /* tibia        */
+      sm(gi,0.125,0.13,0.135,calze,0,-0.235,0,false,0.045); /* calzettone   */
+      const ca=new THREE.Group(); ca.position.set(0,-0.30,0);
+      ca.userData.animato=true; gi.add(ca); caviglie.push(ca);
+      /* LA PUNTA VA IN AVANTI, cioe' verso -Z. Con z=+0,05 la scarpa
+         sporgeva DIETRO il tallone: i giocatori correvano coi piedi al
+         contrario. Me lo ero portato dietro dalla prima versione, e non si
+         vedeva perche' le riprese erano quasi tutte di spalle. Ora il piede
+         va da -0,17 (punta) a +0,07 (tallone) rispetto alla caviglia. */
+      sm(ca,0.13,0.08,0.24,scarpa,0,-0.04,-0.05,false,0.035);
+
+      const sp=new THREE.Group(); sp.position.set(sg*0.23,1.24,0);
+      sp.userData.animato=true; g.add(sp); spalle.push(sp);
+      const bs=new THREE.Mesh(new THREE.SphereGeometry(0.062,10,8),maglia);
+      sp.add(bs);                       /* la sferetta della spalla         */
+      sm(sp,0.10,0.22,0.11,O.canotta?pelle:maglia,0,-0.11,0,false,0.045);
+      const go=new THREE.Group(); go.position.set(0,-0.22,0);
+      go.userData.animato=true; sp.add(go); gomiti.push(go);
+      sm(go,0.09,0.22,0.10,pelle,0,-0.11,0,false,0.042);
+      const mano=new THREE.Mesh(new THREE.SphereGeometry(0.048,8,6),pelle);
+      mano.position.y=-0.24; go.add(mano);});
+    g.position.set(hx,0,hz); mondo.add(g);
+    contatto(mondo,hx,0.035,hz,1.0,1.0,0.34);
+    mossi.push({g:g,anche:anche,ginocchia:ginocchia,caviglie:caviglie,
+                spalle:spalle,gomiti:gomiti,hx:hx,hz:hz,
+                a:fase,f:fase*1.7,r:raggio,v:vel});
+    if(O.statura&&O.statura!==1) g.scale.setScalar(O.statura);
+    return g;}
+
+  /* SCHIERA — mette in campo una formazione dentro un rettangolo dato.
+     Il rettangolo NON e' a occhio: sono i bordi veri del campo meno il
+     margine, e ogni giocatore ci sta dentro anche all'estremo del suo giro
+     (posizione + raggio). E' il controllo che mi era mancato con gli
+     ombrelloni finiti in vasca. */
+  function schiera(cfg){
+    cfg.posti.forEach(function(p,i){
+      const r=cfg.r0+((i*3)%4)*cfg.dr;
+      const hx=Math.max(cfg.x0+r,Math.min(cfg.x1-r,p[0]));
+      const hz=Math.max(cfg.z0+r,Math.min(cfg.z1-r,p[1]));
+      giocatore(hx,hz,cfg.divise,p[2],i+(cfg.tono||0),
+                ((i*1.37)+(cfg.tono||0))%(Math.PI*2),r,
+                cfg.v0+((i*5)%3)*cfg.dv,cfg.opz);});}
+
+  /* OGNI PALLONE SI MUOVE COME IL SUO GIOCO (Andrea). Ne avevo fatti tre
+     uguali, che strisciavano a terra: giusto per il calcio, sbagliato per
+     gli altri due.
+       terra    — rotola sul prato
+       volo     — la pallavolo sta IN ARIA: parabole da una parte all'altra
+                  della rete, con la battuta che inverte di colpo la corsa
+       rimbalzo — il basket si palleggia: tocca terra e risale */
+  const palle=[];
+  function pallone(col,raggio,cx,cz,rx,rz,vel,tipo,dati){
+    const m=new THREE.Mesh(new THREE.SphereGeometry(raggio,14,12),lam(col));
+    m.position.set(cx,raggio,cz); m.castShadow=true;
+    m.userData.animato=true; mondo.add(m);
+    palle.push({m:m,cx:cx,cz:cz,rx:rx,rz:rz,v:vel,y:raggio,
+                tipo:tipo||'terra',d:dati||{}});}
+
+  /* ---- CALCIO: cinque contro cinque, sparsi come in una partita vera --- */
+  schiera({divise:DIV_CALCIO, x0:CX-14+3.5, x1:CX+14-3.5,
+           z0:CZ-27.5+4.5, z1:CZ+27.5-4.5, r0:1.6, dr:0.7, v0:1.5, dv:0.45,
+           posti:[[-16,44,0],[-11,50,0],[-4,47,0],[-14,58,0],[-6,62,0],
+                  [-13,66,1],[-5,70,1],[-16,74,1],[-8,78,1],[-2,56,1]]});
+  pallone(0xF2F0EA,0.11,CX-2,CZ+3,7.5,9.0,0.70,'terra');
+
+  /* ---- BASKET: tre contro tre. Il campo e' 28 x 15, x[-22,6 · 5,4]
+     z[-3 · 12] — le stesse quote con cui si collauda la tappa 2. Canotta e
+     braccia scoperte, giro piu' stretto e piu' svelto del calcio: in un
+     campo da basket non si fanno quaranta metri. */
+  schiera({divise:DIV_BASKET, x0:-22.6, x1:5.4, z0:-3, z1:12,
+           r0:1.3, dr:0.5, v0:1.9, dv:0.4, tono:2, opz:{canotta:true},
+           posti:[[-16.5,1.5,0],[-11,6.5,0],[-4.5,3.0,0],
+                  [-18,7.5,1],[-9,10.0,1],[-3,8.5,1]]});
+  /* il palleggio: 2,3 tocchi al secondo, come si palleggia camminando */
+  pallone(0xC4661C,0.122,-9,4.5,4.6,3.2,0.95,'rimbalzo',{h:0.95,f:7.2});
+
+  /* ---- VOLLEY: tre contro tre, e sono RAGAZZE (Andrea). Il campo e'
+     18 x 9 centrato in (-8,6 · 25,8), con la rete sulla mezzeria x=-8,6:
+     ogni squadra resta dalla sua parte, e il raggio del giro e' scelto
+     perche' nessuna passi sotto la rete. In pallavolo non si corre in giro:
+     ci si sposta di un passo, quindi raggi piccoli e andatura lenta. */
+  schiera({divise:DIV_VOLLEY, x0:-17.6, x1:-9.8, z0:21.3, z1:30.3,
+           r0:0.7, dr:0.25, v0:0.85, dv:0.3, tono:1,
+           opz:{coda:true, statura:0.97},
+           posti:[[-15.4,23.2,0],[-15.4,28.4,0],[-11.4,25.8,0]]});
+  schiera({divise:DIV_VOLLEY, x0:-7.4, x1:0.4, z0:21.3, z1:30.3,
+           r0:0.7, dr:0.25, v0:0.85, dv:0.3, tono:3,
+           opz:{coda:true, statura:0.97},
+           posti:[[-2.2,23.2,1],[-2.2,28.4,1],[-6.0,25.8,1]]});
+  /* da (-13,8 · 24,2) a (-3,6 · 27,4), scavalcando la rete a x=-8,6 con
+     3,1 m di apice: passa un metro buono sopra il nastro. */
+  pallone(0xE8E4DA,0.105,-8.6,25.8,0,0,1.05,'volo',
+          {ax:-13.8,az:24.2,bx:-3.6,bz:27.4,h:3.1});
+
+  let tP=0;
+  AGGIORNA.push(function(dt){
+    tP+=dt;
+    mossi.forEach(function(m,i){
+      m.a+=dt*m.v/m.r;
+      const x=m.hx+Math.cos(m.a)*m.r, z=m.hz+Math.sin(m.a)*m.r;
+      m.g.position.set(x,0,z);
+      m.g.rotation.y=Math.PI-m.a;          /* si guarda dove si corre */
+      /* LA FALCATA. fase = 0 quando la gamba passa sotto il corpo.
+         anca      = seno puro, avanti e indietro
+         ginocchio = SEMPRE flesso all'indietro (mai negativo al contrario),
+                     col massimo mentre la gamba torna avanti (cos > 0) e
+                     quasi disteso quando sta per appoggiare
+         caviglia  = compensa, cosi' la suola non punta al cielo */
+      const f=tP*m.v*2.6+m.f;
+      let piuBasso=9;
+      for(let k=0;k<2;k++){
+        const ph=f+k*Math.PI;
+        const an=0.55*Math.sin(ph);
+        const gi=-(0.12+1.30*Math.pow(Math.max(0,Math.cos(ph)),1.4));
+        m.anche[k].rotation.x=an;
+        m.ginocchia[k].rotation.x=gi;
+        m.caviglie[k].rotation.x=-(an+gi)*0.80;
+        /* quota della caviglia con questa piega: serve a far scendere il
+           bacino quanto basta perche' il piede d'appoggio tocchi terra.
+           Senza, i piedi galleggiano di 13 cm agli estremi della falcata. */
+        const h=0.72-0.34*Math.cos(an)-0.30*Math.cos(an+gi);
+        if(h<piuBasso) piuBasso=h;
+        /* le braccia vanno in controtempo, e il gomito resta piegato */
+        m.spalle[k].rotation.x=-0.50*Math.sin(ph);
+        m.gomiti[k].rotation.x=0.95+0.30*Math.cos(ph);
+      }
+      /* il rimbalzo della corsa non e' un seno inventato: e' quanto deve
+         calare il bacino, e viene fuori da solo due volte per ciclo */
+      m.g.position.y=Math.min(0,0.08-piuBasso);
+    });
+    palle.forEach(function(b){
+      const u=tP*b.v, d=b.d;
+      if(b.tipo==='volo'){
+        /* mezzo periodo per ogni traversata; il verso si inverte a ogni
+           tocco, ed e' quello che fa leggere "battuta" invece di "giro" */
+        const k=Math.floor(u/Math.PI)%2, t=(u%Math.PI)/Math.PI;
+        const t1=k?1-t:t;
+        b.m.position.set(d.ax+(d.bx-d.ax)*t1, b.y+d.h*4*t*(1-t),
+                         d.az+(d.bz-d.az)*t1);
+        b.m.rotation.x+=dt*3.0;
+      } else if(b.tipo==='rimbalzo'){
+        /* |sin| e' il rimbalzo: tocca terra a ogni zero e non lo attraversa */
+        b.m.position.set(b.cx+Math.cos(u)*b.rx,
+                         b.y+d.h*Math.abs(Math.sin(tP*d.f)),
+                         b.cz+Math.sin(u*1.3)*b.rz);
+        b.m.rotation.x+=dt*5.0; b.m.rotation.z+=dt*1.4;
+      } else {
+        b.m.position.set(b.cx+Math.cos(u)*b.rx, b.y, b.cz+Math.sin(u*1.3)*b.rz);
+        b.m.rotation.x+=dt*4.2; b.m.rotation.z+=dt*2.1;}});
+  });
+})();
 
 /* ===================== I TOMBINI DEL PIANO TERRA =======================
    Quattro pozzetti di ispezione, uno per ciascun settore di SOTTOTRACCIA
@@ -6036,6 +6454,11 @@ window.collaudoCopertura=function(){
   console.log('[copertura]\n  '+R.join('\n  '));
   return R.join(' | ');
 };
+
+/* LA SENTINELLA della spia di guasto (vedi il blocco in testa alla pagina):
+   se questa riga non viene eseguita, lo script non e' arrivato in fondo e
+   dopo quattro secondi compare l'avviso invece di una card bianca. */
+window.__campusOk=true;
 
 </script>
 </body>
