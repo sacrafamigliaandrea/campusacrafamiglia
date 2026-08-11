@@ -2526,7 +2526,19 @@ function faroLed(x,y,z,ry){
      massa»). Qui le pareti sono quattro teli spessi 25 cm, e quella di
      levante e' spezzata per lasciare il varco. */
   const SP=0.25, xW=cx-w/2, zN=cz-d/2, zS=cz+d/2, VA=2.35;
-  solido(box(g,SP,hM,d,mur,xW,hM/2,cz,true));            /* fondo, a ponente */
+  /* IL FONDO DI PONENTE HA IL SUO VARCO, uguale e in asse con quello di
+     levante: il volo attraversa il tendone da parte a parte a quota d'uomo
+     e ne esce dalla porta, invece di bucare il telo sopra il palco. */
+  [[zN,cz-VA],[cz+VA,zS]].forEach(function(q){
+    solido(box(g,SP,hM,q[1]-q[0],mur,xW,hM/2,(q[0]+q[1])/2,true));});
+  box(g,SP,hM-3.6,VA*2,mur,xW,3.6+(hM-3.6)/2,cz,false);
+  /* HP e LP sono dichiarate sessanta righe piu' sotto: qui sarebbero in
+     TDZ e lo script morirebbe con un solo ReferenceError, lasciando la
+     scena vuota. Quote per esteso — 3,20 di altezza, 4,40 di luce. */
+  [-1,1].forEach(function(sg){
+    box(g,0.22,3.30,0.14,lam(0xDCD7CB),xW-0.14,1.65,cz+sg*2.36,false);
+    box(g,0.26,0.20,0.34,BLU,xW-0.16,0.10,cz+sg*2.36,false);});
+  box(g,0.22,0.16,4.90,lam(0xDCD7CB),xW-0.14,3.28,cz,false);
   solido(box(g,w,hM,SP,mur,cx,hM/2,zN,true));            /* lato nord        */
   solido(box(g,w,hM,SP,mur,cx,hM/2,zS,true));            /* lato sud         */
   [[zN,cz-VA],[cz+VA,zS]].forEach(q=>{                   /* levante, spezzato*/
@@ -5791,22 +5803,6 @@ const TAPPE=[
     zona3d:[-61.8,-55.5,-0.5,22.6],
     imparato:'Le quattro Case della Sacra Famiglia — Aquilablu, Querciaverde, Cerogiallo, Tassorosso — dividono gli studenti in squadre che restano le stesse negli anni. Servono a far conoscere ragazzi di classi diverse.' },
 
-  { titolo:'I gradini che fanno i conti',
-    indizio:'C\'è una scala che non serve solo a salire: su ogni alzata qualcuno ha incollato quadretti numerati colorati, e i numeri crescono di riga in riga. Sta nel lungo corridoio del primo piano, appoggiata al lato delle finestre, e sale verso ponente. La cassetta è a terra, ai piedi del primo gradino.',
-    pos:[-48.35,3.44,-1.70], da:[-44.6,5.04,-2.60],
-    zona:'Primo piano, braccio nord: il tratto verso la Primaria, sul lato del fronte vetrato.',
-    cosa:'Una cassetta di legno a terra, davanti alla pedana di partenza della scala coi quadretti numerati.',
-    zona3d:[-55.5,-45.0,-5.4,-0.5],
-    imparato:'La scala delle tabelline trasforma un passaggio obbligato in un ripasso involontario: ogni volta che sali, i numeri ti passano davanti. È un\'idea semplice — mettere il contenuto dove il corpo passa comunque. Poco più avanti un\'altra scala scende al piano terra, e lì su ogni alzata c\'è scritta una parola: Ascolto, Rispetto, Fiducia, Coraggio.' },
-
-  { titolo:'Il muro che sembra un quadro',
-    indizio:'Sempre al primo piano, nella zona degli uffici, un muro è coperto di rettangoli arancio, blu, rossi e crema separati da linee nere, senza nessuna figura riconoscibile. Sotto ci sono un divano grigio, una panchina a listelli di legno e un albero in un vaso di terracotta.',
-    pos:[-36.9,3.92,-4.72], da:[-36.9,5.04,-1.40],
-    zona:'Primo piano, zona uffici: l\'angolo di sosta contro la parete delle aule.',
-    cosa:'Una cassetta di legno appoggiata sulla panchina a listelli.',
-    zona3d:[-43,-30,-5.4,-0.5],
-    imparato:'Un muro fatto di soli rettangoli colorati richiama l\'astrattismo di Piet Mondrian: l\'arte non deve per forza rappresentare qualcosa. Qui serve anche a segnalare il punto di sosta della scuola — l\'unico posto del piano dove ci si siede senza un banco davanti.' },
-
   { titolo:'Dove il pavimento cambia quota',
     indizio:'Nel corridoio del primo piano il pavimento si interrompe dove il passaggio gira: tre gradini messi di sbieco, in diagonale esatta fra i due bracci, ti fanno salire di trentasette centimetri. Non sono paralleli al corridoio e non girano l\'angolo: lo tagliano a metà.',
     pos:[12.70,3.81,2.30], da:[12.70,5.04,7.60],
@@ -5839,16 +5835,6 @@ const TAPPE=[
     zona3d:[-52.0,-28.9,-0.5,21.8],
     imparato:'Il giardino dell\'Infanzia è un cortile protetto da tutti i lati: i più piccoli possono uscire senza mai incrociare il traffico della scuola grande. A chiuderlo è il portico di collegamento, che non è una tettoia qualunque: sul disegno di rilievo è largo 3,60 m per quasi 25 di sviluppo, ha i pilastri su tutti e due i fili e il soffitto diviso in campate dipinte di verde, blu, arancio e rosso. È lui a dividere in due il cuore del campus.' },
 
-  { titolo:'Il cuore della scuola',
-    indizio:'Torna al primo piano, esattamente a metà del corridoio lungo: c\'è un vuoto nel pavimento, con quattro colonne d\'acciaio e la ringhiera blu tutt\'intorno, e da lì si vede giù fino al piano terra. Poco più in là, verso ponente, il soffitto va a fasce celesti, salmone e gialle. Appena passata la ringhiera, in mezzo al passaggio, ti aspetta la Coppa delle Case sul suo podio di pietra.',
-    /* stava sul tavolone di legno scuro, che Andrea ha fatto togliere: la
-       Coppa ha un podio suo e adesso poggia per terra (y = PAV). */
-    pos:[-17.80,3.42,-2.95], da:[-13.0,5.04,-2.95],
-    zona:'Primo piano, subito a levante della ringhiera blu del vano scala.',
-    cosa:'La Coppa delle Case: un calice dorato su un podio di pietra, con quattro colonne di vetro coi colori delle Case.',
-    zona3d:[-24,-13,-5.4,-0.5],
-    imparato:'La Coppa delle Case si assegna alla Casa che nell\'anno ha raccolto più punti: Aquilablu, Querciaverde, Cerogiallo, Tassorosso. Ma la chiave del campus è un\'altra: saperlo attraversare. Ora sai da dove si entra, dove cambia quota il pavimento, perché le pareti cambiano colore e dove finisce la scuola.' },
-
   /* ---- LE DUE TAPPE DEGLI INTERNI NUOVI --------------------------------
      Gli indizi NON dicono il nome del posto: lo descrivono. E le zona3d
      sono i rettangoli VERI degli ambienti — chiesa x[-41,30 · -32,60]
@@ -5871,6 +5857,19 @@ const TAPPE=[
     cosa:'Una cassetta di legno posata sull\'erba sintetica, contro il primo gradino della scaletta.',
     zona3d:[-86.00,-46.00,43.50,68.50],
     imparato:'Il QdV Arena è una tensostruttura: telo di PVC su ossatura metallica, non muratura. Dentro ci sta un palco largo quanto tutto il capannone, la platea e le tribune — e per illuminarlo servono i fari appesi all\'americana, perché il telo lascia passare pochissima luce.' },
+  /* LA CASA FAMIGLIA. Sostituisce tre tappe del primo piano: erano CINQUE
+     su dodici tutte nello stesso corridoio, e mezza caccia si svolgeva in
+     trenta metri. Restano le due che insegnano a leggere l'edificio — le
+     Case e il punto in cui il pavimento cambia quota — e il gioco guadagna
+     un polo a ponente, dove il volo passa ma il gioco non arrivava mai.
+     zona3d = l'impronta misurata sull'ortofoto, non a occhio. */
+  { titolo:'La loggia che guarda il tramonto',
+    indizio:'Esci dal campus verso ponente, oltre il filare e la stradina bianca: in mezzo ai campi c\'è una casa sola, lunga quaranta metri, col tetto in coppi e la gronda che sporge. I due corpi di testa sono rossi, quello in mezzo è bianco e arretrato dietro una fila di pilastri quadrati. Davanti, dalla parte del sole che tramonta, un prato diviso in quattro da vialetti di ghiaia con le siepi basse. La cassetta è sotto il portico, contro il primo pilastro.',
+    pos:[-142.60,0.36,71.00], da:[-147.50,2.00,71.00],
+    zona:'La Casa Famiglia, sotto la loggia del fronte ovest.',
+    cosa:'Una cassetta di legno appoggiata al pavimento del portico, contro la base di un pilastro.',
+    zona3d:[-153.60,-115.80,53.00,98.50],
+    imparato:'La Casa Famiglia non fa parte del blocco scolastico: sta da sola in mezzo ai campi, a una quarantina di metri dal tendone. Un piano solo, quaranta metri di lunghezza, e sul fronte ovest una loggia profonda che ripara dal sole del pomeriggio — è il motivo per cui il giardino formale sta da quella parte e non dall\'altra.' }
 ];
 
 /* ---- la cassetta: oggetto fisico, non pannello (regola di progetto) ---- */
@@ -6190,9 +6189,10 @@ function debrief(){
     +'<h1>Campus Sacra Famiglia</h1>'
     +'<p>Hai trovato la Coppa delle Case. Per arrivarci hai attraversato '
     +inLettere(TAPPE.length)+' tappe: il portale di pietra, la corte dei campi, '
-    +'la Primaria, la scala delle tabelline, il muro dei colori, la gradinata, '
-    +'il campo fra i filari, le piscine, l\'atrio, la navata della chiesa e '
-    +'il tendone dell\'Arena.</p>'
+    /* l'elenco segue le tappe vere: tre del primo piano non ci sono piu'. */
+    +'la Primaria, la gradinata, il campo fra i filari, le piscine, il '
+    +'giardino dell\'Infanzia, la navata della chiesa, il tendone dell\'Arena '
+    +'e la loggia della Casa Famiglia.</p>'
     +'<div class="imparato">Hai risolto <strong>'+senza+' tappe su '+TAPPE.length
     +'</strong> senza chiedere aiuto, e hai usato <strong>'+G.aiuti+' aiuti</strong> in tutto. '
     +'Non è un voto: serve a te per sapere dove l\'indizio è stato più difficile da leggere.</div>'
@@ -6375,15 +6375,23 @@ const GIRO=[
      e' una delle due cose che facevano scattare il volo di prima. */
   [ -34,  2.3, 54.5,-50,  2.0, 54.5],
   [ -45,  1.95,54.5,-64,  1.95,54],
-  [ -60,  1.95,55,  -78,  2.2, 51],
-  [ -76,  2.3, 51,  -86,  4.5, 48],
-  /* --- E. FUORI SOPRA IL PALCO, e si sale verso la chiesa --------------
-     La virata d'uscita era tutta in dieci metri: si saliva e si girava a
-     ponente nello stesso istante. Ora la salita prosegue DRITTA oltre il
-     palco e la virata comincia dopo, larga. */
-  [ -83,  5.0, 49,  -89,  9,   43],
-  [ -88, 11,   42,  -85, 16,   28],
-  [ -80, 19,   24,  -62, 16,   -6],
+  [ -62,  1.95,54.5,-80,  1.95,54.5],
+  /* --- E. SI ESCE DALLA PORTA DI PONENTE (Andrea) ----------------------
+     Prima si bucava il telo sopra il palco: una salita ripida dentro
+     l'edificio, e la Casa Famiglia restava fuori campo per tutto il giro.
+     Ora il tendone si attraversa da parte a parte a QUOTA D'UOMO — la
+     planata resta costante da un varco all'altro — e si sale solo una
+     volta fuori. Poi si sorvola la Casa Famiglia inquadrandola, e si torna
+     alla chiesa con una curva larga. */
+  [ -84,  1.95,54.5,-98,  2.6, 55],
+  [ -96,  3.6, 55,  -114, 6,   62],
+  [ -110,10,   62,  -130, 6,   72],   /* la Casa Famiglia entra in campo   */
+  [ -126,17,   70,  -134, 5,   76],   /* la si guarda dall'alto, di sbieco */
+  [ -142,22,   78,  -136, 6,   74],
+  [ -152,26,   62,  -134, 8,   60],   /* si comincia la curva larga a nord */
+  [ -148,30,   28,  -110, 14,   6],
+  [ -126,32,  -14,  -80,  16, -34],
+  [ -96,  30, -50,  -50,  14, -56],
   /* SI ARRIVA AL PORTALE GIA' IN ASSE. Prima si veniva da nord-ovest e la
      virata verso mezzogiorno cadeva sulla soglia: con lo sguardo filtrato
      la testa entrava ancora girata, e la navata compariva di sbieco invece
