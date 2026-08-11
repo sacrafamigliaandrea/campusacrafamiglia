@@ -1899,6 +1899,24 @@ function faroLed(x,y,z,ry){
      vetrata del braccio ovest del corridoio (filo x=-55,50). La banda stava
      1,1 m piu' a est e per giunta ATTRAVERSAVA il braccio nord. */
   nastroPrimo(-13.0,-5.60,x1,Math.PI/2,H_PT);
+  /* IL TERZO PIANO MANCAVA DEL TUTTO sul lato interno della L. L'edificio
+     e' a tre livelli e la vetrata a nastro li fa tutti e tre: c'erano solo
+     terra e primo, e sopra restava un muro cieco. Il terzo si posa a 8,05
+     — l'interpiano e' 3,15, lo stesso delle finestre del fronte nord. */
+  (function nastroSecondo(){
+    const zA=-13.0, zB=20.0, L2=zB-zA, y=8.05;
+    const vetro=new THREE.MeshPhongMaterial({color:0xBFD2DC,transparent:true,
+      opacity:0.34,shininess:120,specular:0xffffff,side:THREE.DoubleSide,
+      depthWrite:false});
+    const tel=lam(0xE8E4DA);
+    const v=new THREE.Mesh(new THREE.PlaneGeometry(L2-1.2,2.05),vetro);
+    v.rotation.y=Math.PI/2; v.position.set(x1+0.07,y+1.02,(zA+zB)/2);
+    mondo.add(v);
+    box(mondo,0.14,0.14,L2-1.0,tel,x1+0.07,y+2.10,(zA+zB)/2,false);
+    box(mondo,0.14,0.14,L2-1.0,tel,x1+0.07,y-0.04,(zA+zB)/2,false);
+    for(let k=0;k<=8;k++)
+      box(mondo,0.14,2.05,0.11,tel,x1+0.07,y+1.02,zA+0.6+k*(L2-1.2)/8,false);
+  })();
   /* correva da z=-13 a +20 sul filo x=-54,50: da z=-0,50 in giu' quel filo
      e' davanti alla vetrata del braccio ovest, e restava una mensola sospesa
      lunga 20 m. Accorciato al tratto che ha ancora una facciata dietro, e
@@ -2528,7 +2546,12 @@ function faroLed(x,y,z,ry){
      .forEach(function(F,lato){
       const zz=F[0], n=F[1], L=x1-x0;
       for(let r=0;r<2;r++) for(let i=0;i<n;i++){
-        const cx=x0+L*(F[2]+i*F[3])+F[4]/2, cy=1.8+r*3.44+F[5]/2;
+        /* fx E fy SONO IL CENTRO, non l'angolo: muroFin() fa
+           px=(fx-0.5)*w e posa il telaio in (px, fy). Sommandoci mezza
+           larghezza e mezza altezza le tapparelle finivano 95 cm a destra e
+           75 cm piu' in alto delle finestre — ed e' quello che si vedeva
+           come "finestre doppie". */
+        const cx=x0+L*(F[2]+i*F[3]), cy=1.8+r*3.44;
         /* NIENTE MOSTRA: la finestra la disegna gia' corpo(), e ridisegnarla
            qui davanti la faceva sembrare DOPPIA (Andrea). La tapparella si
            limita a quello che la finestra non ha — cassonetto e telo. */
