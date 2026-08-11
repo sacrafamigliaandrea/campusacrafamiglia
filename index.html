@@ -2579,6 +2579,52 @@ function faroLed(x,y,z,ry){
     box(g,0.22,3.30,0.14,lam(0xDCD7CB),xW-0.14,1.65,cz+sg*2.36,false);
     box(g,0.26,0.20,0.34,BLU,xW-0.16,0.10,cz+sg*2.36,false);});
   box(g,0.22,0.16,4.90,lam(0xDCD7CB),xW-0.14,3.28,cz,false);
+
+  /* --- I DUE ACCESSI SONO TENDE CHE SI APRONO COME SIPARI (Andrea) -----
+     Non ante e non un buco: due teli che si scostano ai lati e si
+     raccolgono contro lo stipite. Ogni telo e' un gruppo che fa due cose
+     insieme — SCORRE verso il montante e si COMPRIME in profondita'
+     (scale.z), che e' quello che fa leggere il tessuto che si ammassa
+     invece di una porta che scivola. Le pieghe verticali servono a
+     vederlo: un telo liscio che si accorcia sembra solo un pannello che
+     rimpicciolisce.
+     Larghezza del varco 4,40, altezza 3,20; i due montanti a z 53,64 e
+     58,36. Il telo chiuso copre mezza luce, aperto sta tutto sul montante. */
+  (function sipari(){
+    const telo=lam(0xE8E3D6), piega=lam(0xD8D2C2), orlo=lam(0x1F5FA8);
+    const HP2=3.20, LP2=4.40, MEZZO=LP2/2;
+    const TENDE=[];
+    /* xE e' dichiarata sessanta righe piu' sotto: qui sarebbe in TDZ e lo
+       script morirebbe con un ReferenceError, lasciando la scena vuota. E'
+       la TERZA volta che ci casco in questo file — il filo di levante si
+       scrive per esteso, cx+w/2. */
+    const xLev=cx+w/2;
+    [[xLev,1],[xW,-1]].forEach(function(q){
+      const px=q[0], sg=q[1];
+      [-1,1].forEach(function(l){
+        const gt=new THREE.Group(); gt.userData.animato=true; g.add(gt);
+        const zChiuso=cz+l*MEZZO/2, zAperto=cz+l*(MEZZO-0.30);
+        gt.position.set(px+sg*0.13,0,zChiuso);
+        box(gt,0.13,HP2,MEZZO-0.05,telo,0,HP2/2,0,true);
+        /* le pieghe: cinque costole verticali sul telo */
+        for(let k=0;k<5;k++)
+          box(gt,0.17,HP2-0.14,0.07,piega,sg*0.03,HP2/2,
+              -MEZZO/2+0.28+k*(MEZZO-0.6)/4,false);
+        box(gt,0.17,0.16,MEZZO-0.05,orlo,sg*0.02,0.09,0,false); /* zavorra */
+        TENDE.push({g:gt, zC:zChiuso, zA:zAperto, px:px});});});
+    let ap=0;
+    AGGIORNA.push(function(dt){
+      /* si aprono quando ci si avvicina all'edificio, tutte e due insieme:
+         chi entra da una parte esce dall'altra, e vedere il secondo sipario
+         gia' aperto in fondo alla sala e' meta' dell'effetto. */
+      const d=Math.min(Math.hypot(pos.x-(cx+w/2),pos.z-cz),
+                       Math.hypot(pos.x-xW,pos.z-cz));
+      ap += ((d<26?1:0)-ap)*Math.min(1,dt*1.7);
+      const k=ap*ap*(3-2*ap);
+      TENDE.forEach(function(t){
+        t.g.position.z = t.zC+(t.zA-t.zC)*k;
+        t.g.scale.z = 1-0.66*k;});});
+  })();
   solido(box(g,w,hM,SP,mur,cx,hM/2,zN,true));            /* lato nord        */
   solido(box(g,w,hM,SP,mur,cx,hM/2,zS,true));            /* lato sud         */
   [[zN,cz-VA],[cz+VA,zS]].forEach(q=>{                   /* levante, spezzato*/
@@ -3237,9 +3283,15 @@ function faroLed(x,y,z,ry){
       const sh=new THREE.Shape();
       sh.moveTo(-LF/2,0); sh.lineTo(LF/2,0); sh.lineTo(LF/2,HA-HD-LF/2);
       sh.absarc(0,HA-HD-LF/2,LF/2,0,Math.PI,false); sh.closePath();
+      /* DUE FACCE. Le monofore murate si vedono da dentro e basta, ma
+         QUELLA CHE SI APRE gira su se stessa: con il materiale a una faccia
+         sola il rovescio veniva scartato e attraverso l'anta si vedeva il
+         muro di mattoni dietro — rosso. La vetrata e' la stessa dai due
+         lati, quindi DoubleSide. */
       const m=new THREE.Mesh(new THREE.ShapeGeometry(sh,12),
         new THREE.MeshBasicMaterial({
-          map:mappaShape(tex(vetrata(),false),LF,HA-HD)}));
+          map:mappaShape(tex(vetrata(),false),LF,HA-HD),
+          side:(s===1&&i===5)?THREE.DoubleSide:THREE.FrontSide}));
       /* L'ULTIMA MONOFORA DI LEVANTE E' UN BATTENTE CHE SI APRE. E' quella
          da cui esce il volo (i=5, x=-32,95, z=-24,30): un'anta sola,
          incernierata sullo stipite di mezzogiorno, che si spalanca VERSO
