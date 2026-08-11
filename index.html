@@ -182,7 +182,8 @@
 <!--
   ============================================================================
   LA CHIAVE DEL CAMPUS — Scuola Sacra Famiglia di Orzinuovi (BS)
-  Campus 3D navigabile + caccia al tesoro a dieci tappe.
+  Campus 3D navigabile + caccia al tesoro (il numero delle tappe lo dice
+  TAPPE.length: i testi non lo scrivono piu' a mano).
   Single-file, Three.js r128, vanilla JS. Nessun build step.
 
   COM'E' NATO QUESTO FILE (leggilo prima di toccarlo)
@@ -450,6 +451,16 @@ function libero(p){
   if(!_dentro(SOLIDI,p,RAGGIO)) return true;
   return _dentro(VARCHI,p,0);      /* dentro un muro si passa solo dai varchi */
 }
+/* Il numero delle tappe scritto in lettere. Serve perche' i testi lo
+   dicessero DA SOLI: la card d'apertura ha annunciato "dieci tappe" anche
+   dopo che erano diventate dodici, e nessuno se n'e' accorto per due
+   sessioni. Un numero scritto a mano in un testo e' un numero che prima o
+   poi mente. */
+const _LETTERE=['zero','una','due','tre','quattro','cinque','sei','sette',
+  'otto','nove','dieci','undici','dodici','tredici','quattordici','quindici',
+  'sedici','diciassette','diciotto','diciannove','venti'];
+function inLettere(n){ return _LETTERE[n] || String(n); }
+
 /* ===== le quote del primo piano: servono anche agli esterni ===== */
 /* ---------------------------- quote ------------------------------------ */
 const PAV   = 3.42;          /* piano di calpestio del primo piano        */
@@ -5911,9 +5922,11 @@ function debrief(){
   const senza=TAPPE.length-G.usati.filter(x=>x>0).length;
   apriFoglio('<div class="occhiello">Percorso concluso</div>'
     +'<h1>Campus Sacra Famiglia</h1>'
-    +'<p>Hai trovato la Coppa delle Case. Per arrivarci hai attraversato dieci tappe: il portale di pietra, la corte dei campi, '
+    +'<p>Hai trovato la Coppa delle Case. Per arrivarci hai attraversato '
+    +inLettere(TAPPE.length)+' tappe: il portale di pietra, la corte dei campi, '
     +'la Primaria, la scala delle tabelline, il muro dei colori, la gradinata, '
-    +'il campo fra i filari, le piscine e l\'atrio.</p>'
+    +'il campo fra i filari, le piscine, l\'atrio, la navata della chiesa e '
+    +'il tendone dell\'Arena.</p>'
     +'<div class="imparato">Hai risolto <strong>'+senza+' tappe su '+TAPPE.length
     +'</strong> senza chiedere aiuto, e hai usato <strong>'+G.aiuti+' aiuti</strong> in tutto. '
     +'Non è un voto: serve a te per sapere dove l\'indizio è stato più difficile da leggere.</div>'
@@ -6470,7 +6483,8 @@ function apriIntro(){
     +'<div class="pillola">'+$('marchio').outerHTML.replace('id="marchio"','')+'</div>'
     +'<div class="occhiello">Caccia al tesoro</div>'
     +'<h1>Campus Sacra Famiglia</h1>'
-    +'<p>Dieci tappe nascoste nel campus. In ognuna c\'è una cassetta di legno, '
+    +'<p>'+inLettere(TAPPE.length).replace(/^./,c=>c.toUpperCase())
+    +' tappe nascoste nel campus. In ognuna c\'è una cassetta di legno, '
     +'e dentro l\'indizio della tappa successiva. Gli indizi <strong>non dicono il '
     +'nome del posto</strong>: lo descrivono.</p>'
     +'<div class="comandi">'
