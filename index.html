@@ -4401,7 +4401,13 @@ function faroLed(x,y,z,ry){
     tA+=dt;
     APPLAUSI.forEach(function(a){
       const w=tA*(16.5+(a.f%1.3)*2.6)+a.f;
-      a.b.rotation.x=-0.95-Math.abs(Math.sin(w))*0.42;});});
+      /* SEGNO SBAGLIATO: applaudivano DIETRO LA SCHIENA. Gli spettatori
+         guardano il palco, che sta a z minore, quindi il loro davanti e'
+         -Z; e per un braccio che pende lungo -Y una rotazione POSITIVA
+         intorno a X porta la mano in avanti. Con il meno le mani finivano
+         dietro. E' lo stesso errore delle scarpe montate al contrario: su
+         una figura simmetrica il verso non protesta, va calcolato. */
+      a.b.rotation.x=0.95+Math.abs(Math.sin(w))*0.42;});});
 
   /* ---- LE TRIBUNE A U, in fondo (a ponente) --------------------------- */
   /* Un modulo: 6 m di fronte, tre gradoni da 0,45 di alzata e 0,78 di
@@ -6445,7 +6451,12 @@ const GIRO=[
   [ -150,16,    4,  -118, 8,  -16],
   [ -134,13,  -34,  -100, 8,  -46],
   [ -108,11,  -62,   -70, 7,  -62],
-  [  -74, 9,  -80,   -46, 6,  -66],
+  /* (Qui c'era il gemello del punto seguente: [-74 · 9 · -80] e
+     [-74 · 9,5 · -78] distavano DUE METRI, mentre gli altri stanno a
+     venti o trenta. La parametrizzazione centripeta si strozza dove i
+     punti si infittiscono, e lo strozzamento e' lo scatto: 88,9 gradi in
+     un decimo di secondo. Non era un gomito di rotta, era un doppione —
+     residuo della stesura vecchia, come sospettavi tu.) */
   /* SI ARRIVA AL PORTALE GIA' IN ASSE. Prima si veniva da nord-ovest e la
      virata verso mezzogiorno cadeva sulla soglia: con lo sguardo filtrato
      la testa entrava ancora girata, e la navata compariva di sbieco invece
@@ -6791,7 +6802,17 @@ function provaSuonare(){
   if(!ytPronto||ytGuasto||!audioOn) return;
   try{ ytPlayer.setVolume(22); ytPlayer.playVideo(); }catch(e){}
 }
-function avviaMusica(){ musicaChiesta=true; provaSuonare(); }
+/* QUESTA E' LA VERA CAUSA. `audioOn` si legge da localStorage, quindi per
+   chi aveva gia' acceso la musica il comando risultava ACCESO fin dal
+   caricamento — ma con YouTube caricato a richiesta non c'era nessun
+   player, e la pagina restava muta. Il primo clic allora SPEGNEVA, il
+   secondo riaccendeva e solo li' partiva: era il sintomo descritto.
+   avviaMusica() viene chiamata al primo gesto vero dell'utente (il pulsante
+   "Visita il Campus"), che e' anche il momento in cui i browser permettono
+   l'audio: e' li' che va scaricato YouTube. Cosi' la pagina si carica senza
+   iframe — niente rotellina infinita — e la musica riparte da sola per chi
+   l'aveva lasciata accesa. */
+function avviaMusica(){ musicaChiesta=true; if(audioOn) caricaYT(); provaSuonare(); }
 /* Rete di sicurezza. Serve in due casi: quando l'autoplay viene bloccato, e
    quando la partita riprende da un salvataggio — li' la schermata iniziale non
    compare, quindi non c'e' nessun clic su "Comincia" a sbloccare l'audio.
@@ -6805,9 +6826,15 @@ function avviaMusica(){ musicaChiesta=true; provaSuonare(); }
 $('bAudio').addEventListener('click',()=>{
   audioOn=!audioOn; segnaAudio();
   try{ localStorage.setItem('campus3d_audio',audioOn?'1':'0'); }catch(e){}
-  if(audioOn) caricaYT();          /* si scarica YouTube solo ora */
+  /* IL PRIMO CLIC NON SUONAVA. Caricando YouTube solo su richiesta, al primo
+     clic il player non esiste ancora: si usciva sul `return` e la musica
+     restava zitta. Riaccendendo funzionava, perche' la seconda volta il
+     player c'era — ed e' esattamente il sintomo che hai descritto.
+     Ora il clic REGISTRA la richiesta (`musicaChiesta`), e ci pensa
+     `onReady` a far partire il brano quando il player e' pronto. */
+  if(audioOn){ musicaChiesta=true; caricaYT(); provaSuonare(); }
   if(!ytPronto||ytGuasto) return;
-  try{ audioOn?ytPlayer.playVideo():ytPlayer.pauseVideo(); }catch(e){}
+  try{ if(!audioOn) ytPlayer.pauseVideo(); }catch(e){}
 });
 segnaAudio();
 /* LA ROTELLINA CHE NON SI FERMA MAI (Andrea). L'IFrame API di YouTube
