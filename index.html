@@ -182,6 +182,14 @@
 .tessera:active{transform:translateY(0)}
 @media (max-width:560px){.griglia-luoghi{gap:8px}.tessera{font-size:13.5px;
   border-radius:15px;padding:7px}}
+#coriandoli{position:fixed;inset:0;pointer-events:none;z-index:80;display:none}
+#coriandoli.acceso{display:block}
+.coppa{display:block;width:100%;max-width:330px;margin:2px auto 14px;
+  border-radius:18px;box-shadow:0 12px 34px rgba(18,62,144,.28);
+  animation:coppaSu .9s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes coppaSu{from{opacity:0;transform:translateY(26px) scale(.86)}
+  to{opacity:1;transform:none}}
+.grande{font-size:19px;line-height:1.55;text-align:center;margin:2px 0 6px}
 #guasto{display:none}
 #guasto.visibile{display:flex;flex-direction:column;gap:8px;position:fixed;
   left:50%;top:50%;transform:translate(-50%,-50%);z-index:9999;max-width:min(560px,88vw);
@@ -285,6 +293,7 @@
        2. una sentinella  → se dopo 4 s il principale non ha scritto
                             __campusOk, vuol dire che non e' proprio partito
      ========================================================================== -->
+<canvas id="coriandoli"></canvas>
 <div id="guasto"></div>
 <script>
 (function(){
@@ -319,7 +328,9 @@
   <button id="bStoria">La Fondatrice</button>
   <button id="bMappa">Luoghi</button>
   <button id="bInizia">Inizia</button>
-  <button id="bSotto">Sottosuolo</button>
+  <!-- Al posto del Sottosuolo (che ora si apre dalla card della Coppa)
+       l'interruttore giorno/notte: tre stati, e "auto" segue l'ora vera. -->
+  <button id="bLuce">Giorno</button>
   <div class="sep"></div>
   <button id="bAudio" title="Musica di sottofondo" aria-label="Attiva o spegni la musica">
     <svg id="icoAudio" width="17" height="17" viewBox="0 0 20 20" aria-hidden="true">
@@ -6266,7 +6277,7 @@ window.rispondi=function(i){
     G.fatte.push(G.i);
     const ultima=(G.i===TAPPE.length-1);
     if(ultima){ G.i++; salva();
-      setTimeout(()=>{chiudiFoglio();debrief();},900); return; }
+      setTimeout(()=>{chiudiFoglio();debrief();festa();},900); return; }
     const pross=TAPPE[G.i+1];
     setTimeout(()=>{
       apriFoglio('<div class="occhiello">Risposta esatta</div>'
@@ -6293,25 +6304,68 @@ window.riprendi=function(){
   if(RIPARTI_DA_CAPO) vaiA(1);};
 window.avanti=function(){livAiuto=0;chiudiFoglio();mostraTappa();};
 
+/* ==========================================================================
+   LA FESTA DELLA COPPA — fanfara e coriandoli
+   --------------------------------------------------------------------------
+   coppa.jpg era in cartella da luglio e non l'aveva mai usata nessuno: la
+   card c'era nei piani, non nel codice.
+   I coriandoli sono su una canvas 2D a parte, non in Three: il foglio della
+   card sta SOPRA la scena WebGL, e delle particelle 3D finirebbero dietro.
+   Durano otto secondi e poi la canvas si spegne da sola — non resta niente
+   che giri a vuoto.
+   Colori: blu istituzionale, oro, bianco e verde. Niente rosso.
+   ========================================================================== */
+function festa(){
+  const c=$('coriandoli'); if(!c) return;
+  const q=c.getContext('2d');
+  c.width=innerWidth; c.height=innerHeight; c.classList.add('acceso');
+  const TIN=['#123E90','#D4A017','#F2F0EA','#2E7A54','#5E86C0','#B8860B'];
+  const P=[];
+  for(let i=0;i<190;i++) P.push({
+    x:Math.random()*c.width, y:-40-Math.random()*c.height*0.7,
+    vx:(Math.random()-0.5)*1.5, vy:2.2+Math.random()*3.4,
+    w:5+Math.random()*7, h:8+Math.random()*10,
+    a:Math.random()*6.28, va:(Math.random()-0.5)*0.22,
+    col:TIN[(Math.random()*TIN.length)|0]});
+  const t0=performance.now();
+  (function passo(t){
+    const vita=(t-t0)/1000;
+    q.clearRect(0,0,c.width,c.height);
+    P.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.a+=p.va; p.vy+=0.02;
+      if(p.y>c.height+30){ p.y=-30; p.x=Math.random()*c.width; }
+      q.save(); q.translate(p.x,p.y); q.rotate(p.a);
+      q.globalAlpha=vita>6?Math.max(0,1-(vita-6)/2):1;
+      q.fillStyle=p.col; q.fillRect(-p.w/2,-p.h/2,p.w,p.h); q.restore();});
+    if(vita<8) requestAnimationFrame(passo);
+    else { q.clearRect(0,0,c.width,c.height); c.classList.remove('acceso'); }
+  })(t0);
+  try{ const f=new Audio('fanfare.wav'); f.volume=0.75; f.play().catch(()=>{}); }
+  catch(e){}
+}
+
 function debrief(){
-  const senza=TAPPE.length-G.usati.filter(x=>x>0).length;
-  apriFoglio('<div class="occhiello">Percorso concluso</div>'
-    +'<h1>Campus Sacra Famiglia</h1>'
-    +'<p>Hai trovato la Coppa delle Case. Per arrivarci hai attraversato '
-    +inLettere(TAPPE.length)+' tappe: il portale di pietra, la corte dei campi, '
-    /* l'elenco segue le tappe vere: tre del primo piano non ci sono piu'. */
-    +'la Primaria, la gradinata, il campo fra i filari, le piscine, il '
-    +'giardino dell\'Infanzia, la navata della chiesa, il tendone dell\'Arena '
-    +'e la loggia della Casa Famiglia.</p>'
-    +'<div class="imparato">Hai risolto <strong>'+senza+' tappe su '+TAPPE.length
-    +'</strong> senza chiedere aiuto, e hai usato <strong>'+G.aiuti+' aiuti</strong> in tutto. '
-    +'Non è un voto: serve a te per sapere dove l\'indizio è stato più difficile da leggere.</div>'
-    +'<p><strong>Prima di chiudere, rispondi a te stesso:</strong> in quale tappa hai '
-    +'chiesto aiuto per prima cosa? Che cosa ti mancava — non sapevi <em>dove</em> guardare, '
-    +'oppure eri nel posto giusto e non hai riconosciuto l\'oggetto? Sono due difficoltà diverse: '
-    +'la prima riguarda la mappa che hai in testa, la seconda l\'attenzione ai dettagli.</p>'
-    +'<div class="bottoni"><button onclick="azzera()">Rifai il percorso</button>'
-    +'<button class="chiaro" onclick="chiudiFoglio()">Resta a volare</button></div>');
+  /* CHI HA VINTO NON LEGGE (Andrea). Qui c'era mezza pagina: l'elenco dei
+     dieci luoghi, il conto degli aiuti, una domanda di riflessione. Un
+     ragazzo che ha appena trovato la Coppa vuole vedere la Coppa. Il resto
+     — quante tappe senza aiuto, dove si e' inceppato — sta nel DIARIO, che
+     si apre quando uno lo vuole e non gli casca addosso nel momento in cui
+     ha vinto. */
+  apriFoglio('<div class="occhiello">Coppa delle Case</div>'
+    /* IMPERSONALE. "Bravo" esclude meta' della classe, e in italiano il
+       maschile non e' neutro per chi legge: una ragazza che ha appena vinto
+       si vede dare del maschile. "Complimenti" non ha genere, e nemmeno
+       "Ce l'hai fatta" — che e' anche piu' vicino a quello che e' successo. */
+    +'<h1>Complimenti!</h1>'
+    +'<img class="coppa" src="coppa.jpg" alt="La Coppa delle Case">'
+    +'<p class="grande">Ce l\'hai fatta: la <strong>Coppa delle Case</strong> '
+    +'&egrave; tua.<br>Dieci tappe, tutto il campus.</p>'
+    /* I due bottoni della vittoria (Andrea): rigiocare, oppure passare al
+       gioco del sottosuolo — che da qui si chiama "Riscalda il Campus",
+       perche' e' quello che si fa: si cerca il calore sotto terra. */
+    +'<div class="bottoni"><button onclick="azzera()">Gioca ancora</button>'
+    +'<button class="chiaro" onclick="location.href=\'sottosuolo.html\'">'
+    +'Riscalda il Campus</button></div>');
   $('carta').style.display='none'; perline();}
 
 /* ==========================================================================
@@ -7641,6 +7695,267 @@ window.collaudoCopertura=function(){
    se questa riga non viene eseguita, lo script non e' arrivato in fondo e
    dopo quattro secondi compare l'avviso invece di una card bianca. */
 window.__campusOk=true;
+
+/* ==========================================================================
+   STAGIONI, METEO VERO E NATALE
+   --------------------------------------------------------------------------
+   Tre strati, in ordine di affidabilita': la STAGIONE e il NATALE si ricavano
+   dalla data e non possono fallire; il METEO arriva da Open-Meteo e, se non
+   c'e' rete, semplicemente non arriva — la stagione resta.
+   Questo ordine non e' un dettaglio: l'app gira su iPad d'aula che a volte
+   sono senza rete, e su una PWA offline. Niente deve dipendere dalla
+   chiamata; la chiamata deve solo migliorare quello che c'e' gia'.
+
+   PRIVACY: le coordinate del campus sono scritte qui (45,3974 N — 9,9035 E).
+   NON si chiede la posizione al dispositivo e non si manda niente. Open-Meteo
+   non vuole chiave, non registra e non sa chi ha chiesto: dal punto di vista
+   dei dati e' come scaricare un'immagine.
+   ========================================================================== */
+(function meteo(){
+  const LAT=45.3974, LON=9.9035;
+  const oggi=new Date(), mese=oggi.getMonth()+1, giorno=oggi.getDate();
+
+  /* ---- 1. LA STAGIONE ------------------------------------------------
+     Non le quattro stagioni del calendario ma cinque fasi di come SI VEDE
+     il campus: il verde tenero d'aprile e quello cupo di luglio sono piu'
+     diversi fra loro di quanto luglio sia da settembre. */
+  const FASI=[
+    {da:[12,1],  a:[2,28],  nome:'inverno',  chiome:0x6E6A52, spoglio:0.75,
+     prato:0x6E7A55, cielo:['#9fb0bd','#c2ccd2','#dcdfdd','#eae7dd'],
+     nebbia:[140,620], sole:0.85, tinta:0xffe9d6},
+    {da:[3,1],   a:[4,30],  nome:'primavera',chiome:0x7FB84A, spoglio:0,
+     prato:0x5E9A4A, cielo:['#7fb0dd','#a9c9e6','#dfe4e2','#efe9d8'],
+     nebbia:[300,1100], sole:1.45, tinta:0xffe6bd},
+    {da:[5,1],   a:[8,31],  nome:'estate',   chiome:0x3E7A2E, spoglio:0,
+     prato:0x4E8A46, cielo:['#7fb0dd','#a9c9e6','#dfe4e2','#efe9d8'],
+     nebbia:[300,1100], sole:1.55, tinta:0xffe6bd},
+    {da:[9,1],   a:[10,31], nome:'autunno',  chiome:0xB8862E, spoglio:0.15,
+     prato:0x6E8A4A, cielo:['#8fa8c4','#bcccd8','#e0e0d8','#efe6d2'],
+     nebbia:[220,880], sole:1.15, tinta:0xffdcb0},
+    {da:[11,1],  a:[11,30], nome:'tardo autunno',chiome:0x8A6A32,spoglio:0.5,
+     prato:0x6A7550, cielo:['#9fb0bd','#c2ccd2','#dcdfdd','#eae7dd'],
+     nebbia:[170,700], sole:0.95, tinta:0xffe4cc}
+  ];
+  function dentro(f){
+    const d0=f.da[0]*100+f.da[1], d1=f.a[0]*100+f.a[1], q=mese*100+giorno;
+    return d0<=d1 ? (q>=d0&&q<=d1) : (q>=d0||q<=d1);
+  }
+  const S=FASI.find(dentro)||FASI[2];
+
+  /* ---- 2. IL CIELO E LA LUCE ----------------------------------------- */
+  function dipingiCielo(c1,c2,c3,c4){
+    const c=mkCanvas(16,256), q=c.getContext('2d');
+    const gr=q.createLinearGradient(0,0,0,256);
+    gr.addColorStop(0,c1); gr.addColorStop(.5,c2);
+    gr.addColorStop(.78,c3); gr.addColorStop(1,c4);
+    q.fillStyle=gr; q.fillRect(0,0,16,256);
+    const t=tex(c,false); t.mapping=THREE.EquirectangularReflectionMapping;
+    scene.traverse(o=>{ if(o.isMesh&&o.geometry.type==='SphereGeometry'&&
+      o.material&&o.material.side===THREE.BackSide){
+        o.material.map=t; o.material.needsUpdate=true; }});
+  }
+  dipingiCielo.apply(null,S.cielo);
+  scene.fog.near=S.nebbia[0]; scene.fog.far=S.nebbia[1];
+  scene.fog.color.set(S.cielo[2]);
+  if(typeof sole!=='undefined'){
+    sole.intensity=S.sole; sole.color.setHex(S.tinta);
+    /* il sole d'inverno sta basso: e' quello che cambia di piu' l'aria */
+    const alt=(S.nome==='inverno')?26:(S.nome==='estate'?62:44);
+    const r=Math.hypot(150,22);
+    sole.position.set(150,r*Math.tan(alt*Math.PI/180),22);
+  }
+
+  /* ---- 2b. L'ORA DEL GIORNO -------------------------------------------
+     Il sole si calcola per Orzinuovi da data e ora — niente rete. Ma NOTTE
+     NON VUOL DIRE "sole spento": spegnere e basta da' un campus nero e
+     illeggibile, e la caccia al tesoro chiede di riconoscere una cassetta a
+     terra. Quindi la notte e' "da cinema": cielo blu profondo, luna che fa
+     da chiave, e le finestre accese in EMISSIVE — che e' l'unica luce
+     davvero locale in r128, gia' imparato col tendone e con la chiesa.
+     Tre stati sul pulsante: auto (segue l'ora vera), giorno, notte. */
+  function altezzaSole(d){
+    const g=Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);
+    const decl=23.44*Math.PI/180*Math.sin(2*Math.PI*(284+g)/365);
+    const ora=d.getHours()+d.getMinutes()/60;
+    const H=(ora-13)*15*Math.PI/180;           /* ~mezzogiorno solare alle 13 */
+    const la=LAT*Math.PI/180;
+    return Math.asin(Math.sin(la)*Math.sin(decl)+
+           Math.cos(la)*Math.cos(decl)*Math.cos(H));
+  }
+  const CIELI={
+    notte:['#0B1633','#152244','#25324f','#3a4258'],
+    alba: ['#3E5C8A','#B98A6E','#E7B98A','#F2D9B0'],
+    giorno:S.cielo
+  };
+  const FINESTRE=[];      /* materiali che di notte si accendono */
+  let modo='auto';
+  function applicaLuce(){
+    const ora=new Date();
+    let alt=altezzaSole(ora)*180/Math.PI;
+    if(modo==='giorno') alt=42;
+    if(modo==='notte')  alt=-18;
+    const notte=alt<-4, crepuscolo=alt>=-4&&alt<8;
+    const C = notte?CIELI.notte : (crepuscolo?CIELI.alba:CIELI.giorno);
+    dipingiCielo.apply(null,C);
+    scene.fog.color.set(C[2]);
+    scene.fog.far = S.nebbia[1]*(notte?0.55:1);
+    if(typeof sole!=='undefined'){
+      const q=Math.max(0.06,Math.sin(Math.max(alt,-6)*Math.PI/180));
+      sole.intensity = notte ? 0.16 : S.sole*Math.max(0.25,q);
+      sole.color.setHex(notte?0xAFC4E8:(crepuscolo?0xFFC489:S.tinta));
+      const r=170, azi=(ora.getHours()<13?-1:1);
+      sole.position.set(azi*r*0.85,
+        Math.max(14,r*Math.tan(Math.max(alt,9)*Math.PI/180)), 22);
+    }
+    scene.traverse(o=>{ if(o.isLight&&o.isHemisphereLight)
+      o.intensity = notte?0.22:0.55; });
+    FINESTRE.forEach(m=>m.emissive.setHex(notte?0xC9A24E:0x000000));
+    const b=document.getElementById('bLuce');
+    if(b) b.textContent = modo==='auto' ? (notte?'Notte':'Giorno')
+                        : (modo==='giorno'?'Giorno':'Notte');
+  }
+  window.giornoNotte=function(){
+    modo = modo==='auto' ? 'giorno' : (modo==='giorno'?'notte':'auto');
+    applicaLuce();
+  };
+
+  /* ---- 3. LE CHIOME -------------------------------------------------- */
+  /* Si riconoscono per forma e taglia: sfere e coni sopra i due metri e
+     larghi piu' di 1,6. Cosi' non si tingono di ocra le teste dei
+     giocatori (0,23) ne' i palloni. */
+  const b=new THREE.Box3(), v=new THREE.Vector3(); let n=0;
+  const semeC=seme(4711);
+  mondo.traverse(o=>{
+    if(!o.isMesh||!o.geometry||!o.material||!o.material.color) return;
+    const t=o.geometry.type;
+    if(t!=='SphereGeometry'&&t!=='ConeGeometry') return;
+    b.setFromObject(o); b.getSize(v);
+    if(v.x<1.6||b.max.y<2.0) return;
+    const c=o.material.color;
+    if(c.g<=c.r*0.95) return;                 /* solo cio' che e' verde */
+    const t2=new THREE.Color(S.chiome);
+    /* ogni albero un filo diverso: un bosco tutto dello stesso colore
+       si legge come una decalcomania */
+    const k=0.86+semeC()*0.28;
+    c.setRGB(t2.r*k, t2.g*k, t2.b*k).convertSRGBToLinear();
+    n++;
+  });
+  /* i vetri: azzurrini, verticali, sui muri — sono quelli che di notte si
+     accendono. Si riconoscono dal colore e dalla taglia, non da un elenco. */
+  mondo.traverse(o=>{ if(!o.isMesh||!o.material||!o.material.emissive) return;
+    const c=o.material.color; if(!c) return;
+    if(c.b>c.r*1.12 && c.b>0.20 && c.b<0.72 && c.g>c.r)
+      FINESTRE.push(o.material); });
+  console.log('[Campus3D] stagione: '+S.nome+' · chiome ritinte: '+n+
+              ' · vetri che si accendono: '+FINESTRE.length);
+  applicaLuce();
+  { const b=document.getElementById('bLuce');
+    if(b) b.addEventListener('click',window.giornoNotte); }
+  setInterval(function(){ if(modo==='auto') applicaLuce(); },300000);
+
+  /* ---- 4. GLI ADDOBBI DI NATALE, dal 1 dicembre al 6 gennaio ---------- */
+  const natale=(mese===12)||(mese===1&&giorno<=6);
+  if(natale) (function addobbi(){
+    const g=new THREE.Group(); mondo.add(g);
+    const em=(c,e)=>lam(c,{emissive:e});
+    /* L'ALBERO STA SULLA ROTATORIA (Andrea: "di solito per Natale mettiamo
+       un grande albero illuminato sulla rotatoria"). La rotatoria e'
+       l'aiuola col cordolo bianco a (-0,3 · -53,4), misurata sull'ortofoto:
+       e' il primo punto del campus che si vede arrivando dalla strada, ed
+       e' per questo che ci mettono l'albero. Piu' grande di quello che
+       avevo messo in cortile: nove metri, perche' li' intorno non c'e'
+       niente che gli faccia da metro. */
+    const AX=-0.3, AZ=-53.4, HA=9.0;
+    box(g,0.46,1.0,0.46,lam(0x5A4028),AX,0.5,AZ,true);
+    for(let k=0;k<6;k++){
+      const r=3.3-k*0.50, h=1.7;
+      const c=new THREE.Mesh(new THREE.ConeGeometry(r,h,12),
+        em(0x1E5A32,0x0A2414));
+      c.position.set(AX,1.2+k*1.25+h/2,AZ); c.castShadow=true; g.add(c);}
+    const st=new THREE.Mesh(new THREE.SphereGeometry(0.34,10,8),
+      new THREE.MeshBasicMaterial({color:0xFFD86B}));
+    st.position.set(AX,HA+0.9,AZ); g.add(st);
+    /* le luci dell'albero, a spirale */
+    const LUCI=[];
+    for(let i=0;i<120;i++){
+      const u=i/120, r=3.25*(1-u)+0.25, a=u*22;
+      const l=new THREE.Mesh(new THREE.SphereGeometry(0.11,6,5),
+        new THREE.MeshBasicMaterial({color:0xFFE39A}));
+      l.position.set(AX+Math.cos(a)*r,1.4+u*7.2,AZ+Math.sin(a)*r);
+      g.add(l); LUCI.push({m:l,f:i*0.7});}
+    /* IL FESTONE sul portico, fra i pilastri (x -28,65 e -25,55) */
+    for(let k=0;k<26;k++){
+      const z=-0.7+k*0.72, s=Math.sin(k/26*Math.PI*7);
+      const l=new THREE.Mesh(new THREE.SphereGeometry(0.10,6,5),
+        new THREE.MeshBasicMaterial({color:k%2?0xFFE39A:0xBEE3FF}));
+      l.position.set(-27.1,3.02+s*0.16,z); g.add(l); LUCI.push({m:l,f:k*1.3});}
+    /* LA CORONA sul portone della chiesa (mondo: -36,95 · -49,90) */
+    const co=new THREE.Mesh(new THREE.TorusGeometry(0.62,0.17,8,20),
+      em(0x24552C,0x0C1F10));
+    co.position.set(-36.95,2.55,-50.05); g.add(co);
+    const fi=new THREE.Mesh(new THREE.TorusGeometry(0.66,0.05,6,20),
+      new THREE.MeshBasicMaterial({color:0xC9A24E}));
+    fi.position.set(-36.95,2.55,-50.12); g.add(fi);
+    /* le luci lampeggiano piano, ognuna per conto suo */
+    let tN=0;
+    AGGIORNA.push(dt=>{ tN+=dt;
+      LUCI.forEach(l=>{
+        const s=0.55+0.45*Math.sin(tN*1.9+l.f);
+        l.m.material.color.setRGB(1*s,0.89*s,0.60*s);});});
+    console.log('[Campus3D] addobbi di Natale accesi.');
+  })();
+
+  /* ---- 5. IL METEO VERO, se c'e' rete -------------------------------- */
+  /* Una sola chiamata, senza chiave. Se fallisce non succede niente: resta
+     il cielo della stagione. Nessun dato esce da qui — solo le coordinate
+     del campus, che sono scritte nel codice. */
+  const URL='https://api.open-meteo.com/v1/forecast?latitude='+LAT+
+    '&longitude='+LON+'&current=cloud_cover,precipitation,weather_code'+
+    '&timezone=Europe%2FRome';
+  fetch(URL).then(r=>r.json()).then(d=>{
+    const c=d&&d.current; if(!c) return;
+    const nuv=(c.cloud_cover||0)/100, pio=c.precipitation||0;
+    /* piu' nuvole = cielo piu' piatto, nebbia piu' vicina, sole piu' fioco */
+    const g1=new THREE.Color(S.cielo[0]).lerp(new THREE.Color(0x9EA8AE),nuv*0.85);
+    const g2=new THREE.Color(S.cielo[1]).lerp(new THREE.Color(0xB4BCC0),nuv*0.85);
+    const g3=new THREE.Color(S.cielo[2]).lerp(new THREE.Color(0xC6CACB),nuv*0.7);
+    dipingiCielo('#'+g1.getHexString(),'#'+g2.getHexString(),
+                 '#'+g3.getHexString(),S.cielo[3]);
+    scene.fog.color.set('#'+g3.getHexString());
+    scene.fog.far=S.nebbia[1]*(1-nuv*0.45);
+    if(typeof sole!=='undefined') sole.intensity=S.sole*(1-nuv*0.62);
+    /* pioggia o neve: punti che cadono dentro una scatola attorno alla
+       camera, riciclati in cima. Sotto zero, o d'inverno, e' neve. */
+    if(pio>0.02){
+      const neve=(S.nome==='inverno')||(c.weather_code>=70&&c.weather_code<=79);
+      const N=neve?1400:2600, P=new Float32Array(N*3);
+      for(let i=0;i<N;i++){ P[i*3]=(Math.random()-0.5)*260;
+        P[i*3+1]=Math.random()*70; P[i*3+2]=(Math.random()-0.5)*260; }
+      const geo=new THREE.BufferGeometry();
+      geo.setAttribute('position',new THREE.BufferAttribute(P,3));
+      const pt=new THREE.Points(geo,new THREE.PointsMaterial({
+        color:neve?0xFFFFFF:0xBFD2DC, size:neve?0.42:0.13,
+        transparent:true, opacity:neve?0.85:0.55, depthWrite:false,
+        sizeAttenuation:true}));
+      pt.userData.animato=true; scene.add(pt);
+      const vel=neve?3.2:26, der=neve?2.2:0.6;
+      AGGIORNA.push(dt=>{
+        const a=geo.attributes.position.array;
+        for(let i=0;i<N;i++){
+          a[i*3+1]-=vel*dt;
+          a[i*3]+=der*dt;
+          if(a[i*3+1]<0){ a[i*3+1]=70;
+            a[i*3]=pos.x+(Math.random()-0.5)*260;
+            a[i*3+2]=pos.z+(Math.random()-0.5)*260; }}
+        geo.attributes.position.needsUpdate=true;
+        pt.position.set(0,0,0);});
+      console.log('[Campus3D] meteo: '+(neve?'neve':'pioggia')+
+        ' ('+pio+' mm) · nuvole '+Math.round(nuv*100)+'%');
+    } else console.log('[Campus3D] meteo: asciutto · nuvole '+
+      Math.round(nuv*100)+'%');
+  }).catch(()=>{ console.log('[Campus3D] meteo non raggiungibile: '+
+    'resta il cielo di '+S.nome+'.'); });
+})();
 
 </script>
 </body>
