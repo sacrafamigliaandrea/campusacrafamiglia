@@ -2492,8 +2492,39 @@ function faroLed(x,y,z,ry){
      l'ingombro — un volume non si tocca senza una fonte che lo misuri. */
   const mur=lam(0xF0EDE6), lam1=lam(0xF4F2EC), lam2=lam(0xDEDBD3);
   const BLU=lam(0x1F5FA8), TELO=lam(0xF4F2EC), TENDA=lam(0xEAE6DC);
-  solido(box(g,w,hM,d,mur,cx,hM/2,cz,true));
-  box(g,w+0.4,0.8,d+0.4,lam(0xCFCABE),cx,0.4,cz,false);
+  /* IL GUSCIO E' VUOTO. Era un volume PIENO w x hM x d: ogni punto
+     dell'interno risultava dentro un muro e non ci si poteva entrare — e'
+     l'errore gia' segnalato («il solido sta sulle pareti sottili, mai sulla
+     massa»). Qui le pareti sono quattro teli spessi 25 cm, e quella di
+     levante e' spezzata per lasciare il varco. */
+  const SP=0.25, xW=cx-w/2, zN=cz-d/2, zS=cz+d/2, VA=2.35;
+  solido(box(g,SP,hM,d,mur,xW,hM/2,cz,true));            /* fondo, a ponente */
+  solido(box(g,w,hM,SP,mur,cx,hM/2,zN,true));            /* lato nord        */
+  solido(box(g,w,hM,SP,mur,cx,hM/2,zS,true));            /* lato sud         */
+  [[zN,cz-VA],[cz+VA,zS]].forEach(q=>{                   /* levante, spezzato*/
+    const L=q[1]-q[0];
+    solido(box(g,SP,hM,L,mur,cx+w/2,hM/2,(q[0]+q[1])/2,true));});
+  box(g,SP,hM-3.6,VA*2,mur,cx+w/2,3.6+(hM-3.6)/2,cz,false);  /* sopra il varco */
+  (function(){const m=new THREE.Mesh(new THREE.PlaneGeometry(w-SP,d-SP),
+    lam(0x2F6B39,{emissive:0x16240F}));
+   /* IL PAVIMENTO E' UN TAPPETO UNICO DI ERBA SINTETICA (Andrea), da parete
+      a parete. Non si vedeva perche' gli stava sopra lo zoccolo pieno, non
+      perche' fosse troppo basso: la mia prima ipotesi — «coperto dai tappeti
+      del campus» — era sbagliata, e alzarlo da 0,03 a 0,09 infatti non aveva
+      cambiato niente. Restare a 0,09 va bene: e' sopra il terreno (0,05) e
+      sotto qualunque arredo. */
+   m.rotation.x=-Math.PI/2; m.position.set(cx,0.09,cz); g.add(m);})();
+  /* ERA QUESTO. Uno zoccolo PIENO w+0,4 x 0,80 x d+0,4, cioe' un blocco
+     alto 80 cm esteso a tutta l'impronta: veniva dalla versione «capannone»
+     e non dava fastidio finche' dentro non c'era niente. Con l'allestimento
+     ha prodotto due difetti che sembravano scollegati — le seggiole
+     affogate (spuntava solo la cimasa dello schienale, che sta fra 0,80 e
+     0,94) e il pavimento grigio invece che verde (il tappeto d'erba stava
+     a 0,09, sotto). Un solo blocco, due sintomi.
+     Lo zoccolo di un telone e' un CORDOLO perimetrale, non una platea. */
+  [[cx,cz-d/2-0.32,w+1.0,0.36],[cx,cz+d/2+0.32,w+1.0,0.36],
+   [cx-w/2-0.32,cz,0.36,d+1.0],[cx+w/2+0.32,cz,0.36,d+1.0]].forEach(q=>
+    box(g,q[2],0.34,q[3],lam(0xCFCABE),q[0],0.17,q[1],false));
   /* copertura metallica a due falde, con le nervature */
   [[-1],[1]].forEach(q=>{
     const f=new THREE.Mesh(new THREE.BoxGeometry(w/2+1.0,0.20,d+1.0),lam1);
@@ -2532,12 +2563,16 @@ function faroLed(x,y,z,ry){
   /* i due montanti dell'ossatura che si vedono nel varco */
   [-1,1].forEach(sg=>box(g,0.10,HP,0.10,lam(0x3A3E44),xE-0.10,HP/2,
     cz+sg*LP*0.30,false));
-  /* le due tende scostate ai lati, con la piega e il piede nastrato di blu */
+  /* IL TENDONE NON HA PORTA (Andrea): solo il rettangolo d'accesso, sempre
+     aperto. Le due tende scostate ai lati erano un pezzo di scenografia in
+     piu' — e nella fotografia sono raccolte proprio perche' li' non si
+     chiude mai. Restano i due montanti d'ossatura che bordano il vano e la
+     zavorra blu a terra, che si vedono. */
   [-1,1].forEach(sg=>{
-    const zz=cz+sg*(LP/2+0.34);
-    box(g,0.20,HP+0.55,0.62,TENDA,xE+0.16,(HP+0.55)/2,zz,true);
-    box(g,0.23,HP+0.20,0.16,lam(0xDCD7CB),xE+0.17,(HP+0.20)/2,zz+sg*0.20,false);
-    box(g,0.24,0.22,0.66,BLU,xE+0.17,0.11,zz,false);});     /* zavorra blu */
+    const zz=cz+sg*(LP/2+0.16);
+    box(g,0.22,HP+0.10,0.14,lam(0xDCD7CB),xE+0.14,(HP+0.10)/2,zz,false);
+    box(g,0.26,0.20,0.34,BLU,xE+0.16,0.10,zz,false);});
+  box(g,0.22,0.16,LP+0.5,lam(0xDCD7CB),xE+0.14,HP+0.08,cz,false);     /* zavorra blu */
 
   /* --- LO STRISCIONE NERO sopra il varco ---------------------------- */
   const cs=mkCanvas(1024,168), q=cs.getContext('2d');
@@ -2762,8 +2797,20 @@ function faroLed(x,y,z,ry){
     lastra.holes.push(buco);
     solido(estrudi(lastra,sp,mFacc,0,zf));
 
-    /* --- dentro il buco: il campo di mattoni, con l'archivolto ---------- */
+    /* --- dentro il buco: il campo di mattoni, con l'archivolto ----------
+       IL VANO DEL PORTALE VA TAGLIATO ANCHE QUI. La lastra di travertino il
+       buco ce l'ha (l'arco arriva fino a terra), ma dietro c'e' il campo di
+       mattoni che chiudeva tutto: aprendo le ante si vedeva il muro, e il
+       raggio di collaudo lo trovava come ultimo strato pieno a z=-49,63.
+       Il vano e' quello del portale — 2,30 x 3,35 a partire da 0,42 — con
+       tre centimetri di gioco per parte, cosi' lo stipite di marmo copre il
+       taglio invece di lasciarlo a filo. */
     const campo=formaArco(RA*2,YA+RA);
+    const vanoP=new THREE.Path();
+    vanoP.moveTo(-1.18,0.39); vanoP.lineTo(1.18,0.39);
+    vanoP.lineTo(1.18,3.80);  vanoP.lineTo(-1.18,3.80);
+    vanoP.closePath();
+    campo.holes.push(vanoP);
     estrudi(campo,sp*0.72,mArco,0,zf+sp*0.14);
 
     /* --- l'edicola del mosaico: arco di mattoni + nicchia --------------- */
@@ -2828,12 +2875,33 @@ function faroLed(x,y,z,ry){
     const HP=3.35, WP=2.30, Y0=0.42;
     box(g,WP+0.56,0.26,0.22,matPietra2,0,Y0+HP+0.13,zf-0.06,false);       /* architrave */
     [-1,1].forEach(s=>box(g,0.28,HP+0.26,0.22,matPietra2,s*(WP/2+0.14),Y0+(HP+0.26)/2,zf-0.06,false));
-    varco(box(g,WP,HP,0.09,matLegno,0,Y0+HP/2,zf-0.02,false));
-    for(let i=0;i<6;i++) box(g,WP-0.06,0.035,0.03,lam(0x462E1D),0,Y0+0.28+i*0.53,zf-0.07,false);
-    box(g,0.05,HP-0.10,0.04,lam(0x462E1D),0,Y0+HP/2,zf-0.07,false);       /* battuta   */
-    [-0.11,0.11].forEach(o=>{
+    /* IL PORTALE SI APRE COME QUELLO DELLA SCUOLA (Andrea): due ante
+       incernierate agli stipiti, che si spalancano arrivando davanti e si
+       richiudono andando via. Era un pannello unico e chiudeva il varco:
+       il giro del campus entrava attraversando la facciata. */
+    const ante=[];
+    [-1,1].forEach(sg=>{
+      const gA=new THREE.Group();
+      gA.position.set(sg*WP/2,Y0,zf-0.02);      /* cerniera sullo stipite */
+      gA.userData.animato=true; g.add(gA); ante.push(gA);
+      const an=box(gA,WP/2,HP,0.09,matLegno,-sg*WP/4,HP/2,0,false);
+      an.castShadow=true;
+      for(let i=0;i<6;i++)
+        box(gA,WP/2-0.08,0.035,0.03,lam(0x462E1D),-sg*WP/4,0.28+i*0.53,-0.05,false);
       const p=new THREE.Mesh(new THREE.SphereGeometry(0.055,10,8),lam(0xB09A54));
-      p.position.set(o,Y0+1.05,zf-0.09); g.add(p);});
+      p.position.set(-sg*(WP/2-0.14),1.05,-0.07); gA.add(p);});
+    /* NIENTE ATRIO POSTICCIO. L'avevo messo perche' aprendo non si vedesse
+       il prato attraverso il portale — ma adesso dietro c'e' la navata
+       vera, e quel pannello faceva solo una cosa: chiudere di nuovo il
+       varco che le ante avevano appena aperto. Il collaudo lo trovava come
+       secondo strato pieno a 4 cm dal filo interno. */
+    let apChiesa=0;
+    AGGIORNA.push(dt=>{
+      const dx=pos.x-CX, dz=pos.z-(CZ+zf);
+      const davanti=(dz<0 && dz>-11 && Math.abs(dx)<5.0);
+      apChiesa += ((davanti?1:0)-apChiesa)*Math.min(1,dt*2.8);
+      ante[0].rotation.y = -apChiesa*1.28;
+      ante[1].rotation.y =  apChiesa*1.28;});
 
     /* --- quattro finestre alte a tutto sesto: due per lato ------------- */
     /* una sotto l'anca dell'arco (dentro il mattone) e una fuori, nel
@@ -2896,6 +2964,339 @@ function faroLed(x,y,z,ry){
     const c=new THREE.Mesh(new THREE.ConeGeometry(1.05,6.4,9),lam(0x33512F));
     c.position.set(CX+q[0],3.2,CZ+q[1]); c.castShadow=true; mondo.add(c);
     contatto(mondo,CX+q[0],0.03,CZ+q[1],2.6,2.6,0.5);});
+})();
+
+/* ==========================================================================
+   DENTRO LA CHIESA — dalla sfera a 360° di Google (Andrea)
+   --------------------------------------------------------------------------
+   Due inquadrature lette per intero, non a colpo d'occhio:
+     ya 175 (verso l'abside) — navata unica, pavimento in battuto grigio
+       chiaro lucido, corridoio centrale, banchi di legno chiaro su due file,
+       SEI monofore a tutto sesto per lato con vetrate policrome, fascia
+       affrescata sopra le finestre, soffitto PIATTO e chiaro (la volta
+       dipinta c'e' solo sull'abside).
+     ya 355 (il presbiterio) — e' la vista che cambia tutto: le pareti del
+       presbiterio NON sono chiare, sono ROSSO MATTONE fittamente affrescate.
+       Presbiterio rialzato su TRE gradini di pietra chiara, abside a nicchia
+       tonda col Cristo a braccia aperte su fondo oro, altare con paramento
+       verde, ambone a sinistra col Chi-Rho, statua della Madonna a destra.
+
+   Coordinate MONDO dal rilievo: navata x[-41,30 · -32,60] z[-49,80 · -19,10].
+   L'abside sta a MEZZOGIORNO (z=-19,10): lo dice l'heading 175 della sfera,
+   che guarda a sud e inquadra il catino. L'ingresso e' a settentrione.
+   Le pareti del guscio sono gia' sottili (0,36): qui non si scava niente.
+   La luce, come nel tendone, e' EMISSIVE — dentro un guscio chiuso una luce
+   vera non si puo' confinare.
+   ========================================================================== */
+(function internoChiesa(){
+  const g=new THREE.Group(); mondo.add(g);
+  const X0=-40.95, X1=-32.95, ZN=-49.45, ZS=-19.45;   /* filo interno */
+  const CXX=(X0+X1)/2, SOF=8.40;                      /* asse e soffitto */
+  const em=(c,e)=>lam(c,{emissive:e===undefined?0x2E2E32:e});
+  /* LE UV DI ShapeGeometry SONO LE COORDINATE DELLA SHAPE IN METRI, non
+     0..1 come su un piano — la stessa trappola gia' segnalata per
+     ExtrudeGeometry. Una monofora larga 0,86 e alta 3,60 campionava quindi
+     solo l'angolino [0..1]x[0..1] della texture e per il resto ripeteva il
+     bordo: le vetrate uscivano nere e il Cristo dell'abside spariva.
+     Si rimappa con repeat = 1/dimensione e offset per centrare. */
+  function mappaShape(t,w,h){
+    t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;
+    t.repeat.set(1/w,1/h); t.offset.set(0.5,0); return t;}
+  const rnd=seme(9137);
+
+  /* ---- pavimento e soffitto ------------------------------------------ */
+  (function(){
+    /* IL PAVIMENTO E' MARMO GRIGIO VENATO (Andrea), non un battuto uniforme:
+       fondo chiaro e venature scure che serpeggiano. Si disegnano con delle
+       spezzate a caso, ognuna con una traccia piu' chiara accanto — e' il
+       doppio filo che fa leggere "marmo" invece di "graffio". */
+    const cm=mkCanvas(512,512), qm=cm.getContext('2d');
+    const gm=qm.createLinearGradient(0,0,512,512);
+    gm.addColorStop(0,'#C8C6C0'); gm.addColorStop(0.5,'#BAB8B2');
+    gm.addColorStop(1,'#C4C2BB'); qm.fillStyle=gm; qm.fillRect(0,0,512,512);
+    for(let v=0;v<26;v++){
+      let x=rnd()*512, y=rnd()*512;
+      const dx=(rnd()-0.5)*2.2, dy=(rnd()-0.5)*2.2;
+      qm.beginPath(); qm.moveTo(x,y);
+      for(let k=0;k<40;k++){
+        x+=dx*9+(rnd()-0.5)*13; y+=dy*9+(rnd()-0.5)*13; qm.lineTo(x,y);}
+      qm.strokeStyle='rgba(120,118,112,'+(0.20+rnd()*0.30).toFixed(2)+')';
+      qm.lineWidth=0.7+rnd()*1.6; qm.stroke();
+      qm.strokeStyle='rgba(240,238,232,.30)'; qm.lineWidth=0.8;
+      qm.translate(1.6,-1.2); qm.stroke(); qm.setTransform(1,0,0,1,0,0);}
+    const tm=tex(cm,true); tm.repeat.set(3,11);
+    const p=new THREE.Mesh(new THREE.PlaneGeometry(X1-X0,ZS-ZN),
+      lam(0xFFFFFF,{map:tm,emissive:0x3A3A38}));
+    p.rotation.x=-Math.PI/2; p.position.set(CXX,0.06,(ZN+ZS)/2); g.add(p);
+    /* SOFFITTO A VOLTA A BOTTE (Andrea), non piatto. Si fa con una SHAPE ad
+       arco estrusa: ExtrudeGeometry estrude lungo +Z, che qui e' proprio
+       l'asse della navata — nessuna rotazione, nessun rischio di ribaltare
+       l'orientamento. La sagoma e' una fascia sottile (raggio interno 4,00,
+       esterno 4,16): dal basso si guarda l'intradosso, che e' quello che si
+       deve vedere. Un semidisco pieno avrebbe mostrato la faccia piatta. */
+    const R=4.00, SPS=0.16, YV=6.40;
+    const sh=new THREE.Shape();
+    sh.absarc(0,0,R+SPS,Math.PI,0,true);
+    sh.lineTo(R,0);
+    sh.absarc(0,0,R,0,Math.PI,false);
+    sh.closePath();
+    const v=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,
+      {depth:ZS-ZN,bevelEnabled:false,curveSegments:26}),
+      lam(0xD8D2BE,{emissive:0x3A362C,side:THREE.DoubleSide}));
+    v.position.set(CXX,YV,ZN); g.add(v);
+    /* i sottarchi trasversali, uno ogni due campate */
+    for(let k=0;k<=6;k++){
+      const a2=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,
+        {depth:0.26,bevelEnabled:false,curveSegments:26}),
+        em(0xC9A24E,0x3A2E14));
+      a2.scale.set(0.995,0.995,1);
+      a2.position.set(CXX,YV,ZN+0.6+k*(ZS-ZN-1.2)/6); g.add(a2);}})();
+
+  /* ---- LE VETRATE: sei monofore per lato, a tutto sesto ---------------
+     Il vetro e' un canvas di tessere irregolari con la piombatura scura, e
+     il materiale e' BASIC: una vetrata controluce non si illumina, brilla. */
+  function vetrata(){
+    const c=mkCanvas(64,192), q=c.getContext('2d');
+    q.fillStyle='#1A1712'; q.fillRect(0,0,64,192);
+    const T=['#2E5FA8','#3E8ABF','#2E7A54','#C9A22E','#B8563E','#7A4A9E',
+             '#D8CDA8','#1F4470'];
+    for(let y=2;y<190;y+=10) for(let x=2;x<62;x+=10){
+      q.fillStyle=T[(rnd()*T.length)|0];
+      q.fillRect(x,y,8-(rnd()*2|0),8-(rnd()*2|0));}
+    return c;}
+  /* LA NAVATA E' CHIARA. Senza un rivestimento interno si vedeva la faccia
+     rovescia del guscio, che e' di MATTONE: tutta la chiesa usciva rosso
+     cotto, mentre nella sfera il rosso sta SOLO nel presbiterio e la navata
+     e' a intonaco chiaro. Il rivestimento si ferma dove comincia il
+     presbiterio. */
+  const HD=2.90, HA=6.25, LF=0.86;                 /* davanzale, imposta */
+  const ZPRE=ZS-4.6;
+  /* LE PARETI SONO TUTTE ROSSO MATTONE E TUTTE AFFRESCATE (Andrea). Avevo
+     letto la navata come intonaco chiaro dalla sfera — sbagliato: il chiaro
+     era la luce delle vetrate sul muro. Non c'e' una fascia dipinta in alto
+     e il resto liscio: e' dipinto tutto, dal basso fino all'imposta della
+     volta, a riquadri con figure e cornici d'ocra. */
+  function pareteDipinta(w,h){
+    const c=mkCanvas(w,h), q=c.getContext('2d');
+    q.fillStyle='#8E3B34'; q.fillRect(0,0,w,h);
+    const T=['#C9A24E','#3E6FA8','#7A8A54','#D8CDA8','#A8724A','#5E4A7A'];
+    const P=Math.round(w/128);
+    for(let k=0;k<P;k++){
+      const x=6+k*(w/P), pw=(w/P)-12;
+      q.fillStyle='rgba(232,220,190,.13)'; q.fillRect(x,h*0.10,pw,h*0.78);
+      q.strokeStyle='#C9A24E'; q.lineWidth=3;
+      q.strokeRect(x,h*0.10,pw,h*0.78);
+      const nf=1+(rnd()*2|0);
+      for(let f=0;f<nf;f++){
+        const fx=x+pw*(0.5+(f-(nf-1)/2)*0.42), hh=h*(0.40+rnd()*0.16);
+        const y=h*0.86-hh;
+        q.fillStyle=T[(rnd()*T.length)|0];
+        q.fillRect(fx-pw*0.10,y+hh*0.24,pw*0.20,hh*0.76);
+        q.fillStyle='#E0BB92';
+        q.beginPath(); q.arc(fx,y+hh*0.14,hh*0.115,0,6.3); q.fill();
+        q.strokeStyle='rgba(255,238,180,.75)'; q.lineWidth=2.4;
+        q.beginPath(); q.arc(fx,y+hh*0.14,hh*0.18,0,6.3); q.stroke();}}
+    q.fillStyle='#C9A24E'; q.fillRect(0,0,w,5); q.fillRect(0,h-7,w,7);
+    return c;}
+  const YB=1.10, YT2=6.40;                       /* zoccolo e imposta volta */
+  [X0,X1].forEach((px,s)=>{
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(ZS-ZN-0.2,YT2-YB),
+      new THREE.MeshBasicMaterial({map:tex(pareteDipinta(2048,420),false)}));
+    m.position.set(px+(s?-0.05:0.05),(YB+YT2)/2,(ZN+ZS)/2);
+    m.rotation.y=s?-Math.PI/2:Math.PI/2; g.add(m);
+    /* lo zoccolo scuro sotto gli affreschi */
+    box(g,0.10,YB,ZS-ZN,em(0x6E3A30,0x241210),px+(s?-0.05:0.05),YB/2,
+        (ZN+ZS)/2,false);});
+  /* LA CONTROFACCIATA LASCIA IL VANO DEL PORTALE. Il pannello di
+     rivestimento era pieno da parete a parete e chiudeva l'ingresso dietro
+     le ante: il raggio di collaudo trovava quattro strati pieni alla quota
+     del volo, e uno era questo. Il vano e' 2,30 x 3,35 come il portale. */
+  (function(){
+    const VW=2.30, VH=3.35, Y0V=0.42, M=(X1-X0-VW)/2;
+    [X0+M/2, X1-M/2].forEach(px=>
+      box(g,M,SOF-0.1,0.10,em(0x8E3B34,0x2E1210),px,(SOF-0.1)/2,ZN+0.05,false));
+    box(g,VW,SOF-0.1-(Y0V+VH),0.10,em(0x8E3B34,0x2E1210),CXX,
+        Y0V+VH+(SOF-0.1-(Y0V+VH))/2,ZN+0.05,false);})();
+  for(let i=0;i<6;i++){
+    const pz=ZN+3.9+i*4.25;
+    [X0,X1].forEach((px,s)=>{
+      const sh=new THREE.Shape();
+      sh.moveTo(-LF/2,0); sh.lineTo(LF/2,0); sh.lineTo(LF/2,HA-HD-LF/2);
+      sh.absarc(0,HA-HD-LF/2,LF/2,0,Math.PI,false); sh.closePath();
+      const m=new THREE.Mesh(new THREE.ShapeGeometry(sh,12),
+        new THREE.MeshBasicMaterial({
+          map:mappaShape(tex(vetrata(),false),LF,HA-HD)}));
+      m.position.set(px+(s?-0.15:0.15),HD,pz);
+      m.rotation.y=s?-Math.PI/2:Math.PI/2; g.add(m);
+      /* strombatura e davanzale di intonaco */
+      box(g,0.12,0.14,LF+0.34,em(0xE2DDD0,0x3C3A34),px+(s?-0.11:0.11),
+          HD-0.09,pz,false);});}
+
+  /* (La fascia affrescata separata non c'e' piu': le pareti sono dipinte
+     per intero, dallo zoccolo all'imposta della volta.) */
+
+  /* ---- IL PRESBITERIO: tre gradini e la pedana ------------------------ */
+  const ZP=ZS-4.6, AL=0.22, PIETRA=em(0xC6C0B2,0x3A3830);
+  for(let k=0;k<3;k++)
+    box(g,X1-X0-1.2,AL,0.42,PIETRA,CXX,AL/2+k*AL,ZP+0.42*(2-k),false);
+  box(g,X1-X0,0.66,ZS-ZP+0.2,PIETRA,CXX,0.33,(ZP+ZS)/2-0.1,false);
+
+  /* le pareti del presbiterio sono rosso mattone, non chiare */
+  const ROSSO=em(0x8E3B34,0x2E1210);
+  [X0,X1].forEach((px,s)=>box(g,0.10,SOF-0.2,ZS-ZP+0.3,ROSSO,
+    px+(s?-0.07:0.07),(SOF-0.2)/2+0.1,(ZP+ZS)/2,false));
+  box(g,X1-X0,SOF-0.2,0.10,ROSSO,CXX,(SOF-0.2)/2+0.1,ZS-0.07,false);
+
+  /* ---- L'ABSIDE: nicchia a tutto sesto col Cristo su fondo oro -------- */
+  (function(){
+    const w=4.2, hh=5.6, r=w/2;
+    const c=mkCanvas(256,340), q=c.getContext('2d');
+    const gr=q.createLinearGradient(0,0,0,340);
+    gr.addColorStop(0,'#C9A24E'); gr.addColorStop(1,'#A87E33');
+    q.fillStyle=gr; q.fillRect(0,0,256,340);
+    for(let y=0;y<340;y+=8) for(let x=0;x<256;x+=8){    /* tessere d'oro */
+      q.fillStyle='rgba(255,236,180,'+(0.05+rnd()*0.16).toFixed(2)+')';
+      q.fillRect(x,y,7,7);}
+    q.fillStyle='#3E6FA8';                              /* la veste      */
+    q.fillRect(96,150,64,150);
+    q.fillRect(40,152,176,20);                          /* braccia aperte*/
+    q.fillStyle='#E0BB92';
+    q.beginPath(); q.arc(128,126,26,0,6.3); q.fill();    /* volto        */
+    q.beginPath(); q.arc(46,166,11,0,6.3); q.fill();
+    q.beginPath(); q.arc(210,166,11,0,6.3); q.fill();
+    q.strokeStyle='rgba(255,244,200,.85)'; q.lineWidth=5;
+    q.beginPath(); q.arc(128,126,38,0,6.3); q.stroke();  /* aureola      */
+    q.fillStyle='#D8CDA8';                               /* calice sopra */
+    q.fillRect(120,52,16,34); q.fillRect(106,86,44,7);
+    q.beginPath(); q.arc(128,44,15,0,6.3); q.fill();
+    const sh=new THREE.Shape();
+    sh.moveTo(-r,0); sh.lineTo(r,0); sh.lineTo(r,hh-r);
+    sh.absarc(0,hh-r,r,0,Math.PI,false); sh.closePath();
+    const m=new THREE.Mesh(new THREE.ShapeGeometry(sh,16),
+      new THREE.MeshBasicMaterial({map:mappaShape(tex(c,false),w,hh)}));
+    m.position.set(CXX,1.05,ZS-0.13); m.rotation.y=Math.PI; g.add(m);
+    /* la ghiera di intonaco chiaro intorno alla nicchia */
+    box(g,w+0.7,0.16,0.12,em(0xE2DDD0,0x3C3A34),CXX,1.05+hh+0.10,ZS-0.16,false);})();
+
+  /* ---- ALTARE, AMBONE, STATUA ---------------------------------------- */
+  const LEG=em(0x9A7040,0x2E2016);
+  box(g,1.90,0.10,0.95,em(0xE8E4DA,0x3E3C36),CXX,1.62,ZS-3.0,true); /* mensa */
+  box(g,1.70,0.62,0.80,em(0x3E7A50,0x142A1A),CXX,1.28,ZS-3.0,false);/* verde */
+  box(g,0.90,0.62,0.70,PIETRA,CXX,0.97,ZS-3.0,false);
+  /* ambone a sinistra (guardando l'altare = lato di levante, x maggiore) */
+  box(g,0.70,0.86,0.62,PIETRA,X1-1.5,1.09,ZP+0.9,false);
+  box(g,0.62,0.60,0.52,em(0x3E7A50,0x142A1A),X1-1.5,1.82,ZP+0.9,false);
+  /* statua della Madonna a ponente, su pilastrino */
+  box(g,0.52,1.00,0.52,PIETRA,X0+1.2,0.50,ZP+0.6,false);
+  (function(){
+    const b=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.20,0.86,10),
+      em(0xE8E6E0,0x3E3E3C));
+    b.position.set(X0+1.2,1.43,ZP+0.6); g.add(b);
+    const t=new THREE.Mesh(new THREE.SphereGeometry(0.115,10,8),
+      em(0xE4C3A0,0x3A3028));
+    t.position.set(X0+1.2,1.95,ZP+0.6); g.add(t);
+    const v=new THREE.Mesh(new THREE.SphereGeometry(0.125,10,7,0,6.3,0,1.8),
+      em(0x5E86C0,0x1A2438));
+    v.position.set(X0+1.2,1.96,ZP+0.6); g.add(v);})();
+
+  /* ---- I BANCHI: due file, corridoio centrale ------------------------- */
+  function banco(bx,bz,lung){
+    box(g,lung,0.07,0.42,LEG,bx,0.48,bz,true);            /* seduta      */
+    box(g,lung,0.44,0.05,LEG,bx,0.72,bz-0.20,false);      /* schienale   */
+    box(g,lung,0.06,0.20,LEG,bx,0.30,bz-0.34,false);      /* inginocch.  */
+    [-1,1].forEach(q=>box(g,0.07,0.46,0.50,LEG,bx+q*(lung/2-0.10),
+      0.23,bz,false));}
+  const LB=3.05, XSX=CXX-1.05-LB/2, XDX=CXX+1.05+LB/2;
+  for(let i=0;i<15;i++){
+    const bz=ZP-1.9-i*1.30;
+    if(bz<ZN+1.6) break;
+    banco(XSX,bz,LB); banco(XDX,bz,LB);}
+})();
+
+/* ==========================================================================
+   LA MESSA — tre sacerdoti dietro l'altare, i fedeli nei banchi
+   --------------------------------------------------------------------------
+   Coordinate MONDO, le stesse dell'interno: navata x[-40,95 · -32,95],
+   asse a -36,95; presbiterio da z=-24,05 all'abside (-19,45), pedana a
+   quota 0,66; altare a z=-22,45.
+   ORIENTAMENTO: qui l'abside sta a z CRESCENTE, quindi i fedeli guardano
+   verso +Z — il contrario degli spettatori del tendone, che guardano -Z.
+   Non e' un dettaglio: nel tendone lo schienale sta a +Z, qui a -Z, e
+   copiare la figura senza specchiarla avrebbe messo tutti di spalle
+   all'altare. Il verso si ricava dal banco, non si ricorda.
+   VERDE: e' il colore del paramento che si vede nella sfera, lo stesso
+   dell'altare e dell'ambone — tempo ordinario.
+   ========================================================================== */
+(function laMessa(){
+  const g=new THREE.Group(); mondo.add(g);
+  const CXX=-36.95, ZS=-19.45, ZP=ZS-4.6, YP=0.66;
+  const em=(c,e)=>lam(c,{emissive:e===undefined?0x2E2E32:e});
+  const rnd=seme(2611);
+  const CARNI=[0xE4C3A0,0xC98F63,0x8B5A38,0xD9AE86];
+  const CAPI =[0x2B2118,0x4A3524,0x8A6A3A,0x1A1512,0xB9B4AC];
+
+  /* ---- I TRE SACERDOTI, dietro l'altare e rivolti all'assemblea ------- */
+  function sacerdote(sx,sz,principale){
+    const bianco=em(0xF2F0E8,0x3E3E3A), verde=em(0x3E7A50,0x142A1A),
+          pelle=em(CARNI[(rnd()*4)|0],0x2A2420),
+          cap=em(CAPI[(rnd()*5)|0],0x1A1614);
+    const camice=new THREE.Mesh(new THREE.CylinderGeometry(0.21,0.34,1.34,12),
+      bianco);
+    camice.position.set(sx,YP+0.67,sz); camice.castShadow=true; g.add(camice);
+    /* la casula: piu' corta e piu' larga, verde */
+    const cas=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.36,
+      principale?0.92:0.84,12),verde);
+    cas.position.set(sx,YP+1.05,sz); g.add(cas);
+    /* la stola, due strisce sul davanti (verso l'assemblea, cioe' -Z) */
+    if(principale) [-1,1].forEach(q=>{
+      const st=new THREE.Mesh(new THREE.BoxGeometry(0.075,0.78,0.03),verde);
+      st.position.set(sx+q*0.10,YP+1.12,sz-0.30); g.add(st);});
+    [-1,1].forEach(q=>{                                   /* braccia       */
+      const b=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,0.44,8),
+        bianco);
+      b.position.set(sx+q*0.30,YP+1.28,sz-0.14);
+      b.rotation.x=-0.55; b.rotation.z=q*0.20; g.add(b);});
+    const t=new THREE.Mesh(new THREE.SphereGeometry(0.115,12,10),pelle);
+    t.position.set(sx,YP+1.60,sz); g.add(t);
+    const c=new THREE.Mesh(new THREE.SphereGeometry(0.122,12,8,0,6.3,0,
+      Math.PI*0.52),cap);
+    c.position.set(sx,YP+1.615,sz); g.add(c);}
+  /* il celebrante in asse, i due concelebranti ai lati e un filo indietro */
+  sacerdote(CXX,       ZS-2.15, true);
+  sacerdote(CXX-1.15,  ZS-1.85, false);
+  sacerdote(CXX+1.15,  ZS-1.85, false);
+
+  /* ---- I FEDELI NEI BANCHI ------------------------------------------- */
+  const VESTI=[0x2E5B8C,0x8A4A3E,0x3E6A4E,0x5E4A7A,0x8A7A3E,0x2A2E34,
+               0xC6C0B4,0x5A6470];
+  function fedele(sx,sz,i){
+    const ve=em(VESTI[i%VESTI.length],0x24242A),
+          pe=em(CARNI[(i*3)%CARNI.length],0x2A2420),
+          ca=em(CAPI[(i*5)%CAPI.length],0x1A1614),
+          pa=em(0x36393F,0x1C1E22);
+    /* seduti sul banco: seduta a 0,48, e si guarda verso +Z (l'altare) */
+    box(g,0.34,0.46,0.20,ve,sx,0.84,sz-0.12,false);          /* busto     */
+    box(g,0.30,0.16,0.32,pa,sx,0.56,sz+0.06,false);          /* cosce     */
+    [-1,1].forEach(q=>{
+      box(g,0.12,0.44,0.13,pa,sx+q*0.09,0.26,sz+0.21,false);   /* tibie   */
+      box(g,0.13,0.07,0.22,em(0x24282E,0x141618),sx+q*0.09,0.05,sz+0.27,false);
+      box(g,0.09,0.38,0.10,ve,sx+q*0.21,0.86,sz-0.06,false);});/* braccia */
+    const t=new THREE.Mesh(new THREE.SphereGeometry(0.108,10,8),pe);
+    t.position.set(sx,1.19,sz-0.08); g.add(t);
+    const c=new THREE.Mesh(new THREE.SphereGeometry(0.115,10,7,0,6.3,0,
+      Math.PI*0.54),ca);
+    c.position.set(sx,1.20,sz-0.08); g.add(c);
+    const n=new THREE.Mesh(new THREE.SphereGeometry(0.090,8,6),ca);
+    n.position.set(sx,1.17,sz-0.15); g.add(n);}
+  /* i banchi stanno a x -39,525 e -34,375, lunghi 3,05, uno ogni 1,30 a
+     partire da z=-25,95. Piu' gente davanti che in fondo, come sempre. */
+  const LB=3.05, XB=[CXX-1.05-LB/2, CXX+1.05+LB/2];
+  let n=0;
+  for(let i=0;i<15;i++){
+    const bz=ZP-1.9-i*1.30;
+    XB.forEach(bx=>{ for(let k=0;k<4;k++)
+      if(rnd() < 0.72-i*0.038)
+        fedele(bx-0.93+k*0.62, bz, n++); });}
 })();
 
 
@@ -3498,7 +3899,7 @@ function faroLed(x,y,z,ry){
     g.position.set(hx,0,hz); mondo.add(g);
     contatto(mondo,hx,0.035,hz,1.0,1.0,0.34);
     mossi.push({g:g,anche:anche,ginocchia:ginocchia,caviglie:caviglie,
-                spalle:spalle,gomiti:gomiti,hx:hx,hz:hz,
+                spalle:spalle,gomiti:gomiti,hx:hx,hz:hz,y0:O.y0||0,
                 a:fase,f:fase*1.7,r:raggio,v:vel});
     if(O.statura&&O.statura!==1) g.scale.setScalar(O.statura);
     return g;}
@@ -3524,6 +3925,9 @@ function faroLed(x,y,z,ry){
        volo     — la pallavolo sta IN ARIA: parabole da una parte all'altra
                   della rete, con la battuta che inverte di colpo la corsa
        rimbalzo — il basket si palleggia: tocca terra e risale */
+  /* la stessa persona serve anche altrove (i ballerini del QdV Arena):
+     si costruisce qui una volta e si presta. */
+  window.creaPersona=giocatore;
   const palle=[];
   function pallone(col,raggio,cx,cz,rx,rz,vel,tipo,dati){
     const m=new THREE.Mesh(new THREE.SphereGeometry(raggio,14,12),lam(col));
@@ -3602,7 +4006,7 @@ function faroLed(x,y,z,ry){
       }
       /* il rimbalzo della corsa non e' un seno inventato: e' quanto deve
          calare il bacino, e viene fuori da solo due volte per ciclo */
-      m.g.position.y=Math.min(0,0.08-piuBasso);
+      m.g.position.y=(m.y0||0)+Math.min(0,0.08-piuBasso);
     });
     palle.forEach(function(b){
       const u=tP*b.v, d=b.d;
@@ -3624,6 +4028,193 @@ function faroLed(x,y,z,ry){
         b.m.position.set(b.cx+Math.cos(u)*b.rx, b.y, b.cz+Math.sin(u*1.3)*b.rz);
         b.m.rotation.x+=dt*4.2; b.m.rotation.z+=dt*2.1;}});
   });
+})();
+
+/* ==========================================================================
+   DENTRO IL QdV ARENA
+   --------------------------------------------------------------------------
+   Impianto descritto da Andrea, entrando dal varco di levante:
+     - a DESTRA (lato nord) un PALCO largo quanto tutto il capannone, con le
+       luci puntate sui ballerini;
+     - a SINISTRA (lato sud) file di SEGGIOLE GRIGIE ordinate;
+     - in FONDO (a ponente) le TRIBUNE: tre gradoni, struttura in ferro grigio
+       scuro e seduta in legno, moduli da 6 m disposti a U.
+   Entrando si guarda a ponente: con quella direzione il nord cade a destra.
+
+   LA LUCE. Dentro un guscio chiuso arriva solo l'ambiente, e sarebbe tutto
+   nero. Non si risolve con una luce su un layer — in r128 il layer di una
+   luce non filtra chi illumina, e appena la si accende in camera rischiara
+   anche il cortile. L'unica cosa davvero locale e' l'EMISSIVE dei materiali:
+   qui ogni superficie interna ne ha un filo, e i fasci dei fari sono
+   MeshBasicMaterial, che non si illumina — si vede e basta.
+   ========================================================================== */
+(function internoArena(){
+  const g=new THREE.Group(); mondo.add(g);
+  const cx=-66, cz=56, w=40, d=25;
+  const X0=cx-w/2+0.4, X1=cx+w/2-0.4, Z0=cz-d/2+0.4, Z1=cz+d/2-0.4;
+  const em=(c,e)=>lam(c,{emissive:e===undefined?0x24242A:e});
+  const FERRO=em(0x3A3E44,0x1E2024), LEGNO=em(0xB08A52,0x3A2C18);
+
+  /* ---- IL PALCO, lato nord, per tutta la larghezza ------------------- */
+  const PH=1.0, PZ0=Z0, PZ1=Z0+5.6;
+  box(g,X1-X0,PH,PZ1-PZ0,em(0x2A2C31,0x141519),(X0+X1)/2,PH/2,(PZ0+PZ1)/2,true);
+  box(g,X1-X0,0.10,PZ1-PZ0,em(0x3E4148,0x1A1B20),(X0+X1)/2,PH+0.05,(PZ0+PZ1)/2,false);
+  /* il bordo chiaro del proscenio e le due scalette laterali */
+  box(g,X1-X0,0.09,0.16,em(0xC9C4B8,0x3A362E),(X0+X1)/2,PH+0.02,PZ1+0.06,false);
+  [X0+1.4,X1-1.4].forEach(sx=>{ for(let k=0;k<3;k++)
+    box(g,1.5,0.09,0.34,em(0x8A8E94,0x24262A),sx,0.30+k*0.32,PZ1+0.62-k*0.34,false);});
+  /* il fondale scuro dietro il palco */
+  box(g,X1-X0,5.2,0.12,em(0x1C1E23,0x0E0F12),(X0+X1)/2,PH+2.6,PZ0-0.10,false);
+
+  /* ---- L'AMERICANA E I FARI ------------------------------------------ */
+  const YT=6.2, TZ=PZ1-1.2;
+  box(g,X1-X0,0.16,0.16,FERRO,(X0+X1)/2,YT,TZ,false);
+  box(g,X1-X0,0.16,0.16,FERRO,(X0+X1)/2,YT-0.46,TZ,false);
+  for(let k=0;k<14;k++)
+    box(g,0.09,0.50,0.09,FERRO,X0+1.2+k*(X1-X0-2.4)/13,YT-0.23,TZ,false);
+  /* I RIFLETTORI RUOTANO (Andrea). Testa e fascio stanno in un gruppo
+     imperniato SULLA STAFFA, non sul pavimento: il cono ha l'apice
+     nell'origine del gruppo (una ConeGeometry ha l'apice a +h/2, quindi la
+     si posa a -h/2) e cosi' basta ruotare il gruppo perche' il fascio
+     spazzi. Ogni faro ha ampiezza, velocita' e fase sue: se vanno tutti
+     insieme sembra un tergicristallo.
+     La POZZA di luce non sta nel gruppo — deve restare piatta sul tavolato:
+     a ogni fotogramma si calcola dove il fascio tocca il palco, ruotando
+     (0,-1,0) con l'assetto del gruppo e intersecando il piano y=PH. */
+  const TINTE=[0xE8A02A,0x2F6FD8,0x35A85C,0xB84FA8];
+  const FARI=[], giu=new THREE.Vector3(), eu=new THREE.Euler();
+  for(let k=0;k<10;k++){
+    const px=X0+2.4+k*(X1-X0-4.8)/9, col=TINTE[k%4];
+    const gf=new THREE.Group(); gf.position.set(px,YT-0.62,TZ);
+    gf.userData.animato=true; g.add(gf);
+    box(gf,0.26,0.34,0.30,em(0x2A2C31,0x111216),0,0.06,0,false);
+    const h=YT-1.0-PH, r=1.5;
+    const f=new THREE.Mesh(new THREE.ConeGeometry(r,h,14,1,true),
+      new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.13,
+        depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending}));
+    f.position.y=-h/2; gf.add(f);
+    const p=new THREE.Mesh(new THREE.CircleGeometry(r*0.92,16),
+      new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.16,
+        depthWrite:false,blending:THREE.AdditiveBlending}));
+    p.rotation.x=-Math.PI/2; p.position.set(px,PH+0.12,TZ+0.9);
+    p.userData.animato=true; g.add(p);
+    FARI.push({gf:gf,p:p,px:px,y:YT-0.62,
+               az:0.30+0.16*(k%3), ax:0.30+0.10*(k%4),
+               vz:0.55+0.13*(k%5),  vx:0.37+0.09*(k%3),
+               fz:k*0.9, fx:k*1.7+1.1, h:YT-0.62-PH});}
+  let tF=0;
+  AGGIORNA.push(function(dt){
+    tF+=dt;
+    FARI.forEach(function(q){
+      const rz=q.az*Math.sin(tF*q.vz+q.fz);
+      const rx=-0.10+q.ax*Math.sin(tF*q.vx+q.fx);
+      q.gf.rotation.set(rx,0,rz);
+      /* dove batte: (0,-1,0) ruotato, poi giu' fino al tavolato */
+      giu.set(0,-1,0).applyEuler(eu.set(rx,0,rz));
+      const t=q.h/Math.max(0.2,-giu.y);
+      q.p.position.set(q.px+giu.x*t, PH+0.12, TZ+giu.z*t);});});
+
+  /* ---- I BALLERINI --------------------------------------------------- */
+  if(typeof window.creaPersona==='function'){
+    const DIV=[{maglia:0xD8438C,calz:0x2A2E34,calze:0xE8E4DA},
+               {maglia:0x2FB0A8,calz:0x2A2E34,calze:0xE8E4DA}];
+    [[-80,1],[-74,0],[-68,1],[-62,0],[-56,1],[-50,0]].forEach((q,i)=>{
+      const p=window.creaPersona(q[0],PZ0+2.9,DIV,q[1],i+2,(i*1.9)%6.28,
+        0.55,0.9,{y0:PH,coda:i%2===0});
+      /* sul palco le luci battono forte: un filo di emissive perche' le
+         figure non anneriscano contro il fondale */
+      p.traverse(o=>{ if(o.isMesh&&o.material&&o.material.emissive)
+        o.material.emissive.setHex(0x3A3A42); });});}
+
+  /* ---- LE SEGGIOLE GRIGIE, lato sud ---------------------------------- */
+  const GRI=em(0x9A9EA4,0x2A2C30), GAMBA=em(0x6E7278,0x1E2024);
+  /* Una seggiola da conferenza e' 45 cm di seduta e 44 di larghezza, e
+     quelle lo erano: il vuoto non veniva dalla misura, veniva dal NUMERO.
+     Centotrenta sedie in un capannone da 39 x 24 occupavano 16 x 5 metri e
+     lasciavano il resto deserto. Ora la platea e' vera: 396 posti in due
+     settori separati da un corridoio centrale, che e' come si allestisce
+     una sala — e riempie lo spazio fra il palco e le tribune.
+     Tre pezzi per sedia invece di sei (seduta, schienale, telaio): con
+     quattrocento sedie la differenza e' 1.200 mesh contro 2.400, e su iPad
+     si sente. */
+  function seggiola(sx,sz){
+    box(g,0.46,0.055,0.44,GRI,sx,0.45,sz,false);          /* seduta    */
+    box(g,0.46,0.48,0.05,GRI,sx,0.70,sz+0.20,false);      /* schienale */
+    box(g,0.40,0.42,0.34,GAMBA,sx,0.21,sz,false);         /* telaio    */}
+  /* due settori, corridoio centrale di 2,2 m, tutte rivolte al palco.
+     Nove file da 0,95: da z=52,8 (2,7 m dal proscenio) a z=60,4 (4,1 m
+     davanti al primo gradone delle tribune). */
+  for(let r=0;r<9;r++) for(let s=0;s<2;s++) for(let k=0;k<22;k++)
+    seggiola(cx+(s?1.1:-14.3)+k*0.60, 52.8+r*0.95);
+
+  /* ---- GLI SPETTATORI SEDUTI --------------------------------------------
+     Una persona seduta non e' una persona in piedi accorciata: le cosce
+     stanno ORIZZONTALI sulla seduta (0,45) e le tibie scendono verticali
+     davanti. Testa a 1,12 — sono ragazzi di 1,45 in piedi.
+     Guardano tutti il palco, cioe' verso -Z, che e' il fronte del modello.
+     Non sono su tutte le sedie: una sala piena in ogni posto e' meno vera
+     di una con dei vuoti, e costerebbe il doppio delle mesh. */
+  const VESTI=[0x2E5B8C,0xB8563E,0x3E7A50,0x8A5FA8,0xC9A23E,0x2A2E34,
+               0xD8D3C6,0x5A6470];
+  const CARNI=[0xE4C3A0,0xC98F63,0x8B5A38,0xD9AE86];
+  const CAPI =[0x2B2118,0x4A3524,0x8A6A3A,0x1A1512];
+  function spettatore(sx,sz,i){
+    const ve=em(VESTI[i%VESTI.length],0x24242A),
+          pe=em(CARNI[(i*3)%CARNI.length],0x2A2420),
+          ca=em(CAPI[(i*5)%CAPI.length],0x1A1614),
+          pa=em(0x36393F,0x1C1E22);
+    box(g,0.34,0.42,0.20,ve,sx,0.78,sz+0.10,false);         /* busto      */
+    box(g,0.30,0.16,0.30,pa,sx,0.52,sz-0.06,false);         /* cosce      */
+    [-1,1].forEach(q=>{
+      box(g,0.12,0.42,0.13,pa,sx+q*0.09,0.24,sz-0.20,false);  /* tibie    */
+      box(g,0.13,0.07,0.22,em(0x24282E,0x141618),sx+q*0.09,0.04,sz-0.26,false);
+      box(g,0.09,0.36,0.10,ve,sx+q*0.21,0.80,sz+0.04,false);});/* braccia */
+    const t=new THREE.Mesh(new THREE.SphereGeometry(0.105,10,8),pe);
+    t.position.set(sx,1.10,sz+0.06); g.add(t);
+    const c=new THREE.Mesh(new THREE.SphereGeometry(0.112,10,7,0,
+      Math.PI*2,0,Math.PI*0.56),ca);
+    c.position.set(sx,1.11,sz+0.06); g.add(c);
+    const n=new THREE.Mesh(new THREE.SphereGeometry(0.088,8,6),ca);
+    n.position.set(sx,1.08,sz+0.14); g.add(n);}
+  /* piu' fitti davanti, radi in fondo: e' come si riempie una sala */
+  const rnd=seme(4172); let n=0;
+  for(let r=0;r<9;r++) for(let s=0;s<2;s++) for(let k=0;k<22;k++)
+    if(rnd() < 0.78-r*0.06)
+      spettatore(cx+(s?1.1:-14.3)+k*0.60, 52.8+r*0.95, n++);
+
+  /* ---- LE TRIBUNE A U, in fondo (a ponente) --------------------------- */
+  /* Un modulo: 6 m di fronte, tre gradoni da 0,45 di alzata e 0,78 di
+     pedata. `dir` e' il verso in cui si guarda: le sedute salgono
+     allontanandosi da li'. */
+  function tribuna(mx,mz,lungoX,dir){
+    const L=6.0, AL=0.45, PE=0.78;
+    for(let k=0;k<3;k++){
+      const off=(k+0.5)*PE*(-dir), y=(k+1)*AL;
+      const px=lungoX?mx:mx+off, pz=lungoX?mz+off:mz;
+      const sw=lungoX?L:PE, sd=lungoX?PE:L;
+      box(g,sw,0.10,sd,LEGNO,px,y,pz,true);                 /* seduta   */
+      box(g,lungoX?L:0.08,AL,lungoX?0.08:L,FERRO,
+          lungoX?px:px+PE*0.42*(-dir),y-AL/2,
+          lungoX?pz+PE*0.42*(-dir):pz,false);               /* alzata   */
+      /* i montanti del telaio */
+      for(let j=0;j<3;j++){
+        const t=(j-1)*L*0.42;
+        box(g,0.07,y,0.07,FERRO,lungoX?px+t:px,y/2,lungoX?pz:pz+t,false);}}
+    /* il corrimano dietro */
+    const bx=lungoX?mx:mx-PE*3.2*dir, bz=lungoX?mz-PE*3.2*dir:mz;
+    box(g,lungoX?L:0.07,0.07,lungoX?0.07:L,FERRO,bx,1.85,bz,false);
+    [-1,1].forEach(sg=>box(g,0.07,1.5,0.07,FERRO,
+      lungoX?bx+sg*L*0.46:bx, 1.1, lungoX?bz:bz+sg*L*0.46,false));}
+  /* LE TRIBUNE STANNO TUTTE DALLA PARTE OPPOSTA AL PALCO (Andrea), cioe'
+     addossate al lato sud, e guardano a nord — verso il palco. Niente piu'
+     U: i due ritorni laterali davano le spalle o il fianco alla scena, che
+     e' esattamente quello che una tribuna non deve fare.
+     Sei moduli da 6 m in fila lungo X; `dir:-1` fa salire i gradoni
+     ALLONTANANDOSI dal palco, cosi' chi sta in alto vede sopra chi sta
+     davanti. La prima fila e' a z=64,7, l'ultima a 66,3, il corrimano a
+     67,2: tutto dentro la parete sud (68,1). */
+  const ZT=Z1-3.4;
+  for(let k=0;k<6;k++) tribuna(X0+3.6+k*6.2, ZT, true, -1);
 })();
 
 /* ===================== I TOMBINI DEL PIANO TERRA =======================
@@ -4988,7 +5579,30 @@ const TAPPE=[
     zona:'Primo piano, subito a levante della ringhiera blu del vano scala.',
     cosa:'La Coppa delle Case: un calice dorato su un podio di pietra, con quattro colonne di vetro coi colori delle Case.',
     zona3d:[-24,-13,-5.4,-0.5],
-    imparato:'La Coppa delle Case si assegna alla Casa che nell\'anno ha raccolto più punti: Aquilablu, Querciaverde, Cerogiallo, Tassorosso. Ma la chiave del campus è un\'altra: saperlo attraversare. Ora sai da dove si entra, dove cambia quota il pavimento, perché le pareti cambiano colore e dove finisce la scuola.' }
+    imparato:'La Coppa delle Case si assegna alla Casa che nell\'anno ha raccolto più punti: Aquilablu, Querciaverde, Cerogiallo, Tassorosso. Ma la chiave del campus è un\'altra: saperlo attraversare. Ora sai da dove si entra, dove cambia quota il pavimento, perché le pareti cambiano colore e dove finisce la scuola.' },
+
+  /* ---- LE DUE TAPPE DEGLI INTERNI NUOVI --------------------------------
+     Gli indizi NON dicono il nome del posto: lo descrivono. E le zona3d
+     sono i rettangoli VERI degli ambienti — chiesa x[-41,30 · -32,60]
+     z[-49,80 · -19,10], Arena x[-86 · -46] z[43,50 · 68,50] — perche' il
+     collaudo delle tappe confronta la posizione della cassetta col confine
+     dell'ambiente che l'indizio nomina, non con «c'e' qualcosa sotto». */
+
+  { titolo:'Dove il soffitto diventa una botte',
+    indizio:'C\'è un solo posto nel campus dove il soffitto non è piatto: si curva come il fondo di una botte rovesciata, e degli archi d\'oro lo attraversano da parete a parete. Sotto, le pareti sono rosse e dipinte dal basso in alto, e file di finestre strette e alte lasciano passare la luce a pezzi colorati. Cammina lungo il corridoio centrale, fra i banchi di legno, fino ai gradini in fondo: la cassetta è appoggiata all\'ultimo.',
+    pos:[-36.95,0.10,-25.40], da:[-36.95,2.00,-29.00],
+    zona:'La chiesa, in fondo alla navata, ai piedi dei tre gradini del presbiterio.',
+    cosa:'Una cassetta di legno chiaro sul pavimento di marmo, contro l\'alzata del primo gradino.',
+    zona3d:[-41.30,-32.60,-49.80,-19.10],
+    imparato:'La chiesa è a navata unica, con la volta a botte e il presbiterio rialzato di tre gradini. Le pareti sono affrescate per intero su fondo rosso mattone, e le vetrate policrome sono l\'unica fonte di luce naturale: per questo l\'interno cambia colore a seconda dell\'ora. Il pavimento è marmo grigio venato.' },
+
+  { titolo:'Il telone che si apre sul palco',
+    indizio:'Non è un edificio di muratura: le pareti sono di telo bianco teso, con le cuciture verticali e una fascia azzurra lungo il bordo del tetto. Si entra da sotto uno striscione nero. Dentro, il pavimento è erba finta, ci sono centinaia di sedie grigie rivolte tutte dalla stessa parte, e in fondo tre gradoni di legno su un telaio di ferro. La cassetta è a terra, accanto alla scaletta di destra che sale sul palco.',
+    pos:[-47.80,0.14,50.60], da:[-49.80,2.00,53.40],
+    zona:'Il QdV Arena, a fianco del palco, ai piedi della scaletta di levante.',
+    cosa:'Una cassetta di legno posata sull\'erba sintetica, contro il primo gradino della scaletta.',
+    zona3d:[-86.00,-46.00,43.50,68.50],
+    imparato:'Il QdV Arena è una tensostruttura: telo di PVC su ossatura metallica, non muratura. Dentro ci sta un palco largo quanto tutto il capannone, la platea e le tribune — e per illuminarlo servono i fari appesi all\'americana, perché il telo lascia passare pochissima luce.' },
 ];
 
 /* ---- la cassetta: oggetto fisico, non pannello (regola di progetto) ---- */
@@ -5392,8 +6006,31 @@ const LUOGHI=[
   ['Campo Basket',                  [-8.6,1.62,18],        [-8.6,3.2,-2]],
   ['Campo Calcio',                  [-8.6,1.62,78],        [-8.6,2.5,40]],
   ['Piscine Andreana',              [70,24,52],            [74,2,-6]],
-  ['Primo piano',                   [-18.5,5.04,-2.95],    [-31.0,4.72,-3.60]]
+  ['Primo piano',                   [-18.5,5.04,-2.95],    [-31.0,4.72,-3.60]],
+  /* I DUE INTERNI NUOVI. Il punto d'occhio sta appena dentro la porta e la
+     mira e' quello che si e' venuti a vedere: il palco e l'altare. */
+  ['QdV Arena',                     [-49.5,1.85,56.0],     [-70.0,2.60,50.0]],
+  ['Chiesa',                        [-36.95,1.70,-46.0],   [-36.95,2.40,-21.5]]
 ];
+
+/* ==========================================================================
+   DENTRO SI PLANA, NON SI SFRECCIA
+   --------------------------------------------------------------------------
+   La velocita' del giro la decide la quota: 7 m/s a cinquanta metri, 30 a
+   terra. E' giusto sui campi — raso terra ci si passa dentro — ma dentro un
+   ambiente e' un disastro: la navata e' lunga 30 metri e a 30 m/s dura un
+   secondo. Qui la regola si ribalta: nei due interni si va PIANO, perche'
+   e' li' che c'e' qualcosa da guardare.
+   I rettangoli sono quelli veri: Arena x[-86 · -46] z[43,5 · 68,5],
+   chiesa x[-41,3 · -32,6] z[-49,8 · -19,1], con un metro di margine per
+   rallentare gia' sulla soglia invece che di colpo appena dentro.
+   ========================================================================== */
+const INTERNI=[[-87,-45,42.5,69.5],[-42.3,-31.6,-50.8,-18.1]];
+function planata(p){
+  if(p.y>12) return false;                 /* sopra i tetti non conta */
+  for(let i=0;i<INTERNI.length;i++){ const q=INTERNI[i];
+    if(p.x>=q[0]&&p.x<=q[1]&&p.z>=q[2]&&p.z<=q[3]) return true;}
+  return false;}
 /* ==========================================================================
    IL GIRO DEL CAMPUS — la prima voce del menu non e' piu' una vista ferma
    --------------------------------------------------------------------------
@@ -5417,59 +6054,124 @@ const LUOGHI=[
    Ogni riga: occhio [x,y,z] · mira [x,y,z].
    ========================================================================== */
 const GIRO=[
-  [  62, 52, -62,   -10,  2,  -8],   /* larghi da nord-est, altissimi       */
-  [  78, 46,  26,   -18,  2,  12],
-  [  34, 42,  92,   -12,  2,  40],
-  [ -52, 38,  96,   -12,  2,  46],
-  [ -30, 16,  92,    -8.6, 3,  62],  /* si punta il campo da calcio         */
-  [  -8.6, 6,   78,  -8.6, 3,  44],  /* giu' sul campo, e lo si attraversa  */
-  [  -8.6, 3.4, 46,  -8.6, 2.6, 16],
-  [  -8.6, 3.2, 18,  -8.6, 2.2,  2], /* arrivo sul campo da basket          */
-  [  -8.6, 2.6,  4,  -24,  2.2,  6.9],
-  [ -20,   2.0,  6.9,-34,  2.0,  6.9],
-  /* SOTTO IL PORTICO. I pilastri stanno a x=-28,65 e -25,55, in fila ogni
-     3,05 m a z = -0,7 · 2,35 · 5,40 · 8,45 · 11,50 …: si passa IN MEZZO A
-     UNA CAMPATA, a z=6,90, non a caso. Il tetto e' a 3,10: ci si infila a
-     1,90. La prima stesura passava a z=8, cioe' a 45 cm da un pilastro, e
-     il collaudo del percorso l'ha trovato subito. */
-  [ -28.1, 1.9,  6.9,-42,  2.0,  6.9],
-  [ -38,   1.95, 6.9,-50,  2.2,  5],  /* dentro il giardino dell'infanzia   */
-  [ -45,   1.90, 6.0,-52,  2.0,  3.0], /* sotto le chiome, che partono a 3,20 */
-  /* IMPENNATA. Fra il giardino e la chiesa ci sono, nell'ordine: le CHIOME
-     del giardino (da 3,20 a 9,30, x da -48,1 a -39,9), la PERGOLA (2,66),
-     il CORRIDOIO del primo piano (parapetto e vetrata da 3,42 a 6,42) e LA
-     PALESTRA (tetto a 9,70). La prima stesura passava dentro tutti e quattro.
-     Si sale nella fascia libera a ponente delle chiome (x=-51), si vira a
-     nord gia' a quattordici metri, si scavalca tutto e si scende sul fronte
-     della chiesa da nord, tenendosi a ovest della facciata — che e' larga
-     11,60 e arriva a x=-42,8. Non si puo' impennare piu' stretti: a z=-0,50
-     c'e' la vetrata del corridoio, e per scavalcarla serve gia' quota. */
-  /* Il giardino e' pieno: sotto le chiome si passa a 1,90, ma appena
-     finiscono (x=-48,1) si e' sopra il FUNGO — cappello a 2,20 su
-     x[-51,05 · -48,95] — e poi sopra la PERGOLA (2,66). Si sale a tre metri
-     e mezzo appena le chiome lo consentono: e' l'inizio dell'impennata. */
-  [ -48.8, 1.90, 4.4,-53,  2.5,  2.0], /* ancora basso: le chiome finiscono a x=-48,1 */
-  [ -50.5, 3.80, 2.4,-53,  5.0,  1.0], /* sopra il fungo (2,20) e la pergola (2,66) */
-  [ -52.5, 5.0,  0.6,-52,  7.0,  5],
-  [ -51,   8.0,  6.0,-50, 10.0, 12],
-  [ -51,  12,   11.0,-48, 12,    0],
-  [ -52,  14,    0.0,-48, 12,  -14],
-  [ -51,  14,  -14,  -44, 11,  -32],
-  [ -49,  14,  -32,  -40,  9,  -47],
-  [ -46,  11,  -54,  -37,  7,  -49],
-  [ -37,   8,  -64,  -37,  7,  -49],  /* il fronte della chiesa             */
-  [ -20,  20,  -80,    0,  5,  -40], /* si risale                           */
-  [  22,  38,  -84,    0,  0,  -16]
+  /* --- A. ALTO SUL FRONTE NORD, sguardo a mezzogiorno ------------------ */
+  /* SI PARTE PIU' A LEVANTE, GUARDANDO A SUD-EST (Andrea). Il punto di
+     partenza stava a ponente di tutto (x=-96) e la coda doveva risalire da
+     mezzogiorno fin lassu': l'ultimo tratto guardava a ponente, dove non
+     c'e' piu' campus — solo orizzonte vuoto. Portando la partenza a x=-18 e
+     la mira a sud-est, la congiunzione avviene SOPRA il campus e in avanti
+     si ha sempre qualcosa da guardare. */
+  [ -18, 48, -98,    22, 10, -34],
+  [  18, 44, -94,    52,  8, -30],
+  [  50, 40, -88,    76,  5, -32],
+  /* --- B. PLANATA SULLE PISCINE, piu' bassa e piu' svelta -------------- */
+  [  78, 22, -62,    76,  3, -20],
+  /* la copertura scorrevole delle piscine arriva a 6,35 e l'impronta e'
+     x[50,5 · 80,9]: la planata ci passava DENTRO a 5,9. Si vola a dodici
+     metri finche' non e' passata, poi si scende sull'acqua scoperta. */
+  [  74, 12, -34,    72,  2,  -6],
+  [  70,  9,  -8,    68,  2,  16],
+  [  66, 10,  18,    50,  2,  34],
+  /* --- C. IL CAMPO DA CALCIO, verso ponente ---------------------------- */
+  [  40,  6,  44,    10,  3,  56],
+  /* i due filari del campo stanno a x=9,5 e x=-26,5, con un albero ogni
+     7,4 m a z = 36 · 43,4 · 50,8 · 58,2 · 65,6: passare a z=60 voleva dire
+     infilare quello di z=58,2. Si vola in mezzo, a z=55, che e' anche
+     l'asse del varco dell'Arena — cosi' non si corregge all'ultimo. */
+  /* Il filare di ponente ha un albero a z=58,2 con la chioma larga 4,75 e
+     bassa 2,5: passando a z=56 le si rasentava il bordo. Gli alberi stanno
+     ogni 7,4 m, quindi fra quello di z=50,8 e quello di z=58,2 il varco
+     libero e' centrato a 54,5 — che sta ancora dentro l'apertura
+     dell'Arena (z 53,65 . 58,35). Un solo numero e passano tutti e due. */
+  [  12, 11,  56,   -10,  2.5,54.5],
+  [ -8.6, 2.9,54.5, -26,  2.3,54.5],
+  /* --- D. DENTRO IL QdV ARENA -----------------------------------------
+     Il varco sta a x=-46, z 53,65 . 58,35, alto 3,20: ci si arriva GIA'
+     in asse e alla quota giusta, senza correzioni all'ultimo momento —
+     e' una delle due cose che facevano scattare il volo di prima. */
+  [ -34,  2.3, 54.5,-50,  2.0, 54.5],
+  [ -45,  1.95,54.5,-64,  1.95,54],
+  [ -60,  1.95,55,  -78,  2.2, 51],
+  [ -76,  2.3, 51,  -86,  4.5, 48],
+  /* --- E. FUORI SOPRA IL PALCO, e si sale verso la chiesa --------------
+     La virata d'uscita era tutta in dieci metri: si saliva e si girava a
+     ponente nello stesso istante. Ora la salita prosegue DRITTA oltre il
+     palco e la virata comincia dopo, larga. */
+  [ -83,  5.0, 49,  -89,  9,   43],
+  [ -88, 11,   42,  -85, 16,   28],
+  [ -80, 19,   24,  -62, 16,   -6],
+  /* SI ARRIVA AL PORTALE GIA' IN ASSE. Prima si veniva da nord-ovest e la
+     virata verso mezzogiorno cadeva sulla soglia: con lo sguardo filtrato
+     la testa entrava ancora girata, e la navata compariva di sbieco invece
+     che in asse sull'altare. Ora ci si allinea sull'asse della chiesa
+     (x=-36,95) sedici metri PRIMA della porta, e l'ultimo tratto e' dritto:
+     quando si passa il portale l'inquadratura e' gia' ferma sull'abside. */
+  /* ANCHE I PUNTI DI MIRA DEVONO ESSERE IN ASSE, non solo quelli d'occhio.
+     La curva della mira e' una Catmull-Rom come l'altra: se il punto prima
+     del portale sta a ponente (-42) e quello dopo in asse (-36,95), la
+     spline non si allinea — fa una gobba e SCAVALCA l'asse. Misurato:
+     entrando si era fuori squadra di 74 gradi, con punte di 157. Ora gli
+     ultimi tre bersagli stanno tutti su x=-36,95 e la mira arriva dritta
+     sull'altare senza oscillare. */
+  [ -62, 24,  -20,  -46, 16,  -60],
+  [ -50, 18,  -70,  -36.95, 12,  -74],
+  [ -37, 12,  -80,  -36.95, 7.0, -66],
+  /* --- F. DENTRO LA CHIESA, dal portale ------------------------------- */
+  [ -36.95, 6.0, -62,  -36.95, 3.0, -50],
+  [ -36.95, 1.95,-47,  -36.95, 2.2, -34],
+  [ -36.95, 1.95,-32,  -36.95, 2.6, -24],
+  /* --- G. SI ESCE DA UNA FINESTRA e si torna in quota ------------------
+     L'ultima monofora di ponente sta a x=-40,95, z=-24,30, fra 2,90 e
+     6,25: si esce di li', a 4,40. */
+  /* SI ESCE DALLA MONOFORA DI SINISTRA (Andrea) — e "sinistra" qui va
+     ricavata, non ricordata: volando verso l'altare si guarda a
+     MEZZOGIORNO (+Z), e chi guarda a sud ha il levante alla sua sinistra.
+     Il fianco di levante e' x=-32,95, non quello di ponente da cui uscivo.
+     L'ultima monofora prima del presbiterio sta a z=-24,30, fra 2,90 e
+     6,25: si esce a 4,40, che e' la mezzeria dell'apertura. */
+  [ -35.2, 3.6, -26.4, -30,  5.0, -24.3],
+  [ -32.2, 4.4, -24.3, -24,  7,   -26],
+  /* Uscendo dalla finestra si andava a levante e subito dopo si tornava a
+     ponente: un'inversione da centottanta gradi, la curva piu' stretta di
+     tutto il giro. Ora si prosegue nel verso in cui si esce, si sale in una
+     spirale larga sopra il campus e si rientra nel punto di partenza da
+     levante, alla stessa quota e nello stesso verso. */
+  /* e uscendo dalla chiesa si sfiorava la punta di un cipresso alto 6,40
+     a (-29,2 · -28,4): si sale prima. */
+  [ -25,   9.5, -31,   -18, 14,   -44],
+  [ -18,  18,   -50,   -34, 26,   -72],
+  [ -40,  32,   -78,   -66, 38,   -92],
+  /* l'ultimo bersaglio guarda INDIETRO sul campus, a sud-est: e' quello che
+     toglie l'inquadratura sul vuoto prima della chiusura. */
+  [ -66,  44,   -96,   -30, 20,   -60]
 ];
 const curvaOcchio=new THREE.CatmullRomCurve3(GIRO.map(q=>V(q[0],q[1],q[2])),true,'centripetal');
 const curvaMira  =new THREE.CatmullRomCurve3(GIRO.map(q=>V(q[3],q[4],q[5])),true,'centripetal');
 const LGIRO=curvaOcchio.getLength();
-let giroAttivo=false, giroU=0;
+let giroAttivo=false, giroU=0, velGiro=18;
 function fermaGiro(){ if(giroAttivo){ giroAttivo=false; verificaAppoggio();
   if(typeof segnaVista==='function') segnaVista(); } }
 
 let voloDa=null, voloA=null, voloT=1;
 const mira=new THREE.Vector3();
+/* LO SGUARDO NON SALTA. guardaVerso() punta la mira ISTANTANEAMENTE: dove la
+   curva della mira gira stretto — l'uscita dal palco, l'uscita dalla chiesa —
+   l'inquadratura ruotava di ottanta gradi in tre fotogrammi. Qui l'angolo si
+   insegue con un filtro del primo ordine prendendo sempre la via piu' corta:
+   senza il riavvolgimento, passando da +pi a -pi la testa farebbe un giro
+   completo dalla parte sbagliata. La traiettoria resta identica, cambia solo
+   quanto in fretta la testa la segue. */
+function guardaVersoMorbido(t,dt,k){
+  const dx=t.x-pos.x, dy=t.y-pos.y, dz=t.z-pos.z;
+  const gv=Math.atan2(-dx,-dz);
+  const bv=Math.max(-1.45,Math.min(1.45,Math.atan2(dy,Math.hypot(dx,dz))));
+  let d=gv-giro;
+  while(d> Math.PI) d-=2*Math.PI;
+  while(d<-Math.PI) d+=2*Math.PI;
+  const a=Math.min(1,dt*k);
+  giro  += d*a;
+  becco += (bv-becco)*a;
+}
 function guardaVerso(t){
   const dx=t.x-pos.x, dy=t.y-pos.y, dz=t.z-pos.z;
   giro  = Math.atan2(-dx,-dz);
@@ -5807,9 +6509,32 @@ function anima(){
       const p=curvaOcchio.getPointAt(giroU);
       /* LENTI IN ALTO, VELOCI IN BASSO: 7 m/s a 50 m, 30 m/s a terra */
       const k=Math.max(0,Math.min(1,(p.y-2.0)/44));
-      const vel=30-(30-7)*k;
+      let obiettivo=30-(30-7)*k;
+      /* dentro la chiesa e dentro l'Arena si plana: 5,5 m/s, un passo
+         svelto. Trenta metri di navata durerebbero un secondo, altrimenti. */
+      if(planata(p)) obiettivo=Math.min(obiettivo,5.5);
+      /* E LA VELOCITA' NON SALTA. Era questa la seconda causa degli scatti:
+         passando la soglia di un ambiente si andava da 30 m/s a 5,5 IN UN
+         FOTOGRAMMA, e ai cambi di quota la legge dell'altitudine faceva lo
+         stesso in piccolo. Un filtro del primo ordine ci mette circa mezzo
+         secondo ad arrivare al valore nuovo: la curva resta quella, cambia
+         solo come la si percorre. */
+      velGiro += (obiettivo-velGiro)*Math.min(1,dt*2.2);
+      const vel=velGiro;
       giroU+=dt*vel/LGIRO; if(giroU>=1) giroU-=1;
-      pos.copy(p); guardaVerso(curvaMira.getPointAt(giroU));
+      /* LA MIRA VA PRESA ALLO STESSO PUNTO DELLA CURVA, NON ALLA STESSA
+         LUNGHEZZA. getPointAt() e' parametrizzato sull'ARCO: le due curve
+         hanno lunghezze diverse e distribuzioni diverse, quindi allo stesso
+         u l'occhio sta al waypoint 20 e la mira magari al 18 — e si guarda
+         tutt'altra parte. E' il motivo per cui entrando in chiesa si era
+         fuori squadra di 74 gradi, e per cui spostare i waypoint non
+         cambiava niente: il difetto non era nei punti, era nell'indice.
+         getUtoTmapping converte la lunghezza in parametro; valutando la
+         mira su quel parametro le due curve tornano appaiate coppia per
+         coppia, come sono scritte. */
+      pos.copy(p);
+      const tG=curvaOcchio.getUtoTmapping(giroU);
+      guardaVersoMorbido(curvaMira.getPoint(tG),dt,2.6);
       inVolo=true;
     }
   } else if(scivT>=0 && velo.style.display!=='flex'){
