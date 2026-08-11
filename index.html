@@ -1136,7 +1136,12 @@ const mondo=new THREE.Group(); scene.add(mondo);
      quando si apre, va a stendersi qui sopra e fa ombra alle automobili
      (fotografia annotata): i posti auto arrivano quindi fin sotto l'ultima
      campata, e senza questo tratto il tetto aperto finiva sul prato. */
-  tappeto(matAsfalto,36,26,65.5,-54,0.021);
+  /* A 0,021 questo piazzale stava UN MILLIMETRO sopra la striscia del
+     parcheggio (0,020), e dove si sovrappongono le due superfici si
+     contendono il pixel: e' lo sfarfallio davanti alle piscine. Due piani
+     complanari non si separano "quel tanto che basta", si separano di un
+     paio di centimetri. */
+  tappeto(matAsfalto,36,26,65.5,-54,0.038);
   tappeto(matAsfalto,6,190,-82,10,0.02);
   /* LA STRADA DAVANTI ALLA CHIESA (Andrea). Fra la rotatoria — che sta a
      (-0,3 · -53,4) con otto metri e mezzo di raggio — e la strada di
@@ -2611,17 +2616,18 @@ function faroLed(x,y,z,ry){
           box(gt,0.17,HP2-0.14,0.07,piega,sg*0.03,HP2/2,
               -MEZZO/2+0.28+k*(MEZZO-0.6)/4,false);
         box(gt,0.17,0.16,MEZZO-0.05,orlo,sg*0.02,0.09,0,false); /* zavorra */
-        TENDE.push({g:gt, zC:zChiuso, zA:zAperto, px:px});});});
-    let ap=0;
+        TENDE.push({g:gt, zC:zChiuso, zA:zAperto, px:px, ap:0});});});
+    /* OGNI SIPARIO RISPONDE AL PROPRIO VARCO. Prima li comandava la
+       distanza MINIMA fra i due, quindi avvicinandosi a levante si apriva
+       anche quello di ponente: entrando lo si trovava gia' aperto in fondo
+       alla sala; poi, attraversando, nessuno dei due era piu' entro
+       diciotto metri e si richiudevano tutti, per riaprirsi in uscita.
+       Chiuso, poi si apre — uno per volta, quando ci si arriva davvero. */
     AGGIORNA.push(function(dt){
-      /* si aprono quando ci si avvicina all'edificio, tutte e due insieme:
-         chi entra da una parte esce dall'altra, e vedere il secondo sipario
-         gia' aperto in fondo alla sala e' meta' dell'effetto. */
-      const d=Math.min(Math.hypot(pos.x-(cx+w/2),pos.z-cz),
-                       Math.hypot(pos.x-xW,pos.z-cz));
-      ap += ((d<26?1:0)-ap)*Math.min(1,dt*1.7);
-      const k=ap*ap*(3-2*ap);
       TENDE.forEach(function(t){
+        const d=Math.hypot(pos.x-t.px,pos.z-cz);
+        t.ap += ((d<18?1:0)-t.ap)*Math.min(1,dt*3.0);
+        const k=t.ap*t.ap*(3-2*t.ap);
         t.g.position.z = t.zC+(t.zA-t.zC)*k;
         t.g.scale.z = 1-0.66*k;});});
   })();
@@ -2685,7 +2691,13 @@ function faroLed(x,y,z,ry){
 
   /* --- IL VARCO D'INGRESSO, a misura d'uomo (3,2 x 4,4) ------------- */
   const HP=3.2, LP=4.4;
-  box(g,0.26,HP,LP,lam(0x141518),xE+0.14,HP/2,cz,false);   /* il buio dentro */
+  /* IL FINTO BUIO NON C'E' PIU'. Era un pannello nero che riempiva tutta la
+     luce del varco, messo quando dentro non c'era niente e serviva a non far
+     vedere il prato attraverso il tendone. Adesso dentro c'e' l'Arena — palco,
+     platea, tribune — e quel pannello faceva due danni: chiudeva l'ingresso e
+     sembrava un sipario nero che non si apriva mai. Stessa famiglia dell'atrio
+     posticcio della chiesa: una finta messa quando mancava la cosa vera, e
+     rimasta li' dopo che la cosa vera era arrivata. */
   /* i due montanti dell'ossatura che si vedono nel varco */
   [-1,1].forEach(sg=>box(g,0.10,HP,0.10,lam(0x3A3E44),xE-0.10,HP/2,
     cz+sg*LP*0.30,false));
