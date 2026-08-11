@@ -3971,6 +3971,16 @@ function faroLed(x,y,z,ry){
            z0:CZ-27.5+4.5, z1:CZ+27.5-4.5, r0:1.6, dr:0.7, v0:1.5, dv:0.45,
            posti:[[-16,44,0],[-11,50,0],[-4,47,0],[-14,58,0],[-6,62,0],
                   [-13,66,1],[-5,70,1],[-16,74,1],[-8,78,1],[-2,56,1]]});
+  /* I DUE PORTIERI. Non stanno nella formazione: hanno una regola loro —
+     restano sulla linea di porta e si spostano di lato seguendo la palla,
+     dentro la larghezza dei pali. Divisa diversa da tutti e due i colori
+     in campo, come nel regolamento. */
+  const DIV_PORT=[{maglia:0xC9A22E,calz:0x2A2E34,calze:0xC9A22E},
+                  {maglia:0x6E4A8C,calz:0x2A2E34,calze:0x6E4A8C}];
+  [[34.6,0],[84.4,1]].forEach(function(q,i){
+    const p=giocatore(CX,q[0],DIV_PORT,q[1],i+6,i*2.1,0.5,1.4,
+                      {campo:'calcio'});
+    mossi[mossi.length-1].port=q[0];});
   pallone(0xF2F0EA,0.11,CX-2,CZ+3,7.5,9.0,0.70,'terra');
 
   /* ---- BASKET: tre contro tre. Il campo e' 28 x 15, x[-22,6 · 5,4]
@@ -4054,6 +4064,10 @@ function faroLed(x,y,z,ry){
     }
     g.forEach(function(m,i){
       const dpx=c.bx-m.x, dpz=c.bz-m.z, d=Math.hypot(dpx,dpz);
+      if(m.port!==undefined){            /* il portiere: sulla linea, di lato */
+        m.tx=Math.max(-12.2,Math.min(-5.0,c.bx));
+        m.tz=m.port+(c.bz-m.port)*0.035;  /* esce di un passo se la palla viene */
+        return;}
       if(m===g[c.chi]){ m.tx=c.bx+(m.sq?-3:3)*0; m.tz=c.bz+(m.sq?-2.2:2.2); }
       else if(d<11 && m.sq!==g[c.chi].sq){ m.tx=c.bx; m.tz=c.bz; }
       else versoLaPalla(m,c,0.55);
@@ -6753,7 +6767,7 @@ function apriIntro(){
         +'<b>W A S D</b> camminare · <b>E</b> stacchi da terra e voli · <b>Q</b> scendi<br>'
         +'<b>Esc</b> libera il mouse · punta la cassetta col <b>mirino</b> e fai clic')
     +'</div>'
-    +'<div class="bottoni"><button onclick="viaAlGioco()">Guarda il campus</button></div>'
+    +'<div class="bottoni"><button onclick="viaAlGioco()">Visita il Campus</button></div>'
     +'</div>','card');}
 /* SI ENTRA COL GIRO DEL CAMPUS (Andrea). Prima si atterrava al portale e
    la caccia partiva subito; adesso la prima cosa che si vede e' il volo,
