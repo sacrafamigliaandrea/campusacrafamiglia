@@ -2789,11 +2789,36 @@ function faroLed(x,y,z,ry){
     /* i due muri lunghi: pannelli verde-grigio fra lesene di mattoni */
     [-1,1].forEach(s=>{
       const px=s*W/2;
+      /* IL MURO DI LEVANTE HA IL VANO DELLA MONOFORA CHE SI APRE. Aprendo
+         l'anta si vedeva il MURO: la vetrata era solo un pannello dipinto
+         all'interno, e il guscio restava pieno — lo stesso errore del
+         portale, dove il campo di mattoni chiudeva il portone appena
+         spalancato. Qui il muro si spezza in quattro attorno al buco:
+         sotto il davanzale, sopra l'arco e le due fasce laterali.
+         Coordinate LOCALI del gruppo chiesa (che sta a -36,95 · -34,45):
+         la finestra del volo, che nel mondo e' a x=-32,95 z=-24,30, qui
+         cade a z=+10,15; luce 0,86, davanzale 2,90, imposta 6,25. */
+      if(s===1){
+        const zF=10.15, LFv=0.86, yD=2.90, yA=6.25, zA=ZF+PF, zB=ZR;
+        [[zA,zF-LFv/2],[zF+LFv/2,zB]].forEach(function(q){
+          solido(box(g,0.36,H,q[1]-q[0],mFianco,px,H/2,(q[0]+q[1])/2,true));});
+        solido(box(g,0.36,yD,LFv,mFianco,px,yD/2,zF,true));
+        solido(box(g,0.36,H-yA,LFv,mFianco,px,yA+(H-yA)/2,zF,true));
+      } else
       solido(box(g,0.36,H,L-PF,mFianco,px,H/2,(ZF+PF+ZR)/2,true));
       /* i pannelli, appena rientrati */
       const n=5, z0=ZF+PF+0.9, z1=ZR-0.9, passo=(z1-z0)/n;
-      for(let i=0;i<n;i++)
-        box(g,0.10,H-1.1-2.0,passo-0.9,matVerde,px+s*0.14,1.1+(H-1.1-2.0)/2,z0+passo*(i+0.5),false);
+      for(let i=0;i<n;i++){
+        const zc=z0+passo*(i+0.5);
+        /* il pannello che copre la monofora apribile si spezza in due,
+           altrimenti aprendo l'anta si vede lui invece del cielo */
+        if(s===1 && Math.abs(zc-10.15)<passo/2){
+          [[zc-passo/2+0.45,10.15-0.55],[10.15+0.55,zc+passo/2-0.45]].forEach(function(q){
+            if(q[1]-q[0]>0.2)
+              box(g,0.10,H-1.1-2.0,q[1]-q[0],matVerde,px+s*0.14,
+                  1.1+(H-1.1-2.0)/2,(q[0]+q[1])/2,false);});
+          continue;}
+        box(g,0.10,H-1.1-2.0,passo-0.9,matVerde,px+s*0.14,1.1+(H-1.1-2.0)/2,zc,false);}
       /* zoccolo di cemento e fascia di mattoni sotto la gronda: gia' nel
          muro, qui solo lo zoccolo chiaro che nelle foto e' evidente */
       box(g,0.13,1.10,L-PF,matZocc,px+s*0.13,0.55,(ZF+PF+ZR)/2,false);
@@ -3152,10 +3177,19 @@ function faroLed(x,y,z,ry){
     return c;}
   const YB=1.10, YT2=6.40;                       /* zoccolo e imposta volta */
   [X0,X1].forEach((px,s)=>{
-    const m=new THREE.Mesh(new THREE.PlaneGeometry(ZS-ZN-0.2,YT2-YB),
-      new THREE.MeshBasicMaterial({map:tex(pareteDipinta(2048,420),false)}));
-    m.position.set(px+(s?-0.05:0.05),(YB+YT2)/2,(ZN+ZS)/2);
-    m.rotation.y=s?-Math.PI/2:Math.PI/2; g.add(m);
+    /* IL RIVESTIMENTO AFFRESCATO LASCIA IL VANO DELLA MONOFORA APRIBILE
+       (mondo: x=-32,95 z=-24,30, luce 0,86). Era un piano unico da parete a
+       parete: aprendo l'anta si vedeva lui, dipinto, invece del cielo. Terzo
+       strato della stessa famiglia — guscio, pannello esterno, affresco: un
+       varco non e' aperto finche' non lo sono TUTTI. */
+    const tratti = (s===1)
+      ? [[ZN+0.1,-24.30-0.50],[-24.30+0.50,ZS-0.1]]
+      : [[ZN+0.1,ZS-0.1]];
+    tratti.forEach(function(q){
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(q[1]-q[0],YT2-YB),
+        new THREE.MeshBasicMaterial({map:tex(pareteDipinta(2048,420),false)}));
+      m.position.set(px+(s?-0.05:0.05),(YB+YT2)/2,(q[0]+q[1])/2);
+      m.rotation.y=s?-Math.PI/2:Math.PI/2; g.add(m);});
     /* lo zoccolo scuro sotto gli affreschi */
     box(g,0.10,YB,ZS-ZN,em(0x6E3A30,0x241210),px+(s?-0.05:0.05),YB/2,
         (ZN+ZS)/2,false);});
@@ -3178,8 +3212,36 @@ function faroLed(x,y,z,ry){
       const m=new THREE.Mesh(new THREE.ShapeGeometry(sh,12),
         new THREE.MeshBasicMaterial({
           map:mappaShape(tex(vetrata(),false),LF,HA-HD)}));
-      m.position.set(px+(s?-0.15:0.15),HD,pz);
-      m.rotation.y=s?-Math.PI/2:Math.PI/2; g.add(m);
+      /* L'ULTIMA MONOFORA DI LEVANTE E' UN BATTENTE CHE SI APRE. E' quella
+         da cui esce il volo (i=5, x=-32,95, z=-24,30): un'anta sola,
+         incernierata sullo stipite di mezzogiorno, che si spalanca VERSO
+         LEVANTE — la stessa direzione in cui punta la mira quando si esce.
+         Il verso non l'ho indovinato: per un pannello a distanza -LF/2
+         dalla cerniera, ruotando di `a` intorno a Y lo spigolo libero si
+         sposta di -LF/2·sin(a) lungo X, quindi serve `a` NEGATIVO perche'
+         vada a levante. */
+      if(s===1 && i===5){
+        const gA=new THREE.Group();
+        gA.position.set(px,0,pz+LF/2); gA.userData.animato=true; g.add(gA);
+        m.position.set(-0.15,HD,-LF/2);
+        m.rotation.y=-Math.PI/2; gA.add(m);
+        /* il telaio del battente, cosi' aprendosi si vede che e' un'anta */
+        box(gA,0.07,HA-HD+0.06,0.06,em(0xC9C4B4,0x3A3830),-0.13,
+            HD+(HA-HD)/2,-LF+0.03,false);
+        box(gA,0.07,0.06,LF,em(0xC9C4B4,0x3A3830),-0.13,HD+0.03,-LF/2,false);
+        let ap=0;
+        AGGIORNA.push(function(dt){
+          const d=Math.hypot(pos.x-px,pos.z-pz);
+          ap += ((d<13?1:0)-ap)*Math.min(1,dt*2.4);
+          /* VERSO L'INTERNO (Andrea). Lo spigolo libero sta a -LF/2 dalla
+             cerniera, quindi ruotando di `a` si sposta di -LF/2·sin(a)
+             lungo X: con `a` POSITIVO va a ponente, cioe' dentro la navata.
+             Prima era negativo e si apriva verso il campo. */
+          gA.rotation.y=1.20*ap;});
+      } else {
+        m.position.set(px+(s?-0.15:0.15),HD,pz);
+        m.rotation.y=s?-Math.PI/2:Math.PI/2; g.add(m);
+      }
       /* strombatura e davanzale di intonaco */
       box(g,0.12,0.14,LF+0.34,em(0xE2DDD0,0x3C3A34),px+(s?-0.11:0.11),
           HD-0.09,pz,false);});}
