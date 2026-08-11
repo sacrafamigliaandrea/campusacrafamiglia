@@ -2375,18 +2375,52 @@ function faroLed(x,y,z,ry){
    LABORATORIO DI SCIENZE. Sotto: mensa, cucina e la zona dei padri.
    Quindi e' a DUE PIANI, non a uno — con il suo tetto a falde. */
 (function corpoSud(){
-  const x0=-52.6,x1=-24.6,z0=24.5,z1=32.7,h=7.4;
+  /* NON E' UN CORPO SOLO (Andrea, confronto 3D/originale). Sono DUE:
+       corpo lungo   x[-52,6 · -33,6]  TRE piani, BIANCO, tetto a FALDA
+                     NASCOSTA dietro un parapetto — da fuori non si vedono
+                     coppi, si vede un bordo orizzontale continuo;
+       testata est   x[-33,6 · -24,6]  DUE piani, ROSSO MATTONE, e QUESTA
+                     si' col tetto in coppi a padiglione.
+     Io li avevo fatti uguali: un unico volume ocra a due piani con le
+     falde a vista. Sbagliati altezza, colore e tipo di copertura.
+     IL GIUNTO A x=-33,6 E' UNA STIMA, non una misura: sulla zenitale il
+     manto in coppi risulta continuo per tutta la lunghezza e lo stacco non
+     si legge. Lo scrivo qui perche' il prossimo che passa lo sappia. */
+  const x0=-52.6,x1=-33.6,z0=24.5,z1=32.7,h=10.6;   /* tre piani */
+  const XT=-24.6;                                   /* fine della testata  */
   /* La foto `edificio aula informatica` porta le etichette scritte sopra:
      aula di musica, laboratorio di informatica, pensilina, mensa. E' il corpo
      OCRA a due piani con tetto in coppi. */
-  corpo({x0:x0,x1:x1,z0:z0,z1:z1,h:h,col:0xE0A45E,alt:2.9,
-    finN:(()=>{const f=[];for(let r=0;r<2;r++)for(let i=0;i<9;i++)
-      f.push({fx:0.06+i*0.11,fy:1.8+r*3.44,fw:1.9,fh:1.5});return f;})(),
-    finS:(()=>{const f=[];for(let r=0;r<2;r++)for(let i=0;i<7;i++)
-      f.push({fx:0.08+i*0.14,fy:1.8+r*3.44,fw:1.5,fh:1.4});return f;})(),
+  corpo({x0:x0,x1:x1,z0:z0,z1:z1,h:h,col:0xF2F0EA,alt:0.0,
+    finN:(()=>{const f=[];for(let r=0;r<3;r++)for(let i=0;i<9;i++)
+      f.push({fx:0.06+i*0.11,fy:1.8+r*3.30,fw:1.9,fh:1.5});return f;})(),
+    finS:(()=>{const f=[];for(let r=0;r<3;r++)for(let i=0;i<7;i++)
+      f.push({fx:0.08+i*0.14,fy:1.8+r*3.30,fw:1.5,fh:1.4});return f;})(),
     finO:griglia(2,2,1.8,3.44,1.4,1.4),
     tOpt:{tipo:'capanna',colTimpano:0xE9DEC6,comignoli:[[6,0,1.3]]}});
-  for(let i=0;i<5;i++) pluviale(x0+2+i*6.5,z0-0.16,h,0);
+  for(let i=0;i<4;i++) pluviale(x0+2+i*5.5,z0-0.16,h,0);
+  /* IL PARAPETTO che nasconde la falda: un cornicione continuo alto 90 cm
+     tutt'intorno, e dentro la falda vera piu' bassa, che da terra non si
+     vede mai. E' quello che da' all'edificio il profilo squadrato invece
+     che a capanna. */
+  (function faldaNascosta(){
+    const L=x1-x0, P=z1-z0, cxx=(x0+x1)/2, czz=(z0+z1)/2;
+    const par=lam(0xF2F0EA), cor=lam(0xDCD6C8);
+    [[L+0.5,0.24,cxx,z0-0.19],[L+0.5,0.24,cxx,z1+0.19],
+     [0.24,P+0.5,x0-0.19,czz],[0.24,P+0.5,x1+0.19,czz]].forEach(function(q){
+      box(mondo,q[0],0.92,q[1],par,q[2],h+0.46,q[3],true);
+      box(mondo,q[0]+0.16,0.12,q[1]+0.16,cor,q[2],h+0.96,q[3],false);});
+    /* la falda dentro, bassa: c'e' ma non si vede da terra */
+    box(mondo,L-0.4,0.20,P-0.4,lam(0xB8AFA0),cxx,h+0.22,czz,false);
+    for(let k=0;k<3;k++)
+      box(mondo,L-1.0,0.14,0.30,lam(0xA89E8E),cxx,h+0.40,z0+1.6+k*(P-3.2)/2,false);
+  })();
+  /* --- LA TESTATA A LEVANTE: due piani, rosso mattone, coppi a vista --- */
+  corpo({x0:x1,x1:XT,z0:z0,z1:z1,h:7.4,col:0xA8483A,alt:2.9,
+    finN:griglia(3,2,1.8,3.44,1.7,1.5),
+    finS:griglia(2,2,1.8,3.44,1.5,1.4),
+    finE:griglia(2,2,1.8,3.44,1.5,1.4),
+    tOpt:{tipo:'padiglione',colTimpano:0xA8483A}});
   /* il LABORATORIO DI SCIENZE sporge verso sud, in fondo al corridoio */
   corpo({x0:-30.3,x1:-24.0,z0:32.7,z1:39.2,h:7.4,col:0xE9DEC6,alt:2.6,
     finE:griglia(2,2,1.8,3.44,1.5,1.4),
