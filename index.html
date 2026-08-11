@@ -190,6 +190,22 @@
 @keyframes coppaSu{from{opacity:0;transform:translateY(26px) scale(.86)}
   to{opacity:1;transform:none}}
 .grande{font-size:19px;line-height:1.55;text-align:center;margin:2px 0 6px}
+/* LA CARD DEL METEO. Icone SVG inline, mai emoji: le emoji cambiano
+   disegno da un sistema all'altro e su iPad diventano tondi colorati che
+   non c'entrano con la palette. */
+.meteoOggi{display:flex;align-items:center;gap:16px;background:#F4F7FC;
+  border:2px solid #C9D3E6;border-radius:18px;padding:14px 16px;margin:12px 0}
+.meteoOggi .gradi{font:700 34px/1 'Lexend',sans-serif;color:#123E90}
+.meteoOggi .min{font-size:15px;color:#5A6472;font-weight:400}
+.meteoOggi .desc{font-size:15px;color:#3A4250;margin-top:2px}
+.settimana{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin:4px 0 2px}
+.gio{background:#F7F9FD;border:1.5px solid #DCE3EF;border-radius:13px;
+  padding:8px 3px;text-align:center}
+.gio b{display:block;font:600 12.5px/1.2 'Lexend',sans-serif;color:#123E90;
+  text-transform:uppercase;letter-spacing:.03em}
+.gio .t{font-size:13px;color:#3A4250;margin-top:3px}
+.gio .t i{color:#8A93A2;font-style:normal}
+.gio svg,.meteoOggi svg{display:block;margin:4px auto}
 #guasto{display:none}
 #guasto.visibile{display:flex;flex-direction:column;gap:8px;position:fixed;
   left:50%;top:50%;transform:translate(-50%,-50%);z-index:9999;max-width:min(560px,88vw);
@@ -331,6 +347,7 @@
   <!-- Al posto del Sottosuolo (che ora si apre dalla card della Coppa)
        l'interruttore giorno/notte: tre stati, e "auto" segue l'ora vera. -->
   <button id="bLuce">Giorno</button>
+  <button id="bMeteo">Meteo</button>
   <div class="sep"></div>
   <button id="bAudio" title="Musica di sottofondo" aria-label="Attiva o spegni la musica">
     <svg id="icoAudio" width="17" height="17" viewBox="0 0 20 20" aria-hidden="true">
@@ -7789,19 +7806,31 @@ window.__campusOk=true;
   };
   const FINESTRE=[];      /* materiali che di notte si accendono */
   let modo='auto';
+  /* LA NUVOLOSITA' E' UNO STATO, NON UN RITOCCO. Il meteo arriva dopo, ma
+     l'interruttore giorno/notte ridipinge il cielo — e in automatico lo
+     rifa ogni cinque minuti. Se il meteo si limitasse a ritoccare i colori
+     una volta, al primo ripasso dell'orologio il cielo tornerebbe sereno
+     mentre la pioggia continua a cadere. Quindi la copertura si mette qui,
+     e chi ridipinge la legge. */
+  let nuvole=0;
   function applicaLuce(){
     const ora=new Date();
     let alt=altezzaSole(ora)*180/Math.PI;
     if(modo==='giorno') alt=42;
     if(modo==='notte')  alt=-18;
     const notte=alt<-4, crepuscolo=alt>=-4&&alt<8;
-    const C = notte?CIELI.notte : (crepuscolo?CIELI.alba:CIELI.giorno);
+    let C = notte?CIELI.notte : (crepuscolo?CIELI.alba:CIELI.giorno);
+    if(nuvole>0.02){                       /* le nuvole spengono i colori */
+      const gr=new THREE.Color(notte?0x1A2338:0x9EA8AE);
+      C=C.map(function(h,i){ return '#'+new THREE.Color(h)
+        .lerp(gr, nuvole*(i<3?0.85:0.45)).getHexString(); });
+    }
     dipingiCielo.apply(null,C);
     scene.fog.color.set(C[2]);
-    scene.fog.far = S.nebbia[1]*(notte?0.55:1);
+    scene.fog.far = S.nebbia[1]*(notte?0.55:1)*(1-nuvole*0.45);
     if(typeof sole!=='undefined'){
       const q=Math.max(0.06,Math.sin(Math.max(alt,-6)*Math.PI/180));
-      sole.intensity = notte ? 0.16 : S.sole*Math.max(0.25,q);
+      sole.intensity = (notte ? 0.16 : S.sole*Math.max(0.25,q))*(1-nuvole*0.62);
       sole.color.setHex(notte?0xAFC4E8:(crepuscolo?0xFFC489:S.tinta));
       const r=170, azi=(ora.getHours()<13?-1:1);
       sole.position.set(azi*r*0.85,
@@ -7915,15 +7944,7 @@ window.__campusOk=true;
   fetch(URL).then(r=>r.json()).then(d=>{
     const c=d&&d.current; if(!c) return;
     const nuv=(c.cloud_cover||0)/100, pio=c.precipitation||0;
-    /* piu' nuvole = cielo piu' piatto, nebbia piu' vicina, sole piu' fioco */
-    const g1=new THREE.Color(S.cielo[0]).lerp(new THREE.Color(0x9EA8AE),nuv*0.85);
-    const g2=new THREE.Color(S.cielo[1]).lerp(new THREE.Color(0xB4BCC0),nuv*0.85);
-    const g3=new THREE.Color(S.cielo[2]).lerp(new THREE.Color(0xC6CACB),nuv*0.7);
-    dipingiCielo('#'+g1.getHexString(),'#'+g2.getHexString(),
-                 '#'+g3.getHexString(),S.cielo[3]);
-    scene.fog.color.set('#'+g3.getHexString());
-    scene.fog.far=S.nebbia[1]*(1-nuv*0.45);
-    if(typeof sole!=='undefined') sole.intensity=S.sole*(1-nuv*0.62);
+    nuvole=nuv; applicaLuce();      /* lo stato cambia, il cielo lo segue */
     /* pioggia o neve: punti che cadono dentro una scatola attorno alla
        camera, riciclati in cima. Sotto zero, o d'inverno, e' neve. */
     if(pio>0.02){
@@ -7955,6 +7976,101 @@ window.__campusOk=true;
       Math.round(nuv*100)+'%');
   }).catch(()=>{ console.log('[Campus3D] meteo non raggiungibile: '+
     'resta il cielo di '+S.nome+'.'); });
+})();
+
+/* ==========================================================================
+   LA CARD DEL METEO — oggi e la settimana, per Orzinuovi
+   --------------------------------------------------------------------------
+   Stessa fonte del cielo (Open-Meteo, senza chiave, coordinate scritte nel
+   codice) ma un'altra chiamata: qui servono i giorni, non l'adesso.
+   ICONE: SVG inline. Niente emoji — su iPad diventano tondi colorati che
+   non c'entrano con la palette, ed e' una regola del progetto.
+   Se non c'e' rete la card lo dice invece di restare vuota.
+   ========================================================================== */
+(function cartaMeteo(){
+  const B=document.getElementById('bMeteo'); if(!B) return;
+  const LAT=45.3974, LON=9.9035;
+  const GG=['dom','lun','mar','mer','gio','ven','sab'];
+
+  /* --- le icone: sole, nuvola, pioggia, neve, nebbia, temporale ------- */
+  function ico(cod,gr){
+    const g=gr||30, S='<svg width="'+g+'" height="'+g+'" viewBox="0 0 40 40">';
+    const sole='<circle cx="20" cy="18" r="8.5" fill="#E8A62A"/>'+
+      '<g stroke="#E8A62A" stroke-width="2.6" stroke-linecap="round">'+
+      '<path d="M20 3v4M20 33v4M3 18h4M33 18h4M8 6l3 3M29 27l3 3M32 6l-3 3M11 27l-3 3"/></g>';
+    const nube='<path d="M11 30h18a6.5 6.5 0 0 0 .4-13A9 9 0 0 0 12 19a5.5 5.5 0 0 0-1 11z"'+
+      ' fill="#B7C4D4"/>';
+    const nubeS='<path d="M11 30h18a6.5 6.5 0 0 0 .4-13A9 9 0 0 0 12 19a5.5 5.5 0 0 0-1 11z"'+
+      ' fill="#8FA0B4"/>';
+    const goc='<g stroke="#3E7BC4" stroke-width="2.4" stroke-linecap="round">'+
+      '<path d="M14 32l-2 5M21 32l-2 5M28 32l-2 5"/></g>';
+    const fio='<g fill="#9FC4E0"><circle cx="13" cy="35" r="2"/>'+
+      '<circle cx="20" cy="36" r="2"/><circle cx="27" cy="35" r="2"/></g>';
+    const neb='<g stroke="#A8B4C2" stroke-width="3" stroke-linecap="round">'+
+      '<path d="M7 16h26M5 23h30M9 30h24"/></g>';
+    const ful='<path d="M21 28l-6 8h4l-2 7 7-9h-4z" fill="#D4A017"/>';
+    let d;
+    if(cod===0) d=sole;
+    else if(cod<=2) d='<circle cx="14" cy="14" r="7" fill="#E8A62A"/>'+nube;
+    else if(cod===3) d=nubeS;
+    else if(cod===45||cod===48) d=neb;
+    else if(cod>=71&&cod<=77||cod===85||cod===86) d=nubeS+fio;
+    else if(cod>=95) d=nubeS+ful;
+    else if(cod>=51) d=nubeS+goc;
+    else d=nube;
+    return S+d+'</svg>';
+  }
+  function parola(c){
+    if(c===0) return 'sereno';
+    if(c<=2) return 'poco nuvoloso';
+    if(c===3) return 'coperto';
+    if(c===45||c===48) return 'nebbia';
+    if(c>=51&&c<=57) return 'pioviggine';
+    if(c>=61&&c<=67) return 'pioggia';
+    if(c>=71&&c<=77||c===85||c===86) return 'neve';
+    if(c>=80&&c<=82) return 'rovesci';
+    if(c>=95) return 'temporale';
+    return 'variabile';
+  }
+
+  let cache=null;
+  const URL='https://api.open-meteo.com/v1/forecast?latitude='+LAT+
+    '&longitude='+LON+'&daily=weather_code,temperature_2m_max,'+
+    'temperature_2m_min,precipitation_sum&forecast_days=7'+
+    '&timezone=Europe%2FRome';
+
+  function disegna(d){
+    const D=d.daily, oggi=new Date(D.time[0]+'T12:00');
+    let h='<div class="occhiello">Orzinuovi</div><h1>Il tempo che fa</h1>'
+      +'<div class="meteoOggi">'+ico(D.weather_code[0],56)
+      +'<div><div class="gradi">'+Math.round(D.temperature_2m_max[0])+'&deg;'
+      +' <span class="min">/ '+Math.round(D.temperature_2m_min[0])+'&deg;</span></div>'
+      +'<div class="desc">Oggi: '+parola(D.weather_code[0])
+      +(D.precipitation_sum[0]>0.1?(' &middot; '+D.precipitation_sum[0].toFixed(1)+' mm'):'')
+      +'</div></div></div><div class="settimana">';
+    for(let i=1;i<7;i++){
+      const g=new Date(D.time[i]+'T12:00');
+      h+='<div class="gio"><b>'+GG[g.getDay()]+'</b>'+ico(D.weather_code[i],26)
+        +'<div class="t">'+Math.round(D.temperature_2m_max[i])+'&deg;'
+        +' <i>'+Math.round(D.temperature_2m_min[i])+'&deg;</i></div></div>';
+    }
+    h+='</div><p style="font-size:14px;color:#5A6472;margin:10px 0 0">'
+      +'Le condizioni meteo reali le trovi anche nel Campus 3D.</p>'
+      +'<div class="bottoni"><button onclick="chiudiFoglio()">Chiudi</button></div>';
+    apriFoglio(h);
+  }
+
+  B.addEventListener('click',function(){
+    if(cache) return disegna(cache);
+    apriFoglio('<div class="occhiello">Orzinuovi</div><h1>Il tempo che fa</h1>'
+      +'<p>Sto guardando fuori&hellip;</p>');
+    fetch(URL).then(r=>r.json()).then(d=>{ cache=d; disegna(d); })
+      .catch(()=>{ apriFoglio('<div class="occhiello">Orzinuovi</div>'
+        +'<h1>Il tempo che fa</h1><p>Adesso non riesco a saperlo: '
+        +'manca la connessione. Il campus resta con il cielo della '
+        +'stagione.</p><div class="bottoni">'
+        +'<button onclick="chiudiFoglio()">Chiudi</button></div>'); });
+  });
 })();
 
 </script>
