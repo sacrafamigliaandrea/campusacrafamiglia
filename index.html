@@ -1786,21 +1786,113 @@ function faroLed(x,y,z,ry){
    riposo, locale caldaia in testa a nord. Due piani, tetto a coppi.
    ====================================================================== */
 (function alaOvest(){
-  const x0=-70.7,x1=-54.4,z0=-24.4,z1=24.5,h=7.2;   /* si salda col corpo sud */
+  /* L'EDIFICIO E' A "L" E I DUE BRACCI SONO DIVERSI (Andrea, confronto
+     3D/originale). Non e' un corpo unico ocra a due piani con le falde in
+     coppi, come l'avevo fatto:
+       braccio LUNGO  z[-24,4 · 13,5]  TRE piani, BIANCO, tetto a FALDA
+                      NASCOSTA dietro un parapetto — da fuori si vede un
+                      bordo orizzontale continuo, non i coppi;
+       braccio CORTO  z[13,5 · 24,5]   DUE piani, ROSSO MATTONE, con i
+                      coppi a vista.
+     Lo stacco a z=13,5 e' dedotto dalla proporzione fra i due bracci nella
+     fotografia: sulla zenitale il manto risulta continuo e il giunto non si
+     legge. Se un giorno si misura, e' l'unico numero da rifare. */
+  /* LA "L" E' TUTTA UGUALE (Andrea, seconda lettura): anche il braccio
+     corto e' a TRE piani, BIANCO, con le grandi vetrate a settentrione.
+     Avevo fatto il braccio corto a due piani rosso mattone: quello era il
+     blocco dell'ALTRA fotografia, non di questa. Un corpo solo, quindi,
+     dall'inizio alla fine. */
+  const x0=-70.7,x1=-54.4,z0=-24.4,z1=24.5,h=10.6;  /* tutta la L, 3 piani */
   /* FOTOGRAFIE 4865-4867, 4926-4929, 4935: l'edificio dell'infanzia e'
      OCRA/ARANCIONE, non crema, con i contorni delle finestre bianchi e una
      FASCIA BORDEAUX al piano terra. Vedi LETTURA-FOTO.md. */
-  const crema=0xE0A45E;
-  corpo({x0:x0,x1:x1,z0:z0,z1:z1,h:h,col:crema,alt:3.0,
-    finO:(()=>{const f=[];for(let i=0;i<9;i++){
-      f.push({fx:0.05+i*0.1125,fy:5.0,fw:1.5,fh:1.5});
-      f.push({fx:0.05+i*0.1125,fy:1.7,fw:1.7,fh:1.7});}return f;})(),
+  const crema=0xF2F0EA;                 /* bianco, non piu' ocra */
+  corpo({x0:x0,x1:x1,z0:z0,z1:z1,h:h,col:crema,alt:0.0,
+    finO:(()=>{const f=[];for(let i=0;i<8;i++){
+      f.push({fx:0.06+i*0.118,fy:8.0,fw:1.5,fh:1.5});
+      f.push({fx:0.06+i*0.118,fy:4.9,fw:1.5,fh:1.5});
+      f.push({fx:0.06+i*0.118,fy:1.7,fw:1.7,fh:1.7});}return f;})(),
     /* NIENTE finestre bucate sul lato del cortile: qui il salone della
        Primaria e' vetrato a nastro su tutta la lunghezza, e il muro pieno
        con la finestrella lo tagliava in due dall'interno. */
-    finN:griglia(3,2,1.8,3.3,1.4,1.5),
-    finS:griglia(3,2,1.8,3.3,1.4,1.5),
-    tOpt:{comignoli:[[0,-14,1.5],[0,10,1.5]]}});
+    finN:griglia(3,3,1.7,3.15,1.4,1.5),
+    finS:griglia(3,3,1.7,3.15,1.4,1.5),
+    tOpt:{piatto:true}});
+  /* IL PARAPETTO che nasconde la falda: cornicione continuo alto 90 cm su
+     tutti e quattro i lati, e dentro la falda vera, piu' bassa, che da
+     terra non si vede mai. E' quello che da' il profilo squadrato invece
+     che a capanna. */
+  (function faldaNascosta(){
+    const L=x1-x0, P=z1-z0, cxx=(x0+x1)/2, czz=(z0+z1)/2;
+    const par=lam(0xF2F0EA), cor=lam(0xDCD6C8);
+    [[L+0.5,0.24,cxx,z0-0.19],[L+0.5,0.24,cxx,z1+0.19],
+     [0.24,P+0.5,x0-0.19,czz],[0.24,P+0.5,x1+0.19,czz]].forEach(function(q){
+      box(mondo,q[0],0.92,q[1],par,q[2],h+0.46,q[3],true);
+      box(mondo,q[0]+0.16,0.12,q[1]+0.16,cor,q[2],h+0.96,q[3],false);});
+    box(mondo,L-0.4,0.20,P-0.4,lam(0xB8AFA0),cxx,h+0.22,czz,false);
+    for(let k=0;k<4;k++)
+      box(mondo,L-1.0,0.14,0.30,lam(0xA89E8E),cxx,h+0.40,z0+2.0+k*(P-4)/3,false);
+  })();
+  /* --- IL CORPO BASSO A MEZZOGIORNO: due piani, rosso mattone ----------
+     Non e' il braccio corto della L — quello e' bianco a tre piani come
+     tutto il resto — ma un volume PIU' BASSO addossato a sud, che nella
+     fotografia si riconosce perche' la sua linea di gronda passa sotto le
+     finestre dell'ultimo piano del corpo alto. Avevo capito che i due
+     fossero la stessa cosa e ne avevo fatto uno solo: sono due. */
+  corpo({x0:x0,x1:x1,z0:z1,z1:z1+8.4,h:7.4,col:0xA8483A,alt:2.9,
+    finO:griglia(3,2,1.8,3.44,1.6,1.5),
+    finS:griglia(4,2,1.8,3.44,1.5,1.4),
+    finE:griglia(2,2,1.8,3.44,1.5,1.4),
+    tOpt:{tipo:'padiglione',colTimpano:0xA8483A}});
+
+  /* LE GRANDI VETRATE A SETTENTRIONE: sul fronte nord, ai tre livelli,
+     al posto delle finestre bucate. */
+  (function vetrateNord(){
+    const vetro=new THREE.MeshPhongMaterial({color:0xBFD2DC,transparent:true,
+      opacity:0.34,shininess:120,specular:0xffffff,side:THREE.DoubleSide,
+      depthWrite:false});
+    const tel=lam(0xE8E4DA), L=x1-x0;
+    for(let r=0;r<3;r++){
+      const y=1.9+r*3.15;
+      const v=new THREE.Mesh(new THREE.PlaneGeometry(L-2.2,2.1),vetro);
+      v.position.set((x0+x1)/2,y+1.05,z0-0.07); mondo.add(v);
+      box(mondo,L-2.0,0.14,0.14,tel,(x0+x1)/2,y+2.15,z0-0.07,false);
+      box(mondo,L-2.0,0.14,0.14,tel,(x0+x1)/2,y-0.02,z0-0.07,false);
+      for(let k=0;k<7;k++)
+        box(mondo,0.11,2.1,0.14,tel,x0+1.4+k*(L-2.8)/6,y+1.05,z0-0.07,false);}
+  })();
+  /* --- L'INGRESSO ARANCIONE CON IL BALCONE SOPRA (fotografia dell'angolo
+     interno della L). E' il segno che rende riconoscibile questo fronte:
+     un volume basso addossato alla facciata, tutto vetrato, con il
+     rivestimento ARANCIONE attorno alle vetrate, e sopra la sua copertura
+     piana fa da TERRAZZO al primo piano, con la ringhiera a bacchette.
+     Sta sull'angolo interno della L, verso la corte. */
+  (function ingressoInfanzia(){
+    const zA=6.0, zB=14.0, sp=3.0, hI=3.45;
+    const aran=lam(0xE05A28), tel=lam(0xE8E4DA), rin=lam(0x6E7278);
+    const vetro=new THREE.MeshPhongMaterial({color:0xBFD2DC,transparent:true,
+      opacity:0.34,shininess:120,specular:0xffffff,side:THREE.DoubleSide,
+      depthWrite:false});
+    const cz=(zA+zB)/2, L=zB-zA, xf=x1+sp;
+    /* il volume: cornice arancione e vetrate dentro */
+    box(mondo,sp,hI,L,aran,x1+sp/2,hI/2,cz,true);
+    box(mondo,0.12,hI-0.9,L-1.0,vetro,xf-0.05,hI/2-0.15,cz,false);
+    [-1,1].forEach(function(sg){
+      box(mondo,sp-0.5,hI-0.9,0.12,vetro,x1+sp/2,hI/2-0.15,cz+sg*(L/2-0.06),false);});
+    /* i montanti chiari del serramento */
+    for(let k=0;k<6;k++)
+      box(mondo,0.14,hI-0.9,0.10,tel,xf-0.03,hI/2-0.15,zA+0.9+k*(L-1.8)/5,false);
+    box(mondo,0.16,0.14,L,tel,xf-0.03,hI-0.55,cz,false);
+    /* il terrazzo sopra, con la ringhiera a bacchette */
+    box(mondo,sp+0.3,0.22,L+0.3,lam(0xC9C4B6),x1+sp/2,hI+0.11,cz,true);
+    box(mondo,0.09,0.95,L+0.3,rin,xf+0.12,hI+0.70,cz,false);
+    [-1,1].forEach(function(sg){
+      box(mondo,sp+0.3,0.95,0.09,rin,x1+sp/2,hI+0.70,cz+sg*(L/2+0.12),false);});
+    for(let k=0;k<Math.round(L/0.22);k++)
+      box(mondo,0.05,0.88,0.05,rin,xf+0.12,hI+0.66,zA-0.1+k*0.22,false);
+    contatto(mondo,x1+sp/2,0.04,cz,sp+2,L+2,0.42);
+  })();
+
   /* il fronte del salone sul cortile: vetrata a nastro ai due livelli */
   vetrataTerra(-13.0,20.0,x1,Math.PI/2);
   /* come sul corpo nord: da z=-5,60 in giu' il fronte del primo piano e' la
@@ -2375,52 +2467,81 @@ function faroLed(x,y,z,ry){
    LABORATORIO DI SCIENZE. Sotto: mensa, cucina e la zona dei padri.
    Quindi e' a DUE PIANI, non a uno — con il suo tetto a falde. */
 (function corpoSud(){
-  /* NON E' UN CORPO SOLO (Andrea, confronto 3D/originale). Sono DUE:
-       corpo lungo   x[-52,6 · -33,6]  TRE piani, BIANCO, tetto a FALDA
-                     NASCOSTA dietro un parapetto — da fuori non si vedono
-                     coppi, si vede un bordo orizzontale continuo;
-       testata est   x[-33,6 · -24,6]  DUE piani, ROSSO MATTONE, e QUESTA
-                     si' col tetto in coppi a padiglione.
-     Io li avevo fatti uguali: un unico volume ocra a due piani con le
-     falde a vista. Sbagliati altezza, colore e tipo di copertura.
-     IL GIUNTO A x=-33,6 E' UNA STIMA, non una misura: sulla zenitale il
-     manto in coppi risulta continuo per tutta la lunghezza e lo stacco non
-     si legge. Lo scrivo qui perche' il prossimo che passa lo sappia. */
-  const x0=-52.6,x1=-33.6,z0=24.5,z1=32.7,h=10.6;   /* tre piani */
-  const XT=-24.6;                                   /* fine della testata  */
+  /* RIPORTATO COM'ERA. Avevo alzato QUESTO a tre piani bianchi col
+     parapetto, ma Andrea ha confermato che l'edificio della sua fotografia
+     e' un altro: qui resta il corpo ocra a due piani con le falde in coppi.
+     Il ritocco sbagliato si annulla, non si lascia li' "tanto poi vediamo". */
+  const x0=-52.6,x1=-24.6,z0=24.5,z1=32.7,h=7.4;
   /* La foto `edificio aula informatica` porta le etichette scritte sopra:
      aula di musica, laboratorio di informatica, pensilina, mensa. E' il corpo
      OCRA a due piani con tetto in coppi. */
-  corpo({x0:x0,x1:x1,z0:z0,z1:z1,h:h,col:0xF2F0EA,alt:0.0,
-    finN:(()=>{const f=[];for(let r=0;r<3;r++)for(let i=0;i<9;i++)
-      f.push({fx:0.06+i*0.11,fy:1.8+r*3.30,fw:1.9,fh:1.5});return f;})(),
-    finS:(()=>{const f=[];for(let r=0;r<3;r++)for(let i=0;i<7;i++)
-      f.push({fx:0.08+i*0.14,fy:1.8+r*3.30,fw:1.5,fh:1.4});return f;})(),
+  corpo({x0:x0,x1:x1,z0:z0,z1:z1,h:h,col:0xE0A45E,alt:2.9,
+    finN:(()=>{const f=[];for(let r=0;r<2;r++)for(let i=0;i<9;i++)
+      f.push({fx:0.06+i*0.11,fy:1.8+r*3.44,fw:1.9,fh:1.5});return f;})(),
+    finS:(()=>{const f=[];for(let r=0;r<2;r++)for(let i=0;i<7;i++)
+      f.push({fx:0.08+i*0.14,fy:1.8+r*3.44,fw:1.5,fh:1.4});return f;})(),
     finO:griglia(2,2,1.8,3.44,1.4,1.4),
     tOpt:{tipo:'capanna',colTimpano:0xE9DEC6,comignoli:[[6,0,1.3]]}});
-  for(let i=0;i<4;i++) pluviale(x0+2+i*5.5,z0-0.16,h,0);
-  /* IL PARAPETTO che nasconde la falda: un cornicione continuo alto 90 cm
-     tutt'intorno, e dentro la falda vera piu' bassa, che da terra non si
-     vede mai. E' quello che da' all'edificio il profilo squadrato invece
-     che a capanna. */
-  (function faldaNascosta(){
-    const L=x1-x0, P=z1-z0, cxx=(x0+x1)/2, czz=(z0+z1)/2;
-    const par=lam(0xF2F0EA), cor=lam(0xDCD6C8);
-    [[L+0.5,0.24,cxx,z0-0.19],[L+0.5,0.24,cxx,z1+0.19],
-     [0.24,P+0.5,x0-0.19,czz],[0.24,P+0.5,x1+0.19,czz]].forEach(function(q){
-      box(mondo,q[0],0.92,q[1],par,q[2],h+0.46,q[3],true);
-      box(mondo,q[0]+0.16,0.12,q[1]+0.16,cor,q[2],h+0.96,q[3],false);});
-    /* la falda dentro, bassa: c'e' ma non si vede da terra */
-    box(mondo,L-0.4,0.20,P-0.4,lam(0xB8AFA0),cxx,h+0.22,czz,false);
-    for(let k=0;k<3;k++)
-      box(mondo,L-1.0,0.14,0.30,lam(0xA89E8E),cxx,h+0.40,z0+1.6+k*(P-3.2)/2,false);
+  for(let i=0;i<5;i++) pluviale(x0+2+i*6.5,z0-0.16,h,0);
+  /* --- IL FRONTE NORD SULLA CORTE (fotografia frontale) -----------------
+     Tre segni che l'ocra liscio da solo non da':
+     1. LE LESENE ARANCIONI: fasce verticali piu' sature fra una campata e
+        l'altra, dal terreno alla gronda. Sono la prima cosa che si vede;
+        senza, la facciata e' un muro giallo con dei buchi.
+     2. LA PENSILINA IN COPPI A MEZZA ALTEZZA: una falda continua per tutta
+        la lunghezza fra i due piani, sopra il camminamento. Divide la
+        facciata in due fasce ed e' il motivo per cui l'edificio non legge
+        come due piani pieni.
+     3. GLI AERATORI: bocchette scure orizzontali sopra le finestre alte,
+        appena sotto la gronda, con le lampade in mezzo.
+     ---------------------------------------------------------------------- */
+  (function fronteCorte(){
+    const L2=x1-x0, zz=z0-0.10;
+    const aran=lam(0xD98A3C), coppi=lam(0xA85A3C), scuro=lam(0x3A3630),
+          lamp=lam(0xE8E4DA);
+    for(let i=0;i<=9;i++)
+      box(mondo,0.62,h,0.16,aran,x0+L2*(0.005+i*0.11),h/2,zz,true);
+    const yP=3.52, sp=1.35;
+    const f=box(mondo,L2+0.4,0.22,sp,coppi,(x0+x1)/2,yP+0.24,zz-sp/2,true);
+    f.rotation.x=-Math.atan2(0.42,sp);
+    box(mondo,L2+0.5,0.16,0.14,lam(0x8E5E42),(x0+x1)/2,yP+0.02,zz-sp-0.05,false);
+    for(let i=0;i<8;i++)
+      box(mondo,0.12,0.44,0.12,lam(0xC9C4B6),x0+1.6+i*(L2-3.2)/7,yP-0.22,
+          zz-sp+0.14,false);
+    for(let i=0;i<9;i++){
+      const px=x0+L2*(0.06+i*0.11)+0.95;
+      box(mondo,1.30,0.20,0.09,scuro,px,h-0.62,zz,false);
+      if(i%3===1) box(mondo,0.34,0.14,0.14,lamp,px,h-1.05,zz-0.04,false);}
   })();
-  /* --- LA TESTATA A LEVANTE: due piani, rosso mattone, coppi a vista --- */
-  corpo({x0:x1,x1:XT,z0:z0,z1:z1,h:7.4,col:0xA8483A,alt:2.9,
-    finN:griglia(3,2,1.8,3.44,1.7,1.5),
-    finS:griglia(2,2,1.8,3.44,1.5,1.4),
-    finE:griglia(2,2,1.8,3.44,1.5,1.4),
-    tOpt:{tipo:'padiglione',colTimpano:0xA8483A}});
+
+  /* --- LE TAPPARELLE (fotografia del cortile) --------------------------
+     Sono il segno che caratterizza questo fronte: tapparelle grigie, alcune
+     calate a meta' e altre quasi chiuse — mai tutte uguali, che e' proprio
+     quello che si vede. Sopra ogni finestra il CASSONETTO, e intorno la
+     mostra chiara che stacca sull'ocra.
+     Le posizioni seguono le stesse griglie delle finestre del corpo, cosi'
+     se un giorno le finestre si spostano bastano quei numeri. */
+  (function tapparelle(){
+    const grig=lam(0xA8A9A4), cass=lam(0xC9C4B6);
+    const rnd=seme(3391);
+    [[z0-0.13,9,0.06,0.11,1.9,1.5],[z1+0.13,7,0.08,0.14,1.5,1.4]]
+     .forEach(function(F,lato){
+      const zz=F[0], n=F[1], L=x1-x0;
+      for(let r=0;r<2;r++) for(let i=0;i<n;i++){
+        const cx=x0+L*(F[2]+i*F[3])+F[4]/2, cy=1.8+r*3.44+F[5]/2;
+        /* NIENTE MOSTRA: la finestra la disegna gia' corpo(), e ridisegnarla
+           qui davanti la faceva sembrare DOPPIA (Andrea). La tapparella si
+           limita a quello che la finestra non ha — cassonetto e telo. */
+        /* cassonetto sopra */
+        box(mondo,F[4]+0.30,0.24,0.13,cass,cx,cy+F[5]/2+0.20,zz,false);
+        /* il telo calato: altezza a caso fra un quarto e quasi tutto */
+        const q=0.25+rnd()*0.6;
+        box(mondo,F[4],F[5]*q,0.07,grig,cx,cy+F[5]/2-F[5]*q/2,zz-0.01,false);
+        /* le stecche */
+        for(let k=1;k<Math.round(F[5]*q/0.16);k++)
+          box(mondo,F[4]-0.03,0.02,0.09,lam(0x8E8F8A),cx,
+              cy+F[5]/2-k*0.16,zz-0.015,false);}});
+  })();
   /* il LABORATORIO DI SCIENZE sporge verso sud, in fondo al corridoio */
   corpo({x0:-30.3,x1:-24.0,z0:32.7,z1:39.2,h:7.4,col:0xE9DEC6,alt:2.6,
     finE:griglia(2,2,1.8,3.44,1.5,1.4),
@@ -6994,100 +7115,69 @@ if(TOCCO){
     if(t) provaClic(t.clientX,t.clientY);},{passive:true});
 }
 
-/* ===================== musica di sottofondo (YouTube IFrame API) ========
-   Regole gia' imparate: sempre youtube.com/embed, mai nocookie; l'autoplay
-   parte solo dopo un gesto reale (il clic su "Comincia dal portale"); loop
-   rifatto a mano su ENDED; se l'embed e' vietato (errore 101/150) il brano
-   non parte in nessuna pagina, quindi si nasconde il comando invece di
-   lasciare un pulsante che non fa nulla. */
-const MUSICA_ID='1WRP1GzukN8';
-let ytPlayer=null, ytPronto=false, ytGuasto=false, musicaChiesta=false;
-let audioOn=true;
+/* ==========================================================================
+   MUSICA DI SOTTOFONDO — file locale, non piu' YouTube
+   --------------------------------------------------------------------------
+   Sostituisce l'IFrame API. Il perche' e' tutto in una riga: un iframe di
+   YouTube tiene aperte richieste sue e il browser mostra la pagina come "in
+   caricamento" finche' resta li'. Non era un difetto da correggere — era
+   cosa significa incorporare YouTube — e ce ne siamo accorti tre volte
+   prima di capire che l'unica cura era toglierlo.
+   Con `music.mp3` (3,6 MB, 128 kbps) spariscono insieme: la rotellina
+   infinita, la dipendenza da una rete che in aula a volte non c'e', il
+   ritardo del primo clic che non suonava, e il caricamento di risorse di
+   terze parti su ogni iPad che apre l'app.
+
+   L'AUTOPLAY RESTA VIETATO anche per un file locale: i browser lo
+   consentono solo dopo un gesto vero dell'utente. Qui il gesto e' il
+   pulsante "Visita il Campus" — avviaMusica() e' chiamata li'. Se per
+   qualche motivo il play viene rifiutato, il comando resta e basta
+   premerlo: non si nasconde niente e non si mente all'utente.
+   ========================================================================== */
+const MUSICA_FILE='music.mp3';
+let audio=null, audioOn=true, musicaChiesta=false;
 try{ const v=localStorage.getItem('campus3d_audio'); if(v!==null) audioOn=(v==='1'); }catch(e){}
 
 function segnaAudio(){
-  const b=$('bAudio');
+  const b=$('bAudio'); if(!b) return;
   b.classList.toggle('spento',!audioOn);
   $('onde').style.display=audioOn?'':'none';
   $('crocetta').style.display=audioOn?'none':'';
   $('etAudio').textContent=audioOn?'Musica':'Muta';
 }
-function nascondiAudio(){ const b=$('bAudio'); if(b){ b.style.display='none';
-  const s=b.previousElementSibling; if(s&&s.className==='sep') s.style.display='none'; } }
 
-window.onYouTubeIframeAPIReady=function(){
-  ytPlayer=new YT.Player('yt',{
-    videoId:MUSICA_ID, host:'https://www.youtube.com',
-    playerVars:{autoplay:0,controls:0,rel:0,playsinline:1,enablejsapi:1,
-      loop:1,playlist:MUSICA_ID,modestbranding:1,iv_load_policy:3},
-    events:{
-      onReady:()=>{ ytPronto=true; try{ytPlayer.setVolume(22);}catch(e){}
-        if(musicaChiesta&&audioOn) provaSuonare(); },
-      onStateChange:e=>{ if(e.data===YT.PlayerState.ENDED){ try{ytPlayer.seekTo(0);ytPlayer.playVideo();}catch(err){} } },
-      onError:e=>{ ytGuasto=true; nascondiAudio();
-        console.warn('[Campus3D] musica non disponibile (codice '+e.data+
-          '): il video non \u00e8 incorporabile o non esiste. Serve un altro brano.'); }
-    }});
-};
-function provaSuonare(){
-  if(!ytPronto||ytGuasto||!audioOn) return;
-  try{ ytPlayer.setVolume(22); ytPlayer.playVideo(); }catch(e){}
+/* Il file si crea alla PRIMA richiesta, non al caricamento della pagina:
+   cosi' 3,6 MB non partono per chi la musica non la vuole. */
+function creaAudio(){
+  if(audio) return audio;
+  audio=new Audio(MUSICA_FILE);
+  audio.loop=true;          /* il loop lo fa il tag, senza rifarlo a mano */
+  audio.volume=0.22;        /* sottofondo: si deve poter parlare sopra */
+  audio.preload='none';
+  audio.addEventListener('error',function(){
+    console.warn('[Campus3D] '+MUSICA_FILE+' non si carica: '+
+      'controllare che sia nella stessa cartella di index.html, '+
+      'con lo stesso nome minuscolo.');});
+  return audio;
 }
-/* QUESTA E' LA VERA CAUSA. `audioOn` si legge da localStorage, quindi per
-   chi aveva gia' acceso la musica il comando risultava ACCESO fin dal
-   caricamento — ma con YouTube caricato a richiesta non c'era nessun
-   player, e la pagina restava muta. Il primo clic allora SPEGNEVA, il
-   secondo riaccendeva e solo li' partiva: era il sintomo descritto.
-   avviaMusica() viene chiamata al primo gesto vero dell'utente (il pulsante
-   "Visita il Campus"), che e' anche il momento in cui i browser permettono
-   l'audio: e' li' che va scaricato YouTube. Cosi' la pagina si carica senza
-   iframe — niente rotellina infinita — e la musica riparte da sola per chi
-   l'aveva lasciata accesa. */
-function avviaMusica(){ musicaChiesta=true; if(audioOn) caricaYT(); provaSuonare(); }
-/* Rete di sicurezza. Serve in due casi: quando l'autoplay viene bloccato, e
-   quando la partita riprende da un salvataggio — li' la schermata iniziale non
-   compare, quindi non c'e' nessun clic su "Comincia" a sbloccare l'audio.
-   Questi listener scattano solo su un gesto reale, percio' bastano da soli. */
-['pointerdown','keydown','touchend'].forEach(ev=>window.addEventListener(ev,()=>{
-  if(ytGuasto||!audioOn) return;
-  musicaChiesta=true;
-  try{ if(ytPronto&&ytPlayer.getPlayerState&&ytPlayer.getPlayerState()!==1) ytPlayer.playVideo(); }catch(e){}
-},{passive:true}));
+function provaSuonare(){
+  if(!audioOn) return;
+  const a=creaAudio();
+  const p=a.play();
+  if(p&&p.catch) p.catch(function(){
+    /* rifiutato perche' manca il gesto: si riprova al primo clic vero */
+    console.log('[Campus3D] la musica aspetta un tocco.');});
+}
+function avviaMusica(){ musicaChiesta=true; provaSuonare(); }
 
 $('bAudio').addEventListener('click',()=>{
   audioOn=!audioOn; segnaAudio();
   try{ localStorage.setItem('campus3d_audio',audioOn?'1':'0'); }catch(e){}
-  /* IL PRIMO CLIC NON SUONAVA. Caricando YouTube solo su richiesta, al primo
-     clic il player non esiste ancora: si usciva sul `return` e la musica
-     restava zitta. Riaccendendo funzionava, perche' la seconda volta il
-     player c'era — ed e' esattamente il sintomo che hai descritto.
-     Ora il clic REGISTRA la richiesta (`musicaChiesta`), e ci pensa
-     `onReady` a far partire il brano quando il player e' pronto. */
-  if(audioOn){ musicaChiesta=true; caricaYT(); provaSuonare(); }
-  if(!ytPronto||ytGuasto) return;
-  try{ if(!audioOn) ytPlayer.pauseVideo(); }catch(e){}
+  if(audioOn) provaSuonare();
+  else if(audio) audio.pause();
 });
 segnaAudio();
-/* LA ROTELLINA CHE NON SI FERMA MAI (Andrea). L'IFrame API di YouTube
-   veniva caricata all'AVVIO, anche a musica spenta: l'iframe che ne nasce
-   tiene aperte richieste sue e il browser continua a mostrare la pagina
-   come "in caricamento" per sempre. Non e' un difetto della pagina, e'
-   YouTube dentro la pagina — ma per chi guarda e' la stessa cosa.
-   Ora si carica alla PRIMA volta che si accende la musica: chi non la
-   accende non porta in casa nessun iframe, e la pagina finisce di caricarsi
-   in un secondo. E' anche la scelta giusta per una pagina scolastica. */
-let ytChiesto=false;
-function caricaYT(){
-  if(ytChiesto) return; ytChiesto=true;
-  const t=document.createElement('script');
-  t.src='https://www.youtube.com/iframe_api';
-  t.onerror=()=>{ ytGuasto=true; nascondiAudio();
-    console.warn('[Campus3D] IFrame API non raggiungibile: musica disattivata.'); };
-  document.head.appendChild(t);
-  /* se in 8 s l'API non ha risposto, togli il comando invece di lasciarlo muto */
-  setTimeout(()=>{ if(!ytPronto&&!ytGuasto){ ytGuasto=true; nascondiAudio();
-    console.warn('[Campus3D] la musica non si \u00e8 avviata entro 8 s.'); } },8000);
-}
+
 /* ===================== tutorial d'accesso =============================== */
 function apriIntro(){
   apriFoglio(
