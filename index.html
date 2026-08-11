@@ -1110,6 +1110,18 @@ const mondo=new THREE.Group(); scene.add(mondo);
      campata, e senza questo tratto il tetto aperto finiva sul prato. */
   tappeto(matAsfalto,36,26,65.5,-54,0.021);
   tappeto(matAsfalto,6,190,-82,10,0.02);
+  /* LA STRADA DAVANTI ALLA CHIESA (Andrea). Fra la rotatoria — che sta a
+     (-0,3 · -53,4) con otto metri e mezzo di raggio — e la strada di
+     ponente a x=-82 mancava il collegamento: c'era prato, e le due
+     restavano due tronconi. Passa davanti al fronte della chiesa (che e' a
+     z=-49,80) tenendosi cinque metri piu' a mezzogiorno, cosi' non invade
+     il sagrato, e sfiora la rotatoria in tangenza. */
+  /* Le quote: a 0,021 restava SOTTO il piano che copre quella fascia (il
+     raggio verticale lo trovava a 0,05) e non si vedeva. Posata a 0,065,
+     la banchina a 0,07 — sopra tutto quello che c'era, sotto qualunque
+     arredo. */
+  tappeto(matAsfalto,92,6.2,-40,-57.4,0.065);
+  tappeto(matGhiaia,92,1.1,-40,-53.9,0.070);   /* la banchina verso la chiesa */
   tappeto(matAsfalto,5,32,-41,45,0.02);
   tappeto(matGhiaia,91,3.4,32.5,-25.4,0.03);      /* anche la ghiaia si ferma */
   /* ROTONDA — sta ESATTAMENTE IN ASSE COL PORTONE D'INGRESSO della scuola
@@ -3943,6 +3955,7 @@ function faroLed(x,y,z,ry){
                 a:fase,f:fase*1.7,r:raggio,v:vel,
                 campo:O.campo||null, sq:sq, x:hx, z:hz, dir:Math.PI, salto:0});
     if(O.statura&&O.statura!==1) g.scale.setScalar(O.statura);
+    g.userData.rec=mossi[mossi.length-1];   /* per marcarlo da fuori */
     return g;}
 
   /* SCHIERA — mette in campo una formazione dentro un rettangolo dato.
@@ -4133,6 +4146,16 @@ function faroLed(x,y,z,ry){
     mossi.forEach(function(m,i){
       /* si va verso il proprio bersaglio, non su un cerchio */
       if(m.tx===undefined){ m.tx=m.hx; m.tz=m.hz; }
+      /* I BALLERINI. Col vecchio impianto giravano su un cerchio, quindi si
+         muovevano; passando ai bersagli sono rimasti fermi, perche' senza
+         campo il bersaglio e' casa propria. Qui il bersaglio oscilla — due
+         seni di periodo diverso, che e' quanto basta a non far leggere un
+         andirivieni — e il busto gira su se stesso. */
+      if(m.ballo!==undefined){
+        const w=tP*1.9+m.ballo*1.1;
+        m.tx=m.hx+Math.sin(w)*1.15;
+        m.tz=m.hz+Math.sin(w*0.63+1.2)*0.65;
+        m.giravolta=(m.giravolta||0)+dt*(1.1+0.5*Math.sin(w*0.5));}
       const dx=m.tx-m.x, dz=m.tz-m.z, d=Math.hypot(dx,dz);
       const vmax=m.v*1.55, passo=Math.min(d,vmax*dt);
       if(d>0.06){ m.x+=dx/d*passo; m.z+=dz/d*passo;
@@ -4143,7 +4166,7 @@ function faroLed(x,y,z,ry){
       else m.salto=Math.max(0,m.salto-dt*2.4);
       m.vuoleSaltare=false;
       m.g.position.set(m.x,0,m.z);
-      m.g.rotation.y=m.dir+Math.PI;       /* si guarda dove si corre */
+      m.g.rotation.y=(m.ballo!==undefined? m.giravolta||0 : m.dir+Math.PI);
       /* LA FALCATA. fase = 0 quando la gamba passa sotto il corpo.
          anca      = seno puro, avanti e indietro
          ginocchio = SEMPRE flesso all'indietro (mai negativo al contrario),
@@ -4300,6 +4323,7 @@ function faroLed(x,y,z,ry){
     [[-80,1],[-74,0],[-68,1],[-62,0],[-56,1],[-50,0]].forEach((q,i)=>{
       const p=window.creaPersona(q[0],PZ0+2.9,DIV,q[1],i+2,(i*1.9)%6.28,
         0.55,0.9,{y0:PH,coda:i%2===0});
+      if(p.userData.rec) p.userData.rec.ballo=i;   /* questi ballano */
       /* sul palco le luci battono forte: un filo di emissive perche' le
          figure non anneriscano contro il fondale */
       p.traverse(o=>{ if(o.isMesh&&o.material&&o.material.emissive)
@@ -4333,6 +4357,7 @@ function faroLed(x,y,z,ry){
      Guardano tutti il palco, cioe' verso -Z, che e' il fronte del modello.
      Non sono su tutte le sedie: una sala piena in ogni posto e' meno vera
      di una con dei vuoti, e costerebbe il doppio delle mesh. */
+  const APPLAUSI=[];
   const VESTI=[0x2E5B8C,0xB8563E,0x3E7A50,0x8A5FA8,0xC9A23E,0x2A2E34,
                0xD8D3C6,0x5A6470];
   const CARNI=[0xE4C3A0,0xC98F63,0x8B5A38,0xD9AE86];
@@ -4346,8 +4371,15 @@ function faroLed(x,y,z,ry){
     box(g,0.30,0.16,0.30,pa,sx,0.52,sz-0.06,false);         /* cosce      */
     [-1,1].forEach(q=>{
       box(g,0.12,0.42,0.13,pa,sx+q*0.09,0.24,sz-0.20,false);  /* tibie    */
-      box(g,0.13,0.07,0.22,em(0x24282E,0x141618),sx+q*0.09,0.04,sz-0.26,false);
-      box(g,0.09,0.36,0.10,ve,sx+q*0.21,0.80,sz+0.04,false);});/* braccia */
+      box(g,0.13,0.07,0.22,em(0x24282E,0x141618),sx+q*0.09,0.04,sz-0.26,false);});
+    /* LE BRACCIA IN UN GRUPPO, PER APPLAUDIRE (Andrea). Erano due scatole
+       fisse: un pubblico immobile davanti a un palco e' l'unica cosa che
+       nessuno ha mai visto. Il gruppo e' imperniato alle spalle e ruota
+       intorno a X, cosi' le mani salgono e si avvicinano. */
+    const br=new THREE.Group(); br.position.set(sx,0.98,sz+0.02);
+    br.userData.animato=true; g.add(br);
+    [-1,1].forEach(q=>box(br,0.09,0.36,0.10,ve,q*0.21,-0.18,0.02,false));
+    APPLAUSI.push({b:br,f:(i*2.3)%6.28});
     const t=new THREE.Mesh(new THREE.SphereGeometry(0.105,10,8),pe);
     t.position.set(sx,1.10,sz+0.06); g.add(t);
     const c=new THREE.Mesh(new THREE.SphereGeometry(0.112,10,7,0,
@@ -4360,6 +4392,16 @@ function faroLed(x,y,z,ry){
   for(let r=0;r<9;r++) for(let s=0;s<2;s++) for(let k=0;k<22;k++)
     if(rnd() < 0.78-r*0.06)
       spettatore(cx+(s?1.1:-14.3)+k*0.60, 52.8+r*0.95, n++);
+  /* L'APPLAUSO. Non tutti insieme: ognuno ha la sua fase e la sua cadenza,
+     altrimenti quattrocento persone battono le mani all'unisono come un
+     metronomo — che e' peggio di stare ferme. Il ritmo e' quello vero,
+     poco meno di tre battiti al secondo. */
+  let tA=0;
+  AGGIORNA.push(function(dt){
+    tA+=dt;
+    APPLAUSI.forEach(function(a){
+      const w=tA*(16.5+(a.f%1.3)*2.6)+a.f;
+      a.b.rotation.x=-0.95-Math.abs(Math.sin(w))*0.42;});});
 
   /* ---- LE TRIBUNE A U, in fondo (a ponente) --------------------------- */
   /* Un modulo: 6 m di fronte, tre gradoni da 0,45 di alzata e 0,78 di
@@ -6417,11 +6459,21 @@ const GIRO=[
      entrando si era fuori squadra di 74 gradi, con punte di 157. Ora gli
      ultimi tre bersagli stanno tutti su x=-36,95 e la mira arriva dritta
      sull'altare senza oscillare. */
-  [ -62, 24,  -20,  -46, 16,  -60],
-  [  -52, 8.0,-88,   -36.95, 5.5, -68],
-  [  -37, 6.0,-80,   -36.95, 4.2, -62],
+  /* QUI C'ERA UN PUNTO VECCHIO A VENTIQUATTRO METRI — [-62 · 24 · -20] —
+     rimasto da una stesura precedente e mai tolto: la curva scendeva a 9 m,
+     RISALIVA a 24 e ripiombava a 8 nel giro di pochi secondi. Era quello il
+     "cambio di rotta e di quota all'ultimo momento". Sommare il pezzo nuovo
+     al vecchio invece di sostituirlo: l'errore ha un nome e questo e' lui.
+     Ora l'arco passa piu' a NORD della chiesa (fino a z=-92) e rientra
+     sull'asse in TANGENZA, col metro di sorpasso a x=-36,0 che raccorda la
+     virata invece di spezzarla. Quota senza gradini: 9,5 · 8,0 · 6,6 · 5,2
+     · 3,2 · 1,95. */
+  [  -74, 9.5,-78,   -50,  6.5, -72],
+  [  -56, 8.0,-88,   -37,  5.4, -80],
+  [  -42, 6.6,-92,   -36.95, 4.6, -74],
+  [  -36.0,5.2,-84,  -36.95, 3.6, -64],
   /* --- F. DENTRO LA CHIESA, dal portale ------------------------------- */
-  [ -36.95, 3.4, -60,  -36.95, 2.6, -50],
+  [ -36.95, 3.2, -66,  -36.95, 2.6, -52],
   [ -36.95, 1.95,-47,  -36.95, 2.2, -34],
   [ -36.95, 1.95,-32,  -36.95, 2.6, -24],
   /* --- G. SI ESCE DA UNA FINESTRA e si torna in quota ------------------
@@ -6753,11 +6805,22 @@ function avviaMusica(){ musicaChiesta=true; provaSuonare(); }
 $('bAudio').addEventListener('click',()=>{
   audioOn=!audioOn; segnaAudio();
   try{ localStorage.setItem('campus3d_audio',audioOn?'1':'0'); }catch(e){}
+  if(audioOn) caricaYT();          /* si scarica YouTube solo ora */
   if(!ytPronto||ytGuasto) return;
   try{ audioOn?ytPlayer.playVideo():ytPlayer.pauseVideo(); }catch(e){}
 });
 segnaAudio();
-(function caricaYT(){
+/* LA ROTELLINA CHE NON SI FERMA MAI (Andrea). L'IFrame API di YouTube
+   veniva caricata all'AVVIO, anche a musica spenta: l'iframe che ne nasce
+   tiene aperte richieste sue e il browser continua a mostrare la pagina
+   come "in caricamento" per sempre. Non e' un difetto della pagina, e'
+   YouTube dentro la pagina — ma per chi guarda e' la stessa cosa.
+   Ora si carica alla PRIMA volta che si accende la musica: chi non la
+   accende non porta in casa nessun iframe, e la pagina finisce di caricarsi
+   in un secondo. E' anche la scelta giusta per una pagina scolastica. */
+let ytChiesto=false;
+function caricaYT(){
+  if(ytChiesto) return; ytChiesto=true;
   const t=document.createElement('script');
   t.src='https://www.youtube.com/iframe_api';
   t.onerror=()=>{ ytGuasto=true; nascondiAudio();
@@ -6766,7 +6829,7 @@ segnaAudio();
   /* se in 8 s l'API non ha risposto, togli il comando invece di lasciarlo muto */
   setTimeout(()=>{ if(!ytPronto&&!ytGuasto){ ytGuasto=true; nascondiAudio();
     console.warn('[Campus3D] la musica non si \u00e8 avviata entro 8 s.'); } },8000);
-})();
+}
 /* ===================== tutorial d'accesso =============================== */
 function apriIntro(){
   apriFoglio(
